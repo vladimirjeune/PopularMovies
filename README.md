@@ -1,7 +1,7 @@
 # PopularMovies
 Project for Udacity course that presents popular movies from an online database.
 
-**Popular Movies App**
+**Popular Movies App:**
 
 This is a project for the Udacity Nanodegree.  
 It will be able to show information about
