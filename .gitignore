@@ -40,6 +40,9 @@ project.properties
 *.ipr
 *.iws
 
+## The Movie DB API Key for Popular Movies Project for Udacity
+apiTmd.key
+
 ##Gradle-based build
 .gradle
 build/
