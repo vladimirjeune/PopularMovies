@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Pop Movies</string>
+    <string name="package_name" translatable="false">app.com.vladimirjeune.popmovies</string>
+</resources>
