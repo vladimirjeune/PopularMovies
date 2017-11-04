@@ -9,4 +9,5 @@ popular movies from an online database.
 
 **_Note:_** *A key is needed for the program to work that has not
 been included in this repository. Testers should be aware
-of this and should provide their own key.*  
+of this and should provide their own key.*  Place the key in
+a file called apiTMD.key.  Then place the file in the main/assets/
