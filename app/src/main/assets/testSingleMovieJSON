@@ -1,0 +1,75 @@
+{
+  "adult": false,
+  "backdrop_path": "/bt6DhdALyhf90gReozoQ0y3R3vZ.jpg",
+  "belongs_to_collection": null,
+  "budget": 61000000,
+  "genres": [
+    {
+      "id": 9648,
+      "name": "Mystery"
+    },
+    {
+      "id": 53,
+      "name": "Thriller"
+    },
+    {
+      "id": 18,
+      "name": "Drama"
+    }
+  ],
+  "homepage": "http://www.gonegirlmovie.com/",
+  "id": 210577,
+  "imdb_id": "tt2267998",
+  "original_language": "en",
+  "original_title": "Gone Girl",
+  "overview": "With his wife's disappearance having become the focus of an intense media circus, a man sees the spotlight turned on him when it's suspected that he may not be innocent.",
+  "popularity": 336.888199,
+  "poster_path": "/gdiLTof3rbPDAmPaCf4g6op46bj.jpg",
+  "production_companies": [
+    {
+      "name": "Twentieth Century Fox Film Corporation",
+      "id": 306
+    },
+    {
+      "name": "Regency Enterprises",
+      "id": 508
+    },
+    {
+      "name": "New Regency Pictures",
+      "id": 10104
+    },
+    {
+      "name": "Pacific Standard",
+      "id": 15829
+    },
+    {
+      "name": "TSG Entertainment",
+      "id": 22213
+    },
+    {
+      "name": "Artemple - Hollywood",
+      "id": 60682
+    }
+  ],
+  "production_countries": [
+    {
+      "iso_3166_1": "US",
+      "name": "United States of America"
+    }
+  ],
+  "release_date": "2014-10-01",
+  "revenue": 369330363,
+  "runtime": 145,
+  "spoken_languages": [
+    {
+      "iso_639_1": "en",
+      "name": "English"
+    }
+  ],
+  "status": "Released",
+  "tagline": "You don't know what you've got 'til it's...",
+  "title": "Gone Girl",
+  "video": false,
+  "vote_average": 7.9,
+  "vote_count": 6283
+}
