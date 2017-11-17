@@ -47,7 +47,7 @@ public final class OpenTMDJsonUtils {
      * *Note* - Neither endpoint have movie runtime.  That will have to be obtained from somewhere
      * else.
      * @param context - Necessary if we need to use the Utility functions
-     * @param tmdJSONStr - The JSON dat from the Database
+     * @param tmdJSONStr - The JSON data from the Database
      * @return - ArrayList of Movie data
      */
     public static MovieData[] getPopularOrTopJSON(Context context, String tmdJSONStr) throws JSONException {

@@ -1,6 +1,7 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONException;
+
+import java.io.IOException;
+import java.net.URL;
 
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
@@ -102,29 +106,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    // DBG: KEEPING UNTIL SURE THE NEW WAY WORKS.
-//    /**
-//     * OBTAINTMDKEY - Reads the apiTMD.key file in the assets directory so that we can
-//     * access: <a href="https://www.themoviedb.org/">https://www.themoviedb.org/</a> with
-//     * the assigned key.  Keys can be acquired at the site.  Then string can be placed in
-//     * a file.
-//     */
-//    private void obtainTMDKey() {
-//        // In order for the movie requests to work we must obtain key from file in assets
-//        try {
-//
-//            AssetManager assetManager = getAssets();
-//
-//            Scanner scanner = new Scanner(assetManager.open("apiTmd.key"));
-//
-//            mTMDKey = scanner.next();
-//
-////            Toast.makeText(this, mTMDKey, Toast.LENGTH_LONG).show();
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException io ) {
-//            io.printStackTrace();
-//        }
-//    }
+    public class TMDBQueryTask extends AsyncTask<URL, Void, String> {
+
+        @Override
+        protected String doInBackground(URL... urls) {
+
+            if (0 == urls.length) {
+                return null;
+            }
+
+            URL url =  urls[0];
+            String tmdbJsonString = "";
+            try {
+                tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return tmdbJsonString;
+        }
+    }
+
 }

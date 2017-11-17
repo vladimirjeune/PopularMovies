@@ -2,9 +2,15 @@ package app.com.vladimirjeune.popmovies.utilities;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.net.Uri;
+import android.util.Log;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Scanner;
 
 /**
@@ -14,10 +20,102 @@ import java.util.Scanner;
 
 public final class NetworkUtils {
     public final static String TAG = NetworkUtils.class.getSimpleName();
+    public final static String TMDB_BASE_URL = "https://developers.themoviedb.org/3/movies";
+
+
+    public final static String TMDB_POPULAR = "popular";
+    public final static String TMDB_TOP_RATED = "top_rated";
+
+    // These are the values you want to use for our results.
+    public final static String language = "en-US";
+    public final static String page = "1";  // Not used for single MovieData
+
+    // Queries
+    public final static String TMDB_API_KEY = "api_key";  // Must get key from assets
+    public final static String TMDB_LANGUAGE = "language";
+    public final static String TMDB_PAGE = "page";
 
     // Temp
     public final static String TEST_MOVIE_LIST = "testJSON";
     public final static String TEST_SINGLE_MOVIE = "testSingleMovieJSON";
+
+    /**
+     * BUILDURLFORPOPULARORTOPRATED - The URLs for both endpoints is very similar.  Which one is picked
+     * will be ultimately decided by what the user has set in his sort preferences.
+     * @param context - Needed to obtain key
+     * @return URL - URL that can be used to access appropriate JSON from theMovieDB
+     */
+    private static URL buildUrlForPopularOrTopRated(Context context) {
+        // There will eventually be a SharedPref to get which one it is.  But not yet
+
+        String whichEndpoint = TMDB_POPULAR;  // Temporary change here until SharedPref completed.
+
+        Uri popularTopRatedUri = Uri.parse(TMDB_BASE_URL).buildUpon()
+                .appendPath(whichEndpoint)
+                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .appendQueryParameter(TMDB_PAGE, page)
+                .build();
+        try {
+            URL popularTopRatedURL = new URL(popularTopRatedUri.toString());
+            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
+            return popularTopRatedURL;
+        } catch (MalformedURLException me) {
+            me.printStackTrace();;
+            return null;
+        }
+    }
+
+    /**
+     * BUILDURLFORSINGLEMOVIE - Builds a URL to get the JSON for a single movie from theMovieDb.
+     * @param context -
+     * @param movieId - ID obtained from initial call of top-rated or popular movies.
+     * @return URL - Properly formatted URL for a single movie with the appropriate id from the parameter list
+     */
+    private static URL buildUrlForSingleMovie(Context context, String movieId) {
+
+        Uri singleMovieUri = Uri.parse(TMDB_BASE_URL)
+                .buildUpon()
+                .appendPath(movieId)
+                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .build();
+        try {
+            URL singleMovieURL = new URL(singleMovieUri.toString());
+            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
+            return singleMovieURL;
+        } catch (MalformedURLException me) {
+            me.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * GETRESPONSEFROMHTTPURL - This method returns the entire result from the HTTP response.
+     *
+     * @param url The URL to fetch the HTTP response from.
+     * @return The contents of the HTTP response, null if no response
+     * @throws IOException Related to network and stream reading
+     */
+    public static String getResponseFromHttpUrl(URL url) throws IOException {
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        try {
+            InputStream in = urlConnection.getInputStream();
+
+            Scanner scanner = new Scanner(in);
+            scanner.useDelimiter("\\A");
+
+            boolean hasInput = scanner.hasNext();
+            String response = null;
+            if (hasInput) {
+                response = scanner.next();
+            }
+            scanner.close();
+            return response;
+        } finally {
+            urlConnection.disconnect();
+        }
+    }
 
     /**
      * OBTAINTMDKEY - Reads the apiTMD.key file in the assets directory so that we can
@@ -35,8 +133,6 @@ public final class NetworkUtils {
             Scanner scanner = new Scanner(assetManager.open("apiTmd.key"));
 
             return scanner.next();
-
-//            Toast.makeText(this, mTMDKey, Toast.LENGTH_LONG).show();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
