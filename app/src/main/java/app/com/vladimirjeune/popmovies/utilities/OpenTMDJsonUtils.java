@@ -1,6 +1,7 @@
 package app.com.vladimirjeune.popmovies.utilities;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -16,6 +17,7 @@ import app.com.vladimirjeune.popmovies.MovieData;
 
 public final class OpenTMDJsonUtils {
 
+    private static final String TAG = OpenTMDJsonUtils.class.getSimpleName();
     // These may be needed for the Main page
     private static final String TMD_MOVIE_ID = "id";
     private static final String TMD_ORIGINAL_TITLE = "original_title";
@@ -52,6 +54,7 @@ public final class OpenTMDJsonUtils {
      */
     public static MovieData[] getPopularOrTopJSON(Context context, String tmdJSONStr) throws JSONException {
         MovieData[] parsedMovieDataArray;
+        Log.d(TAG, "BEGIN::getPopularOrTopJSON: ");
 
         JSONObject movieJSONObject = new JSONObject(tmdJSONStr);
         if (isThereDataError(context, movieJSONObject)) {  // If there is a error in data; abort processing.
@@ -73,7 +76,10 @@ public final class OpenTMDJsonUtils {
 
             movieData.setOriginalTitle(movieJson.getString(TMD_ORIGINAL_TITLE));
 
-            movieData.setPosterPath(movieJson.getString(TMD_POSTER_PATH));
+            // If the value is null, optString(), will return an empty string
+            String posterPath = movieJson.optString(TMD_POSTER_PATH);
+            posterPath = (("".equals(posterPath)) ? "" : posterPath.substring(1));  // RMing preceding '/'
+            movieData.setPosterPath(posterPath);
 
             movieData.setSynopsis(movieJson.getString(TMD_SYNOPSIS));
 
@@ -82,7 +88,10 @@ public final class OpenTMDJsonUtils {
 
             movieData.setVoterAverage(movieJson.getDouble(TMD_VOTER_AVERAGE));
 
-            movieData.setBackdropPath(movieJson.getString(TMD_BACKDROP_PATH));
+            // If the value is null, optString(), will return an empty string
+            String backdropPath = movieJson.optString(TMD_BACKDROP_PATH);
+            backdropPath = (("".equals(backdropPath)) ? "" : backdropPath.substring(1));  // RMing preceding '/'
+            movieData.setBackdropPath(backdropPath);
 
             movieData.setPopularity(movieJson.getDouble(TMD_POPULARITY));
 
@@ -91,6 +100,7 @@ public final class OpenTMDJsonUtils {
 
         }
 
+        Log.d(TAG, "END::getPopularOrTopJSON: ");
         return parsedMovieDataArray;
     }
 
@@ -140,9 +150,23 @@ public final class OpenTMDJsonUtils {
 
         JSONObject singleMovieJSON = new JSONObject(singleMovieJSONStr);
 
-        runtimeOfMovie = singleMovieJSON.getInt(TMD_RUNTIME);
+        runtimeOfMovie = singleMovieJSON.optInt(TMD_RUNTIME);  // optInt used so if does not exists or is null returns 0
 
         return runtimeOfMovie;
+    }
+
+    /**
+     * JSONCHECKPRESENTANDNOTNULL - Checks that the key is not null and present. Then checks that
+     * the value is not null.  Necessary because if the value is null, an exception is thrown.
+     * Note: The key we use follows the schema of theMovieDb, so really if this is tripped it means
+     * we got a null value.
+     * This function proceeds under this assumption.
+     * @param aKey - Key to the value we want
+     * @return boolean - whether key is present and value is not null
+     */
+    public static boolean jsonCheckPresentAndNotNull(JSONObject jsonObject, String aKey) {
+        // Is the key not null; is the value the key points to not null.
+        return (jsonObject.has(aKey) && (!jsonObject.isNull(aKey)));
     }
 
 }

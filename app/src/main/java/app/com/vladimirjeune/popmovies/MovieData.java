@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
 /**
@@ -32,6 +33,9 @@ public class MovieData {
     // Status 7: Invalid Key, get Dialog?; Status 34: Resource not found, throw exception.
     private  int statusCode;
     private  String statusMessage = "status_message";
+
+    private Drawable poster;     // Actual poster for this movie
+    private Drawable backdrop; // Actual backdrop for this movie
 
     public int getMovieId() {
         return movieId;
@@ -141,19 +145,38 @@ public class MovieData {
         this.statusMessage = statusMessage;
     }
 
+    public Drawable getPoster() {
+        return poster;
+    }
+
+    public void setPoster(Drawable poster) {
+        this.poster = poster;
+    }
+
+    public Drawable getBackdrop() {
+        return backdrop;
+    }
+
+    public void setBackdrop(Drawable backdrop) {
+        this.backdrop = backdrop;
+    }
+
     public String toString() {
         return TAG + "[ID=" + movieId
-                + "\nOriginal Title=" + originalTitle
-                + "\nPosterPath=" + posterPath
-                + "\nSynopsis=" + synopsis
-                + "\nRelease Date=" + releaseDate
-                + "\nVoter Average=" + voterAverage
-                + "\nBackdropPath=" + backdropPath
-                + "\nPopularity=" + popularity
-                + "\nRuntime=" + runtime
-                + "\nResults List=" + resultsList
-                + "\nStatus Code=" + statusCode
-                + "\nStatus Message=" + statusMessage
+                + "\nOriginal Title= " + originalTitle
+                + "\nPosterPath= " + posterPath
+                + "\nSynopsis= " + synopsis
+                + "\nRelease Date= " + releaseDate
+                + "\nVoter Average= " + voterAverage
+                + "\nBackdropPath= " + backdropPath
+                + "\nPopularity= " + popularity
+                + "\nRuntime= " + runtime
+                + "\nPoster= " + poster
+                + "\nBackdrop= " + backdrop
+                + "\nResults List= " + resultsList
+                + "\nStatus Code= " + statusCode
+                + "\nStatus Message= " + statusMessage
                 + "]";
     }
+
 }

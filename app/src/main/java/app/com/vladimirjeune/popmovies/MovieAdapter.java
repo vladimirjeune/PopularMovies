@@ -3,6 +3,7 @@ package app.com.vladimirjeune.popmovies;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,7 +47,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     @Override
     public void onBindViewHolder(MovieAdapter.PosterViewHolder holder, int position) {
-        holder.bindTo(mPosterData[position]);
+        Log.d(TAG, "BEGIN::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mPosterData:" + mPosterData + "\n");
+
+        if (mPosterData != null) {
+            holder.bindTo(mPosterData[position]);
+        }
+
+        Log.d(TAG, "END::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mPosterData:" + mPosterData + "\n");
     }
 
     /**
@@ -91,7 +98,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
      * @param posterData - Array of Drawables
      */
     public void setPosterData(Drawable[] posterData) {
+        Log.d(TAG, "BEGIN::setPosterData: " + posterData);
         mPosterData = posterData;
+        Log.d(TAG, "END::setPosterData: " + mPosterData);
         notifyDataSetChanged();
     }
 }
