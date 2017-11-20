@@ -40,11 +40,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
         mContext = context;
         mNumberOfItems = numberOfItems;
 
-        // TODO: Take this out if not working.  Seems to take longer to pop thru rotation
-//        mPosterData = new Drawable[mNumberOfItems];
-//        for (int i = 0; i < mNumberOfItems; i++) {
-//            mPosterData[i] = ContextCompat.getDrawable(context, R.drawable.tmd_placeholder_poster);
-//        }
+        populateMovieArrayWithDummyData();
+    }
+
+    /**
+     * POPULATEMOVIEARRAYWITHDUMMYDATA - Populates the Movie Array field. Done so placeholder images
+     * appear faster while images load from the internet.
+     */
+    private void populateMovieArrayWithDummyData() {
         mMovieData = new MovieData[mNumberOfItems];
         for (int i = 0; i < mNumberOfItems; i++) {
             mMovieData[i] = new MovieData();
@@ -104,9 +107,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
          * @param aMovieData - Single Movie Data so we can access poster path if available
          */
         public void bindTo(MovieData aMovieData) {
-//            listItemPosterView.setImageDrawable(poster);  TODO: REMOVE
+
             boolean isMovieEmptyOrNull = ((aMovieData.getMovieId() == 0)
-                    && (aMovieData.getOriginalTitle().equals("")));
+                    && (null == aMovieData.getOriginalTitle()));
 
             // If there is no movie, use placeholder and leave
             if ((null == aMovieData) || (isMovieEmptyOrNull)){
@@ -132,7 +135,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     }
 
     /**
-     * SETPOSTERDATA - Takes in a list of Drawables that will be shown in the
+     * SETPOSTERDATA - Takes in a list of MovieData whose posters will be shown in the
      * GridView.
      * @param movieDatas - Array of Movies
      */

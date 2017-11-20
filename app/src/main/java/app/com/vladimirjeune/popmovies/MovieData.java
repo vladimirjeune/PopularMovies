@@ -178,5 +178,4 @@ public class MovieData {
                 + "\nStatus Message= " + statusMessage
                 + "]";
     }
-
 }

@@ -57,34 +57,6 @@ public class MainActivity extends AppCompatActivity {
         // Attaches Adapter to RecyclerView in our layout
         mRecyclerView.setAdapter(mMovieAdapter);
 
-
-//        String json = NetworkUtils.obtainTempJSON(this);
-
-//        Log.i(TAG, "onCreate: " + json);
-//        try {
-//            String receivedJSON = NetworkUtils.obtainTempJSON(this, NetworkUtils.TEST_MOVIE_LIST);
-//            Log.i(TAG, "onCreate: >>>" + receivedJSON + "<<<");
-//
-//            tempMovies = OpenTMDJsonUtils
-//                    .getPopularOrTopJSON(this, receivedJSON);
-//
-//            getRuntimesForMoviesInList();
-//
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-
-        // Ctrl shift space files in the ()
-//        int posterDataSize = 20;
-//        Drawable[] posterData = new Drawable[posterDataSize];
-//
-//        for (int i = 0; i < posterDataSize; i++) {
-//
-//            posterData[i] = ContextCompat.getDrawable(this, R.drawable.tmd_placeholder_poster);
-//        }
-//
-//        mMovieAdapter.setMoviesData(posterData);
-
         loadPreferredMovieList();  // Calls AsyncTask and gets posters for MainPage
         Log.d(TAG, "END::onCreate: ");
     }
@@ -151,6 +123,11 @@ public class MainActivity extends AppCompatActivity {
 
     public class TMDBQueryTask extends AsyncTask<URL, Void, MovieData[]> {
 
+        /**
+         * DOINBACKGROUND - Get data from server and parse JSON
+         * @param urls - Only 1 url for a list of movies will be used, urls[0]
+         * @return MovieData[] - Array of Movie objects that were created after request
+         */
         @Override
         protected MovieData[] doInBackground(URL... urls) {
             Log.d(TAG, "BEGIN::doInBackground: " + urls[0]);
@@ -183,44 +160,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         /**
-         * ONPOSTEXECUTE - Picasso handles its own threading, so completing Movie object on main thread
-         * @param movieDatas
+         * ONPOSTEXECUTE - Will set the posters using the newly acquired MovieData.
+         * @param movieDatas - Array of data on the movies from the database
          */
         @Override
         protected void onPostExecute(MovieData[] movieDatas) {
             // Used movieDatas because cannot return Void
             Log.d(TAG, "BEGIN::onPostExecute: ");
-
-//            if (tempMovies != null) {
-//                // Using imageView to get Drawable
-//                ImageView imageView = new ImageView(MainActivity.this);
-//
-//                Drawable[] retPosters = new Drawable[tempMovies.length];
-//                for (int i = 0; i < tempMovies.length; i++) {
-//
-//                    if (!(tempMovies[i].getPosterPath().equals(""))) {
-//                        URL urlForPoster = NetworkUtils.buildURLForImage(tempMovies[i].getPosterPath());
-//
-//                        Log.d(TAG, "onPostExecute: Completed poster URL: " + urlForPoster);
-//                        Picasso.with(MainActivity.this)
-//                                .load(urlForPoster.toString())
-//                                .placeholder(R.drawable.tmd_placeholder_poster)
-//                                .error(R.drawable.tmd_error_poster)
-//                                .into(imageView);
-//
-//                        // Save Drawable
-//                        Log.i(TAG, "onPostExecute: Picasso ImageView: " + imageView.getDrawable() );
-//                        retPosters[i] = imageView.getDrawable();
-//                        tempMovies[i].setPoster(retPosters[i]);
-//                    }
-//                }
-//
-//                mMovieAdapter.setMoviesData(retPosters);
-//            }
-
             mMovieAdapter.setMoviesData(movieDatas);
             Log.d(TAG, "END::onPostExecute: ");
         }
     }
-
 }
