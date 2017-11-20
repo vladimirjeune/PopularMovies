@@ -2,12 +2,17 @@ package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
+
+import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 /**
  * Adapter for the Grid View of poster for the user to select from.
@@ -18,12 +23,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     private static final String TAG = MovieAdapter.class.getSimpleName();
 
-    private int mNumberOfItems;
-
     private Context mContext;
+
+    private int mNumberOfItems;
 
     // Will change to something else later, now just for testing
     private Drawable[] mPosterData;
+
+    private MovieData[] mMovieData;
 
     /**
      * MOVIEADAPTER - CONSTRUCTOR
@@ -32,6 +39,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     public MovieAdapter(Context context, int numberOfItems) {
         mContext = context;
         mNumberOfItems = numberOfItems;
+
+        // TODO: Take this out if not working.  Seems to take longer to pop thru rotation
+//        mPosterData = new Drawable[mNumberOfItems];
+//        for (int i = 0; i < mNumberOfItems; i++) {
+//            mPosterData[i] = ContextCompat.getDrawable(context, R.drawable.tmd_placeholder_poster);
+//        }
+        mMovieData = new MovieData[mNumberOfItems];
+        for (int i = 0; i < mNumberOfItems; i++) {
+            mMovieData[i] = new MovieData();
+        }
     }
 
     @Override
@@ -47,13 +64,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     @Override
     public void onBindViewHolder(MovieAdapter.PosterViewHolder holder, int position) {
-        Log.d(TAG, "BEGIN::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mPosterData:" + mPosterData + "\n");
+        Log.d(TAG, "BEGIN::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mMovieData:" + ((mMovieData != null) ? mMovieData[position].getPosterPath() : null) + "\n");
 
-        if (mPosterData != null) {
-            holder.bindTo(mPosterData[position]);
+        if (mMovieData != null) {
+            holder.bindTo(mMovieData[position]);
         }
 
-        Log.d(TAG, "END::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mPosterData:" + mPosterData + "\n");
+        Log.d(TAG, "END::onBindViewHolder: PosterViewHolder:" + holder + " Position:" + position + " mPosterData:" + ((mMovieData != null) ? mMovieData[position].getPosterPath() : null) + "\n");
     }
 
     /**
@@ -84,10 +101,32 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
         /**
          * BINDTO - A convenience method that will attach inputted data to child views.
-         * @param poster -
+         * @param aMovieData - Single Movie Data so we can access poster path if available
          */
-        public void bindTo(Drawable poster) {
-            listItemPosterView.setImageDrawable(poster);
+        public void bindTo(MovieData aMovieData) {
+//            listItemPosterView.setImageDrawable(poster);  TODO: REMOVE
+            boolean isMovieEmptyOrNull = ((aMovieData.getMovieId() == 0)
+                    && (aMovieData.getOriginalTitle().equals("")));
+
+            // If there is no movie, use placeholder and leave
+            if ((null == aMovieData) || (isMovieEmptyOrNull)){
+                listItemPosterView.setImageDrawable(ContextCompat
+                        .getDrawable(mContext, R.drawable.tmd_placeholder_poster));
+                return;
+            }
+
+            // Posterpath will not be null, because handled earlier
+            String posterPath = aMovieData.getPosterPath();
+            if (!(posterPath.equals(""))) {
+                String urlForPosterPath = NetworkUtils.buildURLForImage(posterPath)
+                        .toString();
+
+                Picasso.with(mContext)
+                        .load(urlForPosterPath)
+                        .placeholder(R.drawable.tmd_placeholder_poster)
+                        .placeholder(R.drawable.tmd_error_poster)
+                        .into(listItemPosterView);
+            }
         }
 
     }
@@ -95,12 +134,15 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     /**
      * SETPOSTERDATA - Takes in a list of Drawables that will be shown in the
      * GridView.
-     * @param posterData - Array of Drawables
+     * @param movieDatas - Array of Movies
      */
-    public void setPosterData(Drawable[] posterData) {
-        Log.d(TAG, "BEGIN::setPosterData: " + posterData);
-        mPosterData = posterData;
-        Log.d(TAG, "END::setPosterData: " + mPosterData);
-        notifyDataSetChanged();
+    public void setMoviesData(MovieData[] movieDatas) {
+            Log.d(TAG, "BEGIN::setMoviesData: " + movieDatas);
+
+        if (movieDatas != null){
+            mMovieData = movieDatas;
+            notifyDataSetChanged();
+        }
+            Log.d(TAG, "END::setMoviesData: " + mMovieData);
     }
 }

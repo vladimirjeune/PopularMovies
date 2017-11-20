@@ -1,16 +1,12 @@
 package app.com.vladimirjeune.popmovies;
 
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.Toast;
-
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
@@ -87,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 //            posterData[i] = ContextCompat.getDrawable(this, R.drawable.tmd_placeholder_poster);
 //        }
 //
-//        mMovieAdapter.setPosterData(posterData);
+//        mMovieAdapter.setMoviesData(posterData);
 
         loadPreferredMovieList();  // Calls AsyncTask and gets posters for MainPage
         Log.d(TAG, "END::onCreate: ");
@@ -195,32 +191,34 @@ public class MainActivity extends AppCompatActivity {
             // Used movieDatas because cannot return Void
             Log.d(TAG, "BEGIN::onPostExecute: ");
 
-            if (tempMovies != null) {
-                // Using imageView to get Drawable
-                ImageView imageView = new ImageView(MainActivity.this);
+//            if (tempMovies != null) {
+//                // Using imageView to get Drawable
+//                ImageView imageView = new ImageView(MainActivity.this);
+//
+//                Drawable[] retPosters = new Drawable[tempMovies.length];
+//                for (int i = 0; i < tempMovies.length; i++) {
+//
+//                    if (!(tempMovies[i].getPosterPath().equals(""))) {
+//                        URL urlForPoster = NetworkUtils.buildURLForImage(tempMovies[i].getPosterPath());
+//
+//                        Log.d(TAG, "onPostExecute: Completed poster URL: " + urlForPoster);
+//                        Picasso.with(MainActivity.this)
+//                                .load(urlForPoster.toString())
+//                                .placeholder(R.drawable.tmd_placeholder_poster)
+//                                .error(R.drawable.tmd_error_poster)
+//                                .into(imageView);
+//
+//                        // Save Drawable
+//                        Log.i(TAG, "onPostExecute: Picasso ImageView: " + imageView.getDrawable() );
+//                        retPosters[i] = imageView.getDrawable();
+//                        tempMovies[i].setPoster(retPosters[i]);
+//                    }
+//                }
+//
+//                mMovieAdapter.setMoviesData(retPosters);
+//            }
 
-                Drawable[] retPosters = new Drawable[tempMovies.length];
-                for (int i = 0; i < tempMovies.length; i++) {
-
-                    if (!(tempMovies[i].getPosterPath().equals(""))) {
-                        URL urlForPoster = NetworkUtils.buildURLForImage(tempMovies[i].getPosterPath());
-
-                        Log.d(TAG, "onPostExecute: Completed poster URL: " + urlForPoster);
-                        Picasso.with(MainActivity.this)
-                                .load(urlForPoster.toString())
-                                .placeholder(R.drawable.tmd_placeholder_poster)
-                                .error(R.drawable.tmd_error_poster)
-                                .into(imageView);
-
-                        // Save Drawable
-                        Log.i(TAG, "onPostExecute: Picasso ImageView: " + imageView.getDrawable() );
-                        retPosters[i] = imageView.getDrawable();
-                        tempMovies[i].setPoster(retPosters[i]);
-                    }
-                }
-
-                mMovieAdapter.setPosterData(retPosters);
-            }
+            mMovieAdapter.setMoviesData(movieDatas);
             Log.d(TAG, "END::onPostExecute: ");
         }
     }
