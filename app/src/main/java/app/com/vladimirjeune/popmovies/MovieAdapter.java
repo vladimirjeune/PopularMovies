@@ -1,7 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -28,8 +27,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     private int mNumberOfItems;
 
     // Will change to something else later, now just for testing
-    private Drawable[] mPosterData;
-
     private MovieData[] mMovieData;
 
     /**
