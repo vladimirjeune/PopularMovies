@@ -13,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
+import app.com.vladimirjeune.popmovies.R;
+
 /**
  * Created to communicate with the theMovieDb servers.
  * Created by vladimirjeune on 11/10/17.
@@ -54,10 +56,13 @@ public final class NetworkUtils {
      * @param context - Needed to obtain key
      * @return URL - URL that can be used to access appropriate JSON from theMovieDB
      */
-    public static URL buildUrlForPopularOrTopRated(Context context) {
+    public static URL buildUrlForPopularOrTopRated(Context context, String popularOrTop) {
         // There will eventually be a SharedPref to get which one it is.  But not yet
 
-        String whichEndpoint = TMDB_POPULAR;  // Temporary change here until SharedPref completed.
+        String whichEndpoint = TMDB_TOP_RATED;
+        if (popularOrTop.equals(context.getString(R.string.pref_sort_default))) {
+            whichEndpoint = TMDB_POPULAR;
+        }
 
         Uri popularTopRatedUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(whichEndpoint)
@@ -75,6 +80,7 @@ public final class NetworkUtils {
             Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
             return null;
         }
+
     }
 
     /**

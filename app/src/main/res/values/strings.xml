@@ -6,4 +6,16 @@
     <string name="action_settings">Settings</string>
     <string name="action_about">About</string>
 
+    <!-- Shared Preferences -->
+    <string name="pref_sort_key" translatable="false">sort</string>
+    <string name="pref_sort_label">Sort</string>
+    <string name="pref_sort_default" translatable="false">popular</string>
+    <string name="pref_sort_popular_label">Popular</string>
+    <string name="pref_sort_popular" translatable="false">popular</string>
+    <string name="pref_sort_top_rated_label">Top Rated</string>
+    <string name="pref_sort_top_rated" translatable="false">top rated</string>
+
+    <string name="pref_sort_popular_value" translatable="false">popular</string>
+    <string name="pref_sort_top_rated_value" translatable="false">top rated</string>
+
 </resources>

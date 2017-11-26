@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <CheckBoxPreference
         android:title="Show Bass"
         android:key="show_bass"
@@ -7,5 +8,14 @@
         android:summaryOn="Shown"
         android:summaryOff="Hidden"
         />
+
+    <ListPreference
+        android:title="@string/pref_sort_label"
+        android:key="@string/pref_sort_key"
+        android:defaultValue="@string/pref_sort_default"
+        android:entries="@array/pref_sort_option_labels"
+        android:entryValues="@array/pref_sort_option_values"
+        />
+
 
 </PreferenceScreen>

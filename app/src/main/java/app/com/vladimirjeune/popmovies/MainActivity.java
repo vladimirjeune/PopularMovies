@@ -1,9 +1,11 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,7 +22,7 @@ import java.net.URL;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private String mTMDKey;
@@ -35,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private MovieData[] tempMovies;
 
     private Toast mToast;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +65,22 @@ public class MainActivity extends AppCompatActivity {
         // Attaches Adapter to RecyclerView in our layout
         mRecyclerView.setAdapter(mMovieAdapter);
 
+        setupSharedPreferences();
+
         loadPreferredMovieList();  // Calls AsyncTask and gets posters for MainPage
         Log.d(TAG, "END::onCreate: ");
+    }
+
+    /**
+     * SETUPSHAREDPREFERENCES - Anything having to do with SharedPreferences will be handled here.
+     *
+     */
+    private void setupSharedPreferences() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // TODO: Do stuff here, you want to be able to pick from Pop or Top.  Get curr from SharedPrefs
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);  // SHould be done early like in OnCreate
     }
 
     @Override
@@ -142,11 +160,31 @@ public class MainActivity extends AppCompatActivity {
      * LOADPREFERREDMOVIELIST - Loads the movie list that the user has set in SharedPreferences
      */
     private void loadPreferredMovieList() {
-        // Get whether the user wants Popular or Top-Rated from SharedPreferences
-        // Then have if to use a Popular URL, or Top-Rated URL call the AsyncTask
         Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
-        new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this));
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String popularOrTopRated = sharedPreferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_sort_default));  // Get from SP or default
+
+            new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));  // TODO: Add String so can be either/or
         Log.d(TAG, "END::loadPreferredMovieList: ");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
+        if (s.equals(getString(R.string.pref_sort_key))) {
+            String popularOrTopRated = sharedPreferences.getString(getString(R.string.pref_sort_key),
+                    getString(R.string.pref_sort_default));
+            new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));
+        }
+        Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
 
 
