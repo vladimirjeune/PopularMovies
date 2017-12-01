@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     // Test to read JSON list object for most of Movie data
     // Maybe doing too much at once.  Just see if you can get the JSON
     private MovieData[] tempMovies;
+    private ContentValues[] movieContentValues;
 
     private Toast mToast;
 
@@ -208,9 +210,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(url);  // Popular | Top-Rated
 
                     Log.i(TAG, "doInBackground: >>>" + tmdbJsonString + "<<<");
-
-                    tempMovies = OpenTMDJsonUtils
-                            .getPopularOrTopJSON(MainActivity.this, tmdbJsonString);
+                    boolean isPopular = (url.toString()).contains(NetworkUtils.TMDB_POPULAR);
+//                    tempMovies = OpenTMDJsonUtils
+//                            .getPopularOrTopJSON(MainActivity.this, tmdbJsonString, isPopular);
+                    movieContentValues = OpenTMDJsonUtils
+                            .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
 
                     getRuntimesForMoviesInList();
 

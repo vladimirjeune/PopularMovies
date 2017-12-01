@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies.utilities;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
@@ -9,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.com.vladimirjeune.popmovies.MovieData;
+import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
 /**
  * Handles interactions with TheMovieDB's JSON data
@@ -102,6 +104,105 @@ public final class OpenTMDJsonUtils {
 
         Log.d(TAG, "END::getPopularOrTopJSON: ");
         return parsedMovieDataArray;
+    }
+    /**
+     * GETPOPULARORTOPJSON - Can be used to get data from JSON for, 'popular', or, 'top-rated'
+     * since they have the same schema.
+     * *Note* - Neither endpoint have movie runtime.  That will have to be obtained from somewhere
+     * else.
+     * @param context - Necessary if we need to use the Utility functions
+     * @param tmdJSONStr - The JSON data from the Database
+     * @param isPopular - Whether this is a JSON for Popular or Top-Rated
+     * @return - ArrayList of Movie data
+     */
+    public static ContentValues[] getPopularOrTopJSONContentValues(Context context, String tmdJSONStr
+            , boolean isPopular) throws JSONException {
+
+        ContentValues[] parsedContentValuesArray;
+        Log.d(TAG, "BEGIN::getPopularOrTopJSON: ");
+
+        JSONObject movieJSONObject = new JSONObject(tmdJSONStr);
+        if (isThereDataError(context, movieJSONObject)) {  // If there is a error in data; abort processing.
+            return null;
+        }
+
+
+        // Loop thru data
+        JSONArray movieJsonArray = movieJSONObject.getJSONArray(TMD_RESULTS_LIST);
+
+        parsedContentValuesArray = new ContentValues[movieJsonArray.length()];
+
+        for (int i = 0; i < movieJsonArray.length(); i++) {
+
+            JSONObject movieJson = movieJsonArray.getJSONObject(i);
+
+            int movieId = movieJson.getInt(TMD_MOVIE_ID);
+
+            String movieOriginalTitle = movieJson.getString(TMD_ORIGINAL_TITLE);
+
+            String moviePosterPath = movieJson.getString(TMD_POSTER_PATH);
+            if (moviePosterPath != null) {
+                moviePosterPath = moviePosterPath.substring(1);  // Removing preceding '/'
+            }  // So, NULL will make it to the database
+
+            String movieSynopsis = movieJson.getString(TMD_SYNOPSIS);
+
+            // MMMM-YY-DD.  May save as MMMM-YY-DD 00:00:00
+            String movieReleaseDate = movieJson.getString(TMD_RELEASE_DATE);
+
+            Double movieVoterAverage = movieJson.getDouble(TMD_VOTER_AVERAGE);
+
+            String movieBackdropPath = movieJson.getString(TMD_BACKDROP_PATH);  // Nulls will propagete to DB
+            if (movieBackdropPath != null) {
+                movieBackdropPath = movieBackdropPath.substring(1);  // Removing preceding slash
+            }
+
+            Double moviePopularity = movieJson.getDouble(TMD_POPULARITY);
+
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MovieEntry._ID, movieId);
+            contentValues.put(MovieEntry.ORIGINAL_TITLE, movieOriginalTitle);
+            contentValues.put(MovieEntry.SYNOPSIS, movieSynopsis);
+            contentValues.put(MovieEntry.RELEASE_DATE, movieReleaseDate);
+            contentValues.put(MovieEntry.VOTER_AVERAGE, movieVoterAverage);
+            contentValues.put(MovieEntry.POPULARITY, moviePopularity);
+
+            conditionalOptions(isPopular, i, moviePosterPath, movieBackdropPath, contentValues);
+
+            // Set mostly complete new movie in position
+            parsedContentValuesArray[i] = contentValues;
+
+        }
+
+        Log.d(TAG, "END::getPopularOrTopJSON: ");
+        return parsedContentValuesArray;
+    }
+
+    /**
+     * CONDITIONALOPTIONS - These values may or may not be available to be
+     * incorporated into the database.  They may be NULL or not suitable for this database call.
+     * @param isPopular - boolean - Whether this is for Popular or Top-Rated
+     * @param index - int - Index of this movie as returned from tmdb
+     * @param moviePosterPath - Path to movie onesheet on server.  Can be NULL
+     * @param movieBackdropPath - Path to movie backdrop on server.  Can be NULL
+     * @param contentValues - Values will be placed in here if present
+     */
+    private static void conditionalOptions(boolean isPopular, int index, String moviePosterPath
+            , String movieBackdropPath, ContentValues contentValues) {
+        if (moviePosterPath != null) {
+            contentValues.put(MovieEntry.POSTER_PATH, moviePosterPath);  // Can be NULL
+        }
+
+        if (movieBackdropPath != null) {
+            contentValues.put(MovieEntry.BACKDROP_PATH, movieBackdropPath);
+        }
+
+        // If this is Popular the order in popularity will be set.  Otherwise; Top-Rated
+        if (isPopular) {
+            contentValues.put(MovieEntry.POPULAR_ORDER_IN, index);
+        } else {
+            contentValues.put(MovieEntry.TOP_RATED_ORDER_IN, index);
+        }
     }
 
     /**

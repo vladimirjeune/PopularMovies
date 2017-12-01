@@ -138,7 +138,7 @@ public final class NetworkUtils {
      *              NetworkUtils.TMDB_IMAGE_W+ or NetworkUtils.TMDB_IMAGE_ORIGINAL
      *              for the largest size.  If you want the default, you can
      *              call buildURLForImage(String), will call with default size
-     *              of w185(185x278 for posters, 185x104 for backdrops).
+     *              of w342.
      * @return URL - URL to request correct image from theMovieDb
      */
     public static URL buildURLForImageOfSize(String aPath, String aSize) {
