@@ -3,6 +3,9 @@ package app.com.vladimirjeune.popmovies;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +23,8 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.net.URL;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
@@ -37,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     // Maybe doing too much at once.  Just see if you can get the JSON
     private MovieData[] tempMovies;
     private ContentValues[] movieContentValues;
+    private SQLiteDatabase mDb;
 
     private Toast mToast;
 
@@ -47,6 +53,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "BEGIN::onCreate: ");
+
+        MovieDBHelper movieDBHelper = new MovieDBHelper(this);
+
+        mDb = movieDBHelper.getWritableDatabase();
 
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
@@ -82,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         // TODO: Do stuff here, you want to be able to pick from Pop or Top.  Get curr from SharedPrefs
 
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);  // SHould be done early like in OnCreate
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);  // Should be done early like in OnCreate
     }
 
     @Override
@@ -112,18 +122,33 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     /**
      * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
-     * JSON call that should preceed this one.
+     * JSON call that should precede this one.  Update database with runtimees
      * Note: Makes network call.
      */
-    private void getRuntimesForMoviesInList() {
+    private void getRuntimesForMoviesInList(Cursor cursor) {
         Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
-        // Get runtime for found movies and place in correct Movie Objects.
-        if (tempMovies != null) {
-            for (int i = 0; i < tempMovies.length; i++) {
-                tempMovies[i]
-                        .setRuntime(getSingleMovieRuntimeFromTMDB("" + tempMovies[i].getMovieId()));
-                Log.i(TAG, "getRuntimesForMoviesInList: " + (i+1) + ":] " + tempMovies[i] + "\n");
+        // Get runtime for found movies and place in correct Movies.
+        if (cursor != null) {  // Cursor exists
+            if (cursor.moveToFirst()) {  // Cursor is valid
+                ContentValues idContentValues;
+                int movieIdCursorIndex = cursor.getColumnIndex(MovieEntry._ID);  // Ge index of id
+                for (int i = 0; cursor.moveToPosition(i); i++) {
+                    idContentValues = new ContentValues();
+                    long movieID = cursor.getLong(movieIdCursorIndex);  // Get movieId for later in loop
 
+                    int runtime = getSingleMovieRuntimeFromTMDB("" + movieID);  // Get runtime for this id
+                    String[] idArgsArray = {"" + movieID};
+                    idContentValues.put(MovieEntry.RUNTIME, runtime);  // It is the runtime we want to update
+
+                    // Update runtime where ID = id
+                    mDb.update(MovieEntry.TABLE_NAME
+                            , idContentValues
+                            , MovieEntry._ID + " = ? "
+                            , idArgsArray
+                    );
+                    Log.i(TAG, "getRuntimesForMoviesInList: " + (i + 1) + ":] " + tempMovies[i] + "\n");
+
+                }
             }
         }
         Log.d(TAG, "END::getRuntimesForMoviesInList: ");
@@ -203,7 +228,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             // If got nothing, return
             if (0 != urls.length) {
 
-
                 URL url = urls[0];
                 String tmdbJsonString = "";
                 try {
@@ -216,7 +240,51 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     movieContentValues = OpenTMDJsonUtils
                             .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
 
-                    getRuntimesForMoviesInList();
+                    // Not sure if DB calls need to be done here, but since we are here, why not.
+
+                    try {
+                        mDb.beginTransaction();
+
+                        // TODO: Code to keep from having duplicates
+
+                        for (int i = 0; i < movieContentValues.length; i++) {
+                            mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
+                        }
+
+                        mDb.setTransactionSuccessful();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    } finally {
+                        mDb.endTransaction();
+                    }
+
+                    // TODO: Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
+                    // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
+                    String orderByTypeIndex;
+                    String selection ;
+                    if (isPopular) {
+                        orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
+                        selection = MovieEntry.POPULAR_ORDER_IN;
+                    } else {
+                        orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
+                        selection = MovieEntry.TOP_RATED_ORDER_IN;
+                    }
+
+                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+                    // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+                    // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+                    Cursor cursorPosterPathsMovieIds = mDb.query(MovieEntry.TABLE_NAME,
+                            posterPathMovieIdColumns,
+                            selection + " IS NOT NULL ",  // When doing Populuar,
+                            null,
+                            null,
+                            null,
+                            null,
+                            orderByTypeIndex);
+
+                    getRuntimesForMoviesInList(cursorPosterPathsMovieIds);  // TODO: Need to modify to work with CV or DB
+
+                    cursorPosterPathsMovieIds.close();  // TODO:  Decide whether to close cursor here or elsewhere.
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -238,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         protected void onPostExecute(MovieData[] movieDatas) {
             // Used movieDatas because cannot return Void
             Log.d(TAG, "BEGIN::onPostExecute: ");
+            // TODO: Maybe put cursor into array.  Send array and close the cursor here.  Possibly, just send DB and hold?
             mMovieAdapter.setMoviesData(movieDatas);
             Log.d(TAG, "END::onPostExecute: ");
         }

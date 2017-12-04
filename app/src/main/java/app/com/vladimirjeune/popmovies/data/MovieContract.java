@@ -16,7 +16,7 @@ public final class MovieContract {
 
         // We are using _ID from BaseColumns for the ID
 
-        public static final String ORIGINAL_TITLE = "oringinal_title";
+        public static final String ORIGINAL_TITLE = "original_title";
 
         // String path to poster on theMovieDb
         public static final String POSTER_PATH = "poster_path";
