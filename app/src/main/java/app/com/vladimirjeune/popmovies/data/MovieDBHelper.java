@@ -15,17 +15,17 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "movie.db";
 
-    public static final int DATABASAE_VERSION = 1;
+    public static final int DATABASE_VERSION = 3;
 
     public MovieDBHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASAE_VERSION);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String SQL_CREATE_MOVIE_TABLE = "CREATE TABLE " +
                 MovieEntry.TABLE_NAME + " (" +
-                MovieEntry._ID + " INTEGER NOT NULL PRIMARY KEY, " +  // Will be MovieID
+                MovieEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +  // Will be MovieID
                 MovieEntry.ORIGINAL_TITLE + " TEXT NOT NULL, " +
                 MovieEntry.POSTER_PATH + " TEXT, " +
                 MovieEntry.SYNOPSIS + " TEXT NOT NULL, " +
@@ -33,12 +33,13 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.VOTER_AVERAGE + " FLOAT NOT NULL, " +
                 MovieEntry.BACKDROP_PATH + " TEXT, " +
                 MovieEntry.POPULARITY + " FLOAT NOT NULL, " +
-                MovieEntry.RUNTIME + " INTEGER NOT NULL, " +
+                MovieEntry.RUNTIME + " INTEGER, " +
                 MovieEntry.POSTER + " BLOB, " +
                 MovieEntry.BACKDROP + " BLOB, " +
                 MovieEntry.POPULAR_ORDER_IN + " INTEGER, " +  // THE ORDER POP MOVIES WERE ENTERED, NULL means not Pop
                 MovieEntry.TOP_RATED_ORDER_IN + " INTEGER, " +  // The order Top Rated movies were entered.  Null means not TR
-                MovieEntry.COLUMN_TIMESTAMP + " COLUMN_TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
+                MovieEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
+                ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
     }

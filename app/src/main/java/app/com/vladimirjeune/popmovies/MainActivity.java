@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     // Test to read JSON list object for most of Movie data
     // Maybe doing too much at once.  Just see if you can get the JSON
-    private MovieData[] tempMovies;
+//    private MovieData[] tempMovies;
     private ContentValues[] movieContentValues;
     private SQLiteDatabase mDb;
 
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     /**
      * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
-     * JSON call that should precede this one.  Update database with runtimees
+     * JSON call that should precede this one.  Update database with runtimes
      * Note: Makes network call.
      */
     private void getRuntimesForMoviesInList(Cursor cursor) {
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             , MovieEntry._ID + " = ? "
                             , idArgsArray
                     );
-                    Log.i(TAG, "getRuntimesForMoviesInList: " + (i + 1) + ":] " + tempMovies[i] + "\n");
+//                    Log.i(TAG, "getRuntimesForMoviesInList: " + (i + 1) + ":] " + tempMovies[i] + "\n");
 
                 }
             }
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
 
-    public class TMDBQueryTask extends AsyncTask<URL, Void, MovieData[]> {
+    public class TMDBQueryTask extends AsyncTask<URL, Void, Boolean> {
 
         /**
          * DOINBACKGROUND - Get data from server and parse JSON
@@ -223,8 +223,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
          * @return MovieData[] - Array of Movie objects that were created after request
          */
         @Override
-        protected MovieData[] doInBackground(URL... urls) {
+        protected Boolean doInBackground(URL... urls) {
             Log.d(TAG, "BEGIN::doInBackground: " + urls[0]);
+            boolean isPopular = true;
             // If got nothing, return
             if (0 != urls.length) {
 
@@ -234,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(url);  // Popular | Top-Rated
 
                     Log.i(TAG, "doInBackground: >>>" + tmdbJsonString + "<<<");
-                    boolean isPopular = (url.toString()).contains(NetworkUtils.TMDB_POPULAR);
+                    isPopular = (url.toString()).contains(NetworkUtils.TMDB_POPULAR);
 //                    tempMovies = OpenTMDJsonUtils
 //                            .getPopularOrTopJSON(MainActivity.this, tmdbJsonString, isPopular);
                     movieContentValues = OpenTMDJsonUtils
@@ -258,33 +259,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         mDb.endTransaction();
                     }
 
-                    // TODO: Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
-                    // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
-                    String orderByTypeIndex;
-                    String selection ;
-                    if (isPopular) {
-                        orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
-                        selection = MovieEntry.POPULAR_ORDER_IN;
-                    } else {
-                        orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
-                        selection = MovieEntry.TOP_RATED_ORDER_IN;
+                    Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
+
+                    if (cursorPosterPathsMovieIds != null) {
+                        getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
+                        cursorPosterPathsMovieIds.close();
                     }
-
-                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
-                    // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-                    // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
-                    Cursor cursorPosterPathsMovieIds = mDb.query(MovieEntry.TABLE_NAME,
-                            posterPathMovieIdColumns,
-                            selection + " IS NOT NULL ",  // When doing Populuar,
-                            null,
-                            null,
-                            null,
-                            null,
-                            orderByTypeIndex);
-
-                    getRuntimesForMoviesInList(cursorPosterPathsMovieIds);  // TODO: Need to modify to work with CV or DB
-
-                    cursorPosterPathsMovieIds.close();  // TODO:  Decide whether to close cursor here or elsewhere.
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -295,19 +275,49 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
 
             Log.d(TAG, "END::doInBackground: ");
-            return tempMovies;
+            return isPopular;
         }
 
         /**
-         * ONPOSTEXECUTE - Will set the posters using the newly acquired MovieData.
-         * @param movieDatas - Array of data on the movies from the database
+         * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
+         * of the specified type.
+         * @param isPopular - boolean - Whether this is for Popular or Top-Rated
+         * @return Cursor - Result of query.  Can return NULL if database not yet set.
+         */
+        private Cursor getCursorPosterPathsMovieIds(boolean isPopular) {
+            // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
+            // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
+            String orderByTypeIndex;
+            String selection ;
+            if (isPopular) {
+                orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
+                selection = MovieEntry.POPULAR_ORDER_IN;
+            } else {
+                orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
+                selection = MovieEntry.TOP_RATED_ORDER_IN;
+            }
+
+            String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+            // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+            // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+            return mDb.query(MovieEntry.TABLE_NAME,
+                    posterPathMovieIdColumns,
+                    selection + " IS NOT NULL ",  // When doing Populuar,
+                    null,
+                    null,
+                    null,
+                    orderByTypeIndex);
+        }
+
+        /**
+         * ONPOSTEXECUTE - Will set the posters using the newly acquired MovieData
          */
         @Override
-        protected void onPostExecute(MovieData[] movieDatas) {
-            // Used movieDatas because cannot return Void
+        protected void onPostExecute(Boolean isPopular) {
+
             Log.d(TAG, "BEGIN::onPostExecute: ");
             // TODO: Maybe put cursor into array.  Send array and close the cursor here.  Possibly, just send DB and hold?
-            mMovieAdapter.setMoviesData(movieDatas);
+            mMovieAdapter.setMoviesData(mDb, isPopular);
             Log.d(TAG, "END::onPostExecute: ");
         }
     }
