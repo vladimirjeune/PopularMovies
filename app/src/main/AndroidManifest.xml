@@ -29,6 +29,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+        <!-- Register MovieContentProvider -->
+        <!-- Setting exported to false says this Content Provider is to be accessed by this app  -->
+        <!-- Set name, authorities and exported -->
+        <provider
+            android:name="app.com.vladimirjeune.popmovies.data.MovieContentProvider"
+            android:authorities="@string/package_name"
+            android:exported="false" />
     </application>
 
 </manifest>

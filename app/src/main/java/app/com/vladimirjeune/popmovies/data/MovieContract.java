@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies.data;
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
@@ -9,9 +10,19 @@ import android.provider.BaseColumns;
 
 public final class MovieContract {
 
+    public static final String CONTENT_AUTHORITY = "app.com.vladimirjeune.popmovies";
+    public static final String SCHEME = "content://";
+    public static final Uri BASE_CONTENT_URI = Uri.parse(SCHEME + CONTENT_AUTHORITY);
+    public static final String PATH_MOVIES = "movie";
+
     private MovieContract() {}  // You should not create one
 
     public static class MovieEntry implements BaseColumns {
+
+        // Base content uri + path
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
+                .appendPath(PATH_MOVIES).build();
+
         public static final String TABLE_NAME = "movie";
 
         // We are using _ID from BaseColumns for the ID
@@ -54,6 +65,16 @@ public final class MovieContract {
         // means movie is in both categories.  Need to just update appropriate column
         // instead of insert because otherwise would duplicate data.
         public static final String TOP_RATED_ORDER_IN = "top_rated_order_in";
+
+        /**
+         * BUILDURIWITHMOVIEID - Will be used to query details about a single movie.
+         * adds the id to the end of the movie content Uri path.
+         * @param id - long - Movie ID
+         * @return - Uri - [CONTENT_AUTHORITY] + ID
+         */
+        public static Uri buildUriWithMovieId(long id) {
+            return CONTENT_URI.buildUpon().appendPath("" + id).build();
+        }
     }
 
 }
