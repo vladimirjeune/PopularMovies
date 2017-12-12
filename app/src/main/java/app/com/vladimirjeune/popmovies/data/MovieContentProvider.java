@@ -5,9 +5,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
 /**
  * ContentProvider for Movie Data
@@ -24,6 +27,8 @@ public class MovieContentProvider extends ContentProvider {
     public static final int MOVIES_WITH_ID = 101;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
+
+    private static final String mFreeParameter = " = ? ";
 
     @Override
     public boolean onCreate() {
@@ -49,20 +54,70 @@ public class MovieContentProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] strings
-            , @Nullable String s, @Nullable String[] strings1, @Nullable String s1) {
+    public Cursor query(@NonNull Uri uri, @Nullable String[] projection
+            , @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String orderBy) {
 
+        Cursor retCursor = null;
 
+        switch (sUriMatcher.match(uri)) {
+            case MOVIES:
+                mMovieDBHelper.getReadableDatabase()
+                        .query(MovieEntry.TABLE_NAME
+                                , projection
+                                , selection
+                                , selectionArgs
+                                , null
+                                , null
+                                , orderBy);
+                break;
+            case MOVIES_WITH_ID:
+                long idSelection = Long.parseLong(uri.getLastPathSegment());
+                String[] idArgs = {String.valueOf(idSelection)};
 
+                retCursor = mMovieDBHelper.getReadableDatabase()
+                        .query(MovieEntry.TABLE_NAME
+                        , projection
+                        , MovieEntry._ID + mFreeParameter
+                        , idArgs
+                        , null
+                        , null
+                        , orderBy);
 
+                break;
+            default:
+                throw new UnsupportedOperationException("Uri not recognized <" + uri + ">");
+        }
 
-        return null;
+        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
+        return retCursor;
     }
 
+    /**
+     * GETTYPE - For completeness.  getType() handles requests for the MIME type of data
+     * We are working with two types of data:
+     *  1) a directory and 2) a single row of data.
+     * This method will not be used in our app, but gives a way to standardize the data formats
+     * that your provider accesses, and this can be useful for data organization.
+     * For now, this method will not be used but will be provided for completeness.
+     * @param uri
+     * @return
+     */
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        return null;
+
+        switch (sUriMatcher.match(uri)) {
+            case MOVIES:
+                return "vnd.android.cursor.dir" + "/" + MovieContract.CONTENT_AUTHORITY + "/"
+                        + MovieContract.PATH_MOVIES;
+            case MOVIES_WITH_ID:
+                return "vnd.android.cursor.item" + "/" + MovieContract.CONTENT_AUTHORITY + "/"
+                        + MovieContract.PATH_MOVIES;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri);
+        }
+
     }
 
     @Nullable
@@ -71,14 +126,127 @@ public class MovieContentProvider extends ContentProvider {
         return null;
     }
 
+
+    /**
+     * BULKINSERT - Inserts a group of ContentValues into the database
+     * @param uri - Uri for the table to insert into
+     * @param contentValues - Array of data to be inserted
+     * @return - int - Number of rows that were successfully inserted
+     */
+    @Nullable
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] contentValues) {
+
+        int rowsInserted = 0;
+        final SQLiteDatabase movieDb = mMovieDBHelper.getWritableDatabase();  // Get DB
+
+        switch (sUriMatcher.match(uri)) {  // You would only BulkInsert into a table
+            case MOVIES:
+                movieDb.beginTransaction();
+                try {
+
+                    for (int i = 0; i < contentValues.length; i++) {
+                        long id = movieDb.insert(MovieEntry.TABLE_NAME, null, contentValues[i]);
+
+                        if (id != -1) {
+                            rowsInserted++;
+                        }
+                    }
+
+                    movieDb.setTransactionSuccessful();
+                } finally {
+                    movieDb.endTransaction();
+                }
+                if (rowsInserted > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);  // Important for CursorLoader
+                }
+                return rowsInserted;
+            default:  // Just run the normal one
+                return super.bulkInsert(uri, contentValues);
+        }
+
     }
 
+    /**
+     * DELETE - Deletes either a single row, or the entire movie table depending on the Uri
+     * @param uri - Describles whether to delete an row or the table depending on its form
+     * @param selection - Where, but that should be given in the Uri
+     * @param selectionArgs - Where args, but that should be given in the Uri
+     * @return int - Rows deleted successfully.
+     */
+    @Override
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        // Need count of rows deleted, and will delete whole table and single rows.
+        int rowsDeleted = 0;
+
+            // This is the only way we can delete the table and get rows back.
+            // According to documentation
+            if (null == selection) {
+                selection = "1";
+            }
+
+        switch (sUriMatcher.match(uri)) {
+
+            case MOVIES:
+                rowsDeleted = mMovieDBHelper.getWritableDatabase()
+                        .delete(MovieEntry.TABLE_NAME
+                                , selection
+                                , selectionArgs);  // Want to delete everything
+                break;
+            case MOVIES_WITH_ID:
+                long movieId = Long.parseLong(uri.getLastPathSegment());
+
+                rowsDeleted = mMovieDBHelper.getWritableDatabase()
+                        .delete(MovieEntry.TABLE_NAME
+                                , MovieEntry._ID + mFreeParameter
+                                , new String[] {"" + movieId});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri);
+
+        }
+
+        // Very important for Loader
+        if (rowsDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return rowsDeleted;
+    }
+
+    /**
+     * UPDATE - Updates a single row by the id in the Uri
+     * @param uri - Indicates what row to update
+     * @param contentValues - Map of keys to values of things to be updated
+     * @param selection - Where clause criterion
+     * @param selectionArgs - Actual value of parameter to match in Where clause
+     * @return - int - Number of rows that were updated.
+     */
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues
-            , @Nullable String s, @Nullable String[] strings) {
-        return 0;
+            , @Nullable String selection, @Nullable String[] selectionArgs) {
+
+        long updateId = Long.parseLong(uri.getLastPathSegment());
+
+        int rowsUpdated = 0;
+
+        switch (sUriMatcher.match(uri)) {
+            case MOVIES_WITH_ID:
+                rowsUpdated = mMovieDBHelper.getWritableDatabase().update(
+                        MovieEntry.TABLE_NAME
+                        ,contentValues
+                        ,MovieEntry._ID + mFreeParameter
+                        ,new String[] {"" + updateId});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (rowsUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return rowsUpdated;
     }
+
 }
