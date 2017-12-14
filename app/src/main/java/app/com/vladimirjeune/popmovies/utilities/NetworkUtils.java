@@ -54,6 +54,7 @@ public final class NetworkUtils {
      * BUILDURLFORPOPULARORTOPRATED - The URLs for both endpoints is very similar.  Which one is picked
      * will be ultimately decided by what the user has set in his sort preferences.
      * @param context - Needed to obtain key
+     * @param popularOrTop - String indicating what list the user wants
      * @return URL - URL that can be used to access appropriate JSON from theMovieDB
      */
     public static URL buildUrlForPopularOrTopRated(Context context, String popularOrTop) {

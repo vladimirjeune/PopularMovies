@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         String popularOrTopRated = sharedPreferences.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_sort_default));  // Get from SP or default
 
-            new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));  // TODO: Add String so can be either/or
+        new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));  // TODO: Add String so can be either/or
         Log.d(TAG, "END::loadPreferredMovieList: ");
     }
 
