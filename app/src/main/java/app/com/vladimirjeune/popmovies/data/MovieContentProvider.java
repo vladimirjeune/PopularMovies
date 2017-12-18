@@ -213,6 +213,7 @@ public class MovieContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
 
+            // Deleting entire table will delete both types.  Be careful
             case MOVIES:
                 rowsDeleted = mMovieDBHelper.getWritableDatabase()
                         .delete(MovieEntry.TABLE_NAME
@@ -263,6 +264,14 @@ public class MovieContentProvider extends ContentProvider {
                         ,contentValues
                         ,MovieEntry._ID + mFreeParameter
                         ,new String[] {"" + updateId});
+                break;
+            case MOVIES:
+                rowsUpdated = mMovieDBHelper.getWritableDatabase().update(
+                        MovieEntry.TABLE_NAME,
+                        contentValues,
+                        selection,
+                        selectionArgs
+                );
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

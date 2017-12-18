@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements
     /**
      * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
      * JSON call that should precede this one.  Update database with runtimes
-     * Note: Makes network call.
+     * Note: Makes network call.  Calls DB
      * @param cursor - Holds data we need to look through
      */
     private void getRuntimesForMoviesInList(Cursor cursor) {
