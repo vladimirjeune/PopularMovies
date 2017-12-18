@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements
 
         setupSharedPreferences();
 
-        loadPreferredMovieList();  // Calls AsyncTask and gets posters for MainPage
+        loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
         Log.d(TAG, "END::onCreate: ");
     }
 
@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements
      * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
      * JSON call that should precede this one.  Update database with runtimes
      * Note: Makes network call.
+     * @param cursor - Holds data we need to look through
      */
     private void getRuntimesForMoviesInList(Cursor cursor) {
         Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
@@ -352,8 +353,7 @@ public class MainActivity extends AppCompatActivity implements
                             try {
                                 mDb.beginTransaction();
 
-                                Set<Long> idOldSet = new HashSet<>();
-
+                                // Projection and following final ints need to always be in sync
                                 final String[] projection = new String[] {
                                         MovieEntry._ID,
                                         MovieEntry.ORIGINAL_TITLE,
@@ -361,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements
                                         MovieEntry.TOP_RATED_ORDER_IN
                                 };
 
+                                // Preceding Projection and these final ints always MUST be in sync
                                 final int idPos = 0;
                                 final int titlePos = 1;
                                 final int popOrderInPos = 2;
@@ -368,6 +369,7 @@ public class MainActivity extends AppCompatActivity implements
 
                                 String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
 
+                                // Query of what already in DB
                                 Cursor idAndTitleOldCursor = mDb.query(MovieEntry.TABLE_NAME,
                                        projection,
                                         where,
@@ -376,45 +378,17 @@ public class MainActivity extends AppCompatActivity implements
                                         null,
                                         null);  // Do not need order for Set
 
-                                // Make a Set of IDs you already have in DB.  Later, compare to incoming
-                                idAndTitleOldCursor.moveToFirst();
-                                do {
-                                    idOldSet.add(idAndTitleOldCursor.getLong(idPos));
-                                } while(idAndTitleOldCursor.moveToNext()) ;
+                                // Make set of IDs currently in DB
+                                Set<Long> idOldSet = new HashSet<>();
+                                makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
 
-
-                                // TODO:  Code to stop duplicates
-                                // Insert or Update based on Intersection of Old and New IDs.
+                                // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
                                 Set<Long> idNewSet = new HashSet<>();
-                                for (int i = 0; i < movieContentValues.length; i++) {
-
-                                    Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
-                                    idNewSet.add(newId);    // Create new Set for difference op later
-
-                                    if (idOldSet.contains(newId)) {
-                                        // Update
-                                        String orderType = getTypeOrderIn(isPopular);
-                                        String[] whereArgs
-                                                = new String[] {"" + newId
-                                                , getOldPositionOfNewId(isPopular, idAndTitleOldCursor, newId)};
-
-                                        mDb.update(MovieEntry.TABLE_NAME,
-                                                movieContentValues[i],
-                                                MovieEntry._ID + " = ? AND " + orderType + " = ? ",
-                                                whereArgs);
-                                    } else {
-                                        mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
-                                    }
-                                }
+                                insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
 
                                 // Delete movies that moved off list
                                 idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-
-                                for (Long deleteOldId : idOldSet) {
-                                    mDb.delete(MovieEntry.TABLE_NAME,
-                                            MovieEntry._ID + " = ? ",
-                                            new String[] {"" + deleteOldId});
-                                }
+                                deleteChartDroppedMovies(idOldSet);
 
                                 idAndTitleOldCursor.close();  // Closing the Cursor
                                 mDb.setTransactionSuccessful();
@@ -428,11 +402,11 @@ public class MainActivity extends AppCompatActivity implements
 
                             if (cursorPosterPathsMovieIds != null) {
 
-                                // Add Runtimes for Movies
+                                // Add Runtimes to DB for Movies
                                 getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
                                 createArrayListOfPairsForPosters(idsAndPosters, cursorPosterPathsMovieIds);
 
-                                cursorPosterPathsMovieIds.close();
+                                cursorPosterPathsMovieIds.close();  // Closing Cursor
                             }
 
                         } catch (JSONException je) {
@@ -446,6 +420,66 @@ public class MainActivity extends AppCompatActivity implements
                     }
 
                     return idsAndPosters;
+                }
+
+                /**
+                 * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
+                 * @param idOldSet - Modified set of old Movie IDs consists of Old IDs - New Ids
+                 *                 and the Intersection of Old & New
+                 */
+                private void deleteChartDroppedMovies(Set<Long> idOldSet) {
+                    for (Long deleteOldId : idOldSet) {
+                        mDb.delete(MovieEntry.TABLE_NAME,
+                                MovieEntry._ID + " = ? ",
+                                new String[] {"" + deleteOldId});
+                    }
+                }
+
+                /**
+                 * INSERTUPDATEANDMAKENEWIDSET - Inserts new movies into DB, Updates chart movers in DB, and makes a
+                 * new ID set of incoming movies to compare against what is already in the database
+                 * @param isPopular - Type the user is looking for
+                 * @param idAndTitleOldCursor - Cursor of titles that are previously in DB
+                 * @param idOldSet - Set of IDs of movies previously in our DB
+                 * @param idNewSet - Set of IDs that are coming in from TMDb.
+                 */
+                private void insertUpdateAndMakeNewIdSet(boolean isPopular, Cursor idAndTitleOldCursor, Set<Long> idOldSet, Set<Long> idNewSet) {
+                    for (int i = 0; i < movieContentValues.length; i++) {
+
+                        Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
+                        idNewSet.add(newId);    // Create new Set for difference op later
+
+                        if (idOldSet.contains(newId)) {
+                            // Update
+                            String orderType = getTypeOrderIn(isPopular);
+                            String[] whereArgs
+                                    = new String[] {"" + newId
+                                    , getOldPositionOfNewId(isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
+
+                            mDb.update(MovieEntry.TABLE_NAME,
+                                    movieContentValues[i],
+                                    MovieEntry._ID + " = ? AND " + orderType + " = ? ",
+                                    whereArgs);
+                        } else {
+                            mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
+                        }
+                    }
+                }
+
+                /**
+                 * MAKESETOFOLDIDS - Create a Set of the IDs that are currently in the DB.
+                 * Will be used later to ensure proper updating when new data comes in.
+                 * No duplicates and proper updating.
+                 * @param idPos - Position of the id column
+                 * @param idAndTitleOldCursor - Cursor with old DB data
+                 * @param idOldSet - Set holding the IDs of the old DB movies.
+                 */
+                private void makeSetOfOldIds(int idPos, Cursor idAndTitleOldCursor, Set<Long> idOldSet) {
+                    // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
+                    idAndTitleOldCursor.moveToFirst();
+                    do {
+                        idOldSet.add(idAndTitleOldCursor.getLong(idPos));
+                    } while(idAndTitleOldCursor.moveToNext()) ;
                 }
 
                 /**
