@@ -245,10 +245,8 @@ public class MainActivity extends AppCompatActivity implements
                 .getLoader(TMDBQUERY_LOADER);
 
         if (null == tmdbQueryLoader) {
-            /**
-             * Make sure loader is initialized and active.  If loader doesn't already exists; create one
-             * and start it.  Otherwise, use last created loader
-             **/
+            // Make sure loader is initialized and active.  If loader doesn't already exists; create one
+            // and start it.  Otherwise, use last created loader
             getSupportLoaderManager().initLoader(TMDBQUERY_LOADER, urlBundle, this);
         } else {
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, urlBundle, this);
