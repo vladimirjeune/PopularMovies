@@ -1,7 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
@@ -15,7 +14,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 /**
@@ -142,79 +140,96 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     }
 
+//    /**
+//     * SETPOSTERDATA - Takes reference to DB so can be updated when pictures come in for
+//     * GridView.  And so we have access to DB when it changes, to update the GridView
+//     * @param movieDb - Database of movies
+//     * @param isPopular - Whether want Popular or Top-rated movies
+//     */
+//    public void setMoviesData(SQLiteDatabase movieDb, boolean isPopular) {
+////            Log.d(TAG, "BEGIN::setMoviesData: " + movieDatas);
+//
+//        if (movieDb != null){
+//            mDb = movieDb;
+//            mIsPopular = isPopular;
+//
+//            Cursor cursorPosterPathsMovieIds = getIDAndPosterPathCursor();
+//            mNumberOfItems = cursorPosterPathsMovieIds.getCount();  // Should always be 20
+//
+//            mPosterAndIds = new ArrayList<>();
+//
+//            if (cursorPosterPathsMovieIds.moveToFirst()) {
+//                int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
+//                int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
+//
+//                if ((-1 != idIndex) && (-1 != posterPathIndex)) {
+//                    for (int i = 0; cursorPosterPathsMovieIds.moveToPosition(i++); ) {
+//                        long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
+//                        String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
+//
+//                        mPosterAndIds.add(new Pair<>(movieId, posterPath));
+//                    }
+//
+//                    notifyDataSetChanged();  // This function was called because there was a change, so update things.
+//                }
+//
+//                cursorPosterPathsMovieIds.close();  // Always close the cursor
+//            }
+//
+//        }
+////            Log.d(TAG, "END::setMoviesData: " + mMovieData);
+//    }
+
+
     /**
-     * SETPOSTERDATA - Takes reference to DB so can be updated when pictures come in for
-     * GridView.  And so we have access to DB when it changes, to update the GridView
-     * @param movieDb - Database of movies
+     * SETDATA - Takes list of posters in order and whether this batch is popular
+     * @param dataList - List of Movie Posters with IDs
      * @param isPopular - Whether want Popular or Top-rated movies
      */
-    public void setMoviesData(SQLiteDatabase movieDb, boolean isPopular) {
-//            Log.d(TAG, "BEGIN::setMoviesData: " + movieDatas);
+    public void setData(ArrayList<Pair<Long, String>> dataList, boolean isPopular) {
 
-        if (movieDb != null){
-            mDb = movieDb;
+        if (dataList != null) {
+            mPosterAndIds = dataList;
             mIsPopular = isPopular;
-
-            Cursor cursorPosterPathsMovieIds = getIDAndPosterPathCursor();
-            mNumberOfItems = cursorPosterPathsMovieIds.getCount();  // Should always be 20
-
-            mPosterAndIds = new ArrayList<>();
-
-            if (cursorPosterPathsMovieIds.moveToFirst()) {
-                int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
-                int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
-
-                if ((-1 != idIndex) && (-1 != posterPathIndex)) {
-                    for (int i = 0; cursorPosterPathsMovieIds.moveToPosition(i++); ) {
-                        long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
-                        String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
-
-                        mPosterAndIds.add(new Pair<>(movieId, posterPath));
-                    }
-
-                    notifyDataSetChanged();  // This function was called because there was a change, so update things.
-                }
-
-                cursorPosterPathsMovieIds.close();  // Always close the cursor
-            }
-
+            mNumberOfItems = mPosterAndIds.size();  // Should always be 20
+            notifyDataSetChanged();  // This function was called because there was a change, so update things.
         }
-//            Log.d(TAG, "END::setMoviesData: " + mMovieData);
+
     }
 
-    /**
-     * GETIDANDPOSTERPATHCURSOR - Will obtain cursor containing the movieId, and the posterPath for each movie
-     * of the specified type.
-     * @return Cursor - Result of query.  Can return NULL if database not yet set.
-     */
-    private Cursor getIDAndPosterPathCursor() {
-        // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
-        // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
-
-        if (null == mDb) {
-            return null;
-        }
-
-        String orderByTypeIndex;
-        String selection ;
-        if (mIsPopular) {
-            orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
-            selection = MovieEntry.POPULAR_ORDER_IN;
-        } else {
-            orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
-            selection = MovieEntry.TOP_RATED_ORDER_IN;
-        }
-
-        String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
-        // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-        // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
-
-        return mDb.query(MovieEntry.TABLE_NAME,
-                posterPathMovieIdColumns,
-                selection + " IS NOT NULL ",  // When doing Populuar,
-                null,
-                null,
-                null,
-                orderByTypeIndex);
-    }
+//    /**
+//     * GETIDANDPOSTERPATHCURSOR - Will obtain cursor containing the movieId, and the posterPath for each movie
+//     * of the specified type.
+//     * @return Cursor - Result of query.  Can return NULL if database not yet set.
+//     */
+//    private Cursor getIDAndPosterPathCursor() {
+//        // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
+//        // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
+//
+//        if (null == mDb) {
+//            return null;
+//        }
+//
+//        String orderByTypeIndex;
+//        String selection ;
+//        if (mIsPopular) {
+//            orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
+//            selection = MovieEntry.POPULAR_ORDER_IN;
+//        } else {
+//            orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
+//            selection = MovieEntry.TOP_RATED_ORDER_IN;
+//        }
+//
+//        String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+//        // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+//        // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+//
+//        return mDb.query(MovieEntry.TABLE_NAME,
+//                posterPathMovieIdColumns,
+//                selection + " IS NOT NULL ",  // When doing Populuar,
+//                null,
+//                null,
+//                null,
+//                orderByTypeIndex);
+//    }
 }

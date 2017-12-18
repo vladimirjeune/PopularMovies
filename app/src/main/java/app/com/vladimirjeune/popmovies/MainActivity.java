@@ -6,8 +6,13 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
@@ -22,15 +27,22 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements
+        SharedPreferences.OnSharedPreferenceChangeListener,
+        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, String>>> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int TMDBQUERY_LOADER = 41;
+    private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
     private String mTMDKey;
 
     private RecyclerView mRecyclerView;
@@ -38,14 +50,45 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private final int mNumberOfFakeMovies = 20;
 
-    // Test to read JSON list object for most of Movie data
-    // Maybe doing too much at once.  Just see if you can get the JSON
-//    private MovieData[] tempMovies;
     private ContentValues[] movieContentValues;
     private SQLiteDatabase mDb;
+    private String mIsPopular ;
 
     private Toast mToast;
 
+    // *** IMPORTANT ***  This projection and the following ints MUST REMAIN CORRELATED in order
+    private static String[] MAIN_MOVIE_PROJECTION = {
+            MovieEntry._ID,
+            MovieEntry.ORIGINAL_TITLE,
+            MovieEntry.POSTER_PATH,
+            MovieEntry.SYNOPSIS,
+            MovieEntry.RELEASE_DATE,
+            MovieEntry.VOTER_AVERAGE,
+            MovieEntry.BACKDROP_PATH,
+            MovieEntry.POPULARITY,
+            MovieEntry.RUNTIME,
+            MovieEntry.POSTER,
+            MovieEntry.BACKDROP,
+            MovieEntry.COLUMN_TIMESTAMP,
+            MovieEntry.POPULAR_ORDER_IN,
+            MovieEntry.TOP_RATED_ORDER_IN
+    };
+
+    // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
+    private static final int INDEX_ID = 0;
+    private static final int INDEX_ORIGINAL_TITLE = 1;
+    private static final int INDEX_POSTER_PATH = 2;
+    private static final int INDEX_SYNOPSIS = 3;
+    private static final int INDEX_RELEASE_DATE = 4;
+    private static final int INDEX_VOTER_AVERAGE = 5;
+    private static final int INDEX_BACKDROP_PATH = 6;
+    private static final int INDEX_POPULARITY = 7;
+    private static final int INDEX_RUNTIME = 8;
+    private static final int INDEX_POSTER = 9;
+    private static final int INDEX_BACKDROP = 10;
+    private static final int INDEX_COLUMN_TIMESTAMP = 11;
+    private static final int INDEX_POPULAR_ORDER_IN = 12;
+    private static final int INDEX_TOP_RATED_ORDER_IN = 13;
 
 
     @Override
@@ -53,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "BEGIN::onCreate: ");
+
+        mIsPopular = getString(R.string.pref_sort_popular);
 
         MovieDBHelper movieDBHelper = new MovieDBHelper(this);
 
@@ -188,12 +233,46 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
      */
     private void loadPreferredMovieList() {
         Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
+
+        // Get current type from SharedPrefs
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String popularOrTopRated = sharedPreferences.getString(getString(R.string.pref_sort_key),
+        mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_sort_default));  // Get from SP or default
 
-        new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));  // TODO: Add String so can be either/or
+        Bundle urlBundle = getTMDQueryBundle();
+
+        Loader<ArrayList<Pair<Long, String>>> tmdbQueryLoader = getSupportLoaderManager()
+                .getLoader(TMDBQUERY_LOADER);
+
+        if (null == tmdbQueryLoader) {
+            /**
+             * Make sure loader is initialized and active.  If loader doesn't already exists; create one
+             * and start it.  Otherwise, use last created loader
+             **/
+            getSupportLoaderManager().initLoader(TMDBQUERY_LOADER, urlBundle, this);
+        } else {
+            getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, urlBundle, this);
+        }
+
+//        new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular));
         Log.d(TAG, "END::loadPreferredMovieList: ");
+    }
+
+    /**
+     * GETTMDQUERYBUNDLE - Bundles the needed URL as a string so that it can be
+     * used later by the loader.
+     * @return - Bundle - The Bundle that should be used for the loading of the TMDBQuery
+     */
+    @NonNull
+    private Bundle getTMDQueryBundle() {
+        // Prepare to call loader
+        Bundle urlBundle = new Bundle();
+        URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular);
+        String stringOfUrl = ((null == urlForPopularOrTopRated) ? null : urlForPopularOrTopRated.toString());
+        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+
+        urlBundle.putCharSequence(NETWORK_URL_POP_OR_TOP_KEY, stringOfUrl);
+        return urlBundle;
     }
 
     @Override
@@ -207,118 +286,418 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
         if (s.equals(getString(R.string.pref_sort_key))) {
-            String popularOrTopRated = sharedPreferences.getString(getString(R.string.pref_sort_key),
+            mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
-            new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, popularOrTopRated));
+
+            getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
+//            new TMDBQueryTask().execute(NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular));
         }
         Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
 
+    /**
+     * ONCREATELOADER - Create and return a new loader for the the given id
+     * @param id - int - For differentiating loaders
+     * @param args - Bundle - Important data for loader
+     * @return - New Loader instance that is ready to start loading
+     */
+    @Override
+    public Loader<ArrayList<Pair<Long, String>>> onCreateLoader(int id, final Bundle args) {
 
-    public class TMDBQueryTask extends AsyncTask<URL, Void, Boolean> {
+        if (TMDBQUERY_LOADER == id) {
+            return new AsyncTaskLoader<ArrayList<Pair<Long, String>>>(this) {
 
-        /**
-         * DOINBACKGROUND - Get data from server and parse JSON
-         * @param urls - Only 1 url for a list of movies will be used, urls[0]
-         * @return MovieData[] - Array of Movie objects that were created after request
-         */
-        @Override
-        protected Boolean doInBackground(URL... urls) {
-            Log.d(TAG, "BEGIN::doInBackground: " + urls[0]);
-            boolean isPopular = true;
-            // If got nothing, return
-            if (0 != urls.length) {
+                // Holds and helps to cache our data
+                ArrayList<Pair<Long, String>> mIdsAndPosters = null;
 
-                URL url = urls[0];
-                String tmdbJsonString = "";
-                try {
-                    tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(url);  // Popular | Top-Rated
+                @Override
+                protected void onStartLoading() {
 
-                    Log.i(TAG, "doInBackground: >>>" + tmdbJsonString + "<<<");
-                    isPopular = (url.toString()).contains(NetworkUtils.TMDB_POPULAR);
-//                    tempMovies = OpenTMDJsonUtils
-//                            .getPopularOrTopJSON(MainActivity.this, tmdbJsonString, isPopular);
-                    movieContentValues = OpenTMDJsonUtils
-                            .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
-
-                    // Not sure if DB calls need to be done here, but since we are here, why not.
-
-                    try {
-                        mDb.beginTransaction();
-
-                        // TODO: Code to keep from having duplicates
-
-                        for (int i = 0; i < movieContentValues.length; i++) {
-                            mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
-                        }
-
-                        mDb.setTransactionSuccessful();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } finally {
-                        mDb.endTransaction();
+                    if (args == null) {  // Nothing to do, with no arguments
+                        return;
                     }
 
-                    Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
-
-                    if (cursorPosterPathsMovieIds != null) {
-                        getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
-                        cursorPosterPathsMovieIds.close();
+                    // If we have cached results, deliver immediately, otherwise, forceLoad
+                    if (mIdsAndPosters != null) {
+                        deliverResult(mIdsAndPosters);
+                    } else {
+                        forceLoad();
                     }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
 
-            }
+                /**
+                 * LOADINBACKGROUND - Done on a background thread
+                 * @return - ArrayList<Pair<Long, String>> - Ordered Arraylist of Movie posters and ids.
+                 */
+                @Override
+                public ArrayList<Pair<Long, String>> loadInBackground() {
 
-            Log.d(TAG, "END::doInBackground: ");
-            return isPopular;
+                    Log.d(TAG, "loadInBackground: ");
+                    boolean isPopular = true;
+
+                    String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
+                    ArrayList<Pair<Long, String>> idsAndPosters = null;
+
+                    if (urlString != null) {
+                        String tmdbJsonString = "";
+                        idsAndPosters = new ArrayList<>();
+
+                        try {
+
+                            tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
+
+                            Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
+
+                            isPopular = mIsPopular.equals(NetworkUtils.TMDB_POPULAR);
+                            movieContentValues = OpenTMDJsonUtils
+                                    .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
+
+                            try {
+                                mDb.beginTransaction();
+
+                                Set<Long> idOldSet = new HashSet<>();
+
+                                // TODO: Need to add both OrderIns to projection
+                                final String[] projection = new String[] {
+                                        MovieEntry._ID,
+                                        MovieEntry.ORIGINAL_TITLE,
+                                        MovieEntry.POPULAR_ORDER_IN,
+                                        MovieEntry.TOP_RATED_ORDER_IN
+                                };
+
+                                final int idPos = 0;
+                                final int titlePos = 1;
+                                final int popOrderInPos = 2;
+                                final int topRatedOrderInPos = 3;
+
+                                String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
+
+                                Cursor idAndTitleOldCursor = mDb.query(MovieEntry.TABLE_NAME,
+                                       projection,
+                                        where,
+                                        null,
+                                        null,
+                                        null,
+                                        null);  // Do not need order for Set
+
+                                // Make a Set of IDs you already have in DB.  Later, compare to incoming
+                                idAndTitleOldCursor.moveToFirst();
+                                do {
+                                    idOldSet.add(idAndTitleOldCursor.getLong(idPos));
+                                } while(idAndTitleOldCursor.moveToNext()) ;
+
+
+                                // TODO:  Code to stop duplicates
+                                // Insert or Update based on Intersection of Old and New IDs.
+                                Set<Long> idNewSet = new HashSet<>();
+                                for (int i = 0; i < movieContentValues.length; i++) {
+
+                                    Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
+                                    idNewSet.add(newId);    // Create new Set for difference op later
+
+                                    if (idOldSet.contains(newId)) {
+                                        // Update
+                                        String orderType = getTypeOrderIn(isPopular);
+                                        String[] whereArgs
+                                                = new String[] {"" + newId
+                                                , getOldPositionOfNewId(isPopular, idAndTitleOldCursor, newId)};
+
+                                        mDb.update(MovieEntry.TABLE_NAME,
+                                                movieContentValues[i],
+                                                MovieEntry._ID + " = ? AND " + orderType + " = ? ",
+                                                whereArgs);
+                                    } else {
+                                        mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
+                                    }
+                                }
+
+                                // Delete movies that moved off list
+                                idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
+
+                                for (Long deleteOldId : idOldSet) {
+                                    mDb.delete(MovieEntry.TABLE_NAME,
+                                            MovieEntry._ID + " = ? ",
+                                            new String[] {"" + deleteOldId});
+                                }
+
+                                idAndTitleOldCursor.close();  // Closing the Cursor
+                                mDb.setTransactionSuccessful();
+                            } catch (SQLException sqe) {
+                                sqe.printStackTrace();
+                            } finally {
+                                mDb.endTransaction();
+                            }
+
+                            Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
+
+                            if (cursorPosterPathsMovieIds != null) {
+
+                                // Add Runtimes for Movies
+                                getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
+                                createArrayListOfPairsForPosters(idsAndPosters, cursorPosterPathsMovieIds);
+
+                                cursorPosterPathsMovieIds.close();
+                            }
+
+                        } catch (JSONException je) {
+                            je.printStackTrace();
+                            return null;
+                        } catch (IOException ioe) {
+                            ioe.printStackTrace();
+                            return null;
+                        }
+                        Log.d(TAG, "loadInBackground: Poster Count: " + idsAndPosters.size() );
+                    }
+
+                    return idsAndPosters;
+                }
+
+                /**
+                 * GETTYPEORDERIN - Used to get the proper [TYPE]OrderIn depending on the boolean
+                 * @param isPopular - boolean - Does the User want Popular order, or Top-Rated order
+                 * @return - String - Proper key based on the boolean passed in
+                 */
+                @Nullable
+                private String getTypeOrderIn(boolean isPopular) {
+                    return (isPopular) ? MovieEntry.POPULAR_ORDER_IN : MovieEntry.TOP_RATED_ORDER_IN;
+                }
+
+                /**
+                 * GETOLDPOSITIONOFNEWID - Returns the old Position of the movie with this ID
+                 * @param isPopular - Popular, or Top-Rated
+                 * @param idAndTitleOldCursor - Cursor - Place to find old ID
+                 * @param oldId - Long - Old Id we are looking for
+                 * @return - String - Order Index of the Type that the user is asking for.  Or "-1", if no match
+                 */
+                @Nullable
+                private String getOldPositionOfNewId(boolean isPopular, final Cursor idAndTitleOldCursor, final Long oldId) {
+
+                    int retIndex = -1;
+                    String orderType = getTypeOrderIn(isPopular);
+
+                    idAndTitleOldCursor.moveToFirst();
+                    int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
+                    int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
+
+                    do {
+                        if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
+                            retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
+                            return "" + retIndex;  // Found it, jump out.
+                        }
+                    } while (idAndTitleOldCursor.moveToNext());
+
+                    Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
+                    return "" + retIndex;
+                }
+
+                /**
+                 * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
+                 * @param idsAndPosters - ArrayList<Pairs<Long, String>> - Posters for MainActivity in order
+                 * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
+                 */
+                private void createArrayListOfPairsForPosters(ArrayList<Pair<Long, String>> idsAndPosters, Cursor cursorPosterPathsMovieIds) {
+                    // Create ArrayList of Pairs for posters
+                    if (cursorPosterPathsMovieIds.moveToFirst()) {
+                        int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
+                        int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
+
+                        if ((-1 != idIndex) && (-1 != posterPathIndex)) {
+                            do {
+                                long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
+                                String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
+
+                                idsAndPosters.add(new Pair<>(movieId, posterPath));
+                            } while (cursorPosterPathsMovieIds.moveToNext()) ;
+                        }
+                    }
+                }
+
+                /**
+                 * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
+                 * @param data - ArrayList<Pair<Long, String>>
+                 */
+                @Override
+                public void deliverResult(ArrayList<Pair<Long, String>> data) {
+                    mIdsAndPosters = data;  // Assignment for caching
+                    super.deliverResult(data);  // Then deliver results
+                }
+
+                /**
+                 * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
+                 * of the specified type.
+                 * @param isPopular - boolean - Whether this is for Popular or Top-Rated
+                 * @return Cursor - Result of query.  Can return NULL if database not yet set.
+                 */
+                private Cursor getCursorPosterPathsMovieIds(boolean isPopular) {
+                    // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
+                    // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
+                    String orderByTypeIndex;
+                    String selection ;
+                    if (isPopular) {
+                        orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
+                        selection = MovieEntry.POPULAR_ORDER_IN;
+                    } else {
+                        orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
+                        selection = MovieEntry.TOP_RATED_ORDER_IN;
+                    }
+
+                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+                    // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+                    // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+                    return mDb.query(MovieEntry.TABLE_NAME,
+                            posterPathMovieIdColumns,
+                            selection + " IS NOT NULL ",  // When doing Populuar,
+                            null,
+                            null,
+                            null,
+                            orderByTypeIndex);
+                }
+
+            };
         }
 
-        /**
-         * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
-         * of the specified type.
-         * @param isPopular - boolean - Whether this is for Popular or Top-Rated
-         * @return Cursor - Result of query.  Can return NULL if database not yet set.
-         */
-        private Cursor getCursorPosterPathsMovieIds(boolean isPopular) {
-            // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
-            // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
-            String orderByTypeIndex;
-            String selection ;
-            if (isPopular) {
-                orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
-                selection = MovieEntry.POPULAR_ORDER_IN;
-            } else {
-                orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
-                selection = MovieEntry.TOP_RATED_ORDER_IN;
-            }
-
-            String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
-            // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-            // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
-            return mDb.query(MovieEntry.TABLE_NAME,
-                    posterPathMovieIdColumns,
-                    selection + " IS NOT NULL ",  // When doing Populuar,
-                    null,
-                    null,
-                    null,
-                    orderByTypeIndex);
-        }
-
-        /**
-         * ONPOSTEXECUTE - Will set the posters using the newly acquired MovieData
-         */
-        @Override
-        protected void onPostExecute(Boolean isPopular) {
-
-            Log.d(TAG, "BEGIN::onPostExecute: ");
-            // TODO: Maybe put cursor into array.  Send array and close the cursor here.  Possibly, just send DB and hold?
-            mMovieAdapter.setMoviesData(mDb, isPopular);
-            Log.d(TAG, "END::onPostExecute: ");
-        }
+        return null;
     }
+
+    @Override
+    public void onLoadFinished(Loader<ArrayList<Pair<Long, String>>> loader, ArrayList<Pair<Long, String>> data) {
+        Log.d(TAG, "onLoadFinished: ");
+
+        if (data != null) {
+            mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
+        }
+
+        Log.d(TAG, "onLoadFinished: ");
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ArrayList<Pair<Long, String>>> loader) {
+        // Nothing here
+    }
+
+
+//    public class TMDBQueryTask extends AsyncTask<URL, Void, Boolean> {
+//
+//        /**
+//         * DOINBACKGROUND - Get data from server and parse JSON
+//         * @param urls - Only 1 url for a list of movies will be used, urls[0]
+//         * @return MovieData[] - Array of Movie objects that were created after request
+//         */
+//        @Override
+//        protected Boolean doInBackground(URL... urls) {
+//            Log.d(TAG, "BEGIN::doInBackground: " + urls[0]);
+//            boolean isPopular = true;
+//            // If got nothing, return
+//            if (0 != urls.length) {
+//                ArrayList<Pair<Long, String>> posterAndIds = new ArrayList<>();
+//
+//                URL url = urls[0];
+//                String tmdbJsonString = "";
+//                try {
+//                    tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(url);  // Popular | Top-Rated
+//
+//                    Log.i(TAG, "doInBackground: >>>" + tmdbJsonString + "<<<");
+////                    isPopular = (url.toString()).contains(NetworkUtils.TMDB_POPULAR);
+//                    isPopular = mIsPopular.equals(NetworkUtils.TMDB_POPULAR);
+//                    movieContentValues = OpenTMDJsonUtils
+//                            .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
+//
+//                    // Not sure if DB calls need to be done here, but since we are here, why not.
+//
+//                    try {
+//                        mDb.beginTransaction();
+//
+//                        // TODO: Code to keep from having duplicates
+//
+//                        for (int i = 0; i < movieContentValues.length; i++) {
+//                            mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
+//                        }
+//
+//                        mDb.setTransactionSuccessful();
+//                    } catch (SQLException e) {
+//                        e.printStackTrace();
+//                    } finally {
+//                        mDb.endTransaction();
+//                    }
+//
+//                    Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
+//
+//                    if (cursorPosterPathsMovieIds != null) {
+//                        getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
+//
+//                        if (cursorPosterPathsMovieIds.moveToFirst()) {
+//                            int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
+//                            int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
+//
+//                            if ((-1 != idIndex) && (-1 != posterPathIndex)) {
+//                                do {
+//                                    long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
+//                                    String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
+//
+//                                    posterAndIds.add(new Pair<>(movieId, posterPath));
+//                                } while (cursorPosterPathsMovieIds.moveToNext());
+//                            }
+//
+//                        }
+//
+//                        cursorPosterPathsMovieIds.close();
+//                    }
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//
+//            Log.d(TAG, "END::doInBackground: ");
+//            return isPopular;
+//        }
+//
+//        /**
+//         * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
+//         * of the specified type.
+//         * @param isPopular - boolean - Whether this is for Popular or Top-Rated
+//         * @return Cursor - Result of query.  Can return NULL if database not yet set.
+//         */
+//        private Cursor getCursorPosterPathsMovieIds(boolean isPopular) {
+//            // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
+//            // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
+//            String orderByTypeIndex;
+//            String selection ;
+//            if (isPopular) {
+//                orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
+//                selection = MovieEntry.POPULAR_ORDER_IN;
+//            } else {
+//                orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
+//                selection = MovieEntry.TOP_RATED_ORDER_IN;
+//            }
+//
+//            String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+//            // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+//            // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+//            return mDb.query(MovieEntry.TABLE_NAME,
+//                    posterPathMovieIdColumns,
+//                    selection + " IS NOT NULL ",  // When doing Populuar,
+//                    null,
+//                    null,
+//                    null,
+//                    orderByTypeIndex);
+//        }
+//
+//        /**
+//         * ONPOSTEXECUTE - Will set the posters using the newly acquired MovieData
+//         */
+//        @Override
+//        protected void onPostExecute(Boolean isPopular) {
+//
+//            Log.d(TAG, "BEGIN::onPostExecute: ");
+//            // TODO: Maybe put cursor into array.  Send array and close the cursor here.  Possibly, just send DB and hold?
+//            mMovieAdapter.setMoviesData(mDb, isPopular);
+//            Log.d(TAG, "END::onPostExecute: ");
+//        }
+//    }
+
+
 }
