@@ -235,8 +235,6 @@ public final class OpenTMDJsonUtils {
         return false;
     }
 
-    // Need a function to parse Movie JSON for Detail runtime.
-    // If it has to be done in certain order, then make private
     /**
      * GETRUNTIMROFSINGLEMOVIE - Returns the runtime of a single movie whose info was obtained from the
      * movies endpoint.  Not the popular/ or toprated/ endpoints.  Those endpoints do not have runtime
