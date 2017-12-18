@@ -61,7 +61,7 @@ public class MovieContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case MOVIES:
-                mMovieDBHelper.getReadableDatabase()
+                retCursor = mMovieDBHelper.getReadableDatabase()
                         .query(MovieEntry.TABLE_NAME
                                 , projection
                                 , selection
@@ -120,10 +120,32 @@ public class MovieContentProvider extends ContentProvider {
 
     }
 
+    /**
+     * INSERT - Insert what is in ContentValues into the DB
+     * @param uri - The Uri to table we want to insert into.
+     * @param contentValues - Holds data we want to insert into DB
+     * @return - Uri - If successful; it will be the Uri passed in with the new ID appended.
+     * -1 if unsuccessful.
+     */
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
-        return null;
+
+        Uri retUri = null;
+
+        switch (sUriMatcher.match(uri)) {
+            case MOVIES:
+                long newId = mMovieDBHelper.getWritableDatabase().insert(MovieEntry.TABLE_NAME,
+                        null,
+                        contentValues);
+
+                retUri = uri.buildUpon().appendPath("" + newId).build();
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown Uri: " + uri);
+        }
+
+        return retUri;
     }
 
 
