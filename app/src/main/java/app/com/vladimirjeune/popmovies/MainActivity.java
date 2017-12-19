@@ -287,6 +287,7 @@ public class MainActivity extends AppCompatActivity implements
                     getString(R.string.pref_sort_default));
 
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
+//            mMovieAdapter.notifyDataSetChanged();   // Made no difference
         }
         Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
