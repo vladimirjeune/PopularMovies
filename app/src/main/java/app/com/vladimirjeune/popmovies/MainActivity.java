@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements
     private final int mNumberOfFakeMovies = 20;
 
     private ContentValues[] movieContentValues;
-    private SQLiteDatabase mDb;
     private String mIsPopular ;
 
     private Toast mToast;
@@ -100,8 +98,6 @@ public class MainActivity extends AppCompatActivity implements
         mIsPopular = getString(R.string.pref_sort_popular);
 
         MovieDBHelper movieDBHelper = new MovieDBHelper(this);
-
-        mDb = movieDBHelper.getWritableDatabase();
 
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
@@ -183,15 +179,14 @@ public class MainActivity extends AppCompatActivity implements
                     long movieID = cursor.getLong(movieIdCursorIndex);  // Get movieId for later in loop
 
                     int runtime = getSingleMovieRuntimeFromTMDB("" + movieID);  // Get runtime for this id
-                    String[] idArgsArray = {"" + movieID};
                     idContentValues.put(MovieEntry.RUNTIME, runtime);  // It is the runtime we want to update
 
                     // Update runtime where ID = id
-                    mDb.update(MovieEntry.TABLE_NAME
-                            , idContentValues
-                            , MovieEntry._ID + " = ? "
-                            , idArgsArray
-                    );
+                    getContentResolver().update(
+                            MovieEntry.buildUriWithMovieId(movieID),
+                            idContentValues,
+                            null,
+                            null);
 
                 }
             }
@@ -350,8 +345,6 @@ public class MainActivity extends AppCompatActivity implements
                                     .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
 
                             try {
-                                mDb.beginTransaction();
-
                                 // Projection and following final ints need to always be in sync
                                 final String[] projection = new String[] {
                                         MovieEntry._ID,
@@ -369,13 +362,13 @@ public class MainActivity extends AppCompatActivity implements
                                 String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
 
                                 // Query of what already in DB
-                                Cursor idAndTitleOldCursor = mDb.query(MovieEntry.TABLE_NAME,
-                                       projection,
+                                Cursor idAndTitleOldCursor = getContentResolver().query(
+                                        MovieEntry.CONTENT_URI,
+                                        projection,
                                         where,
                                         null,
-                                        null,
-                                        null,
-                                        null);  // Do not need order for Set
+                                        null
+                                );  // Do not need order for Set
 
                                 // Make set of IDs currently in DB
                                 Set<Long> idOldSet = new HashSet<>();
@@ -390,11 +383,9 @@ public class MainActivity extends AppCompatActivity implements
                                 deleteChartDroppedMovies(idOldSet);
 
                                 idAndTitleOldCursor.close();  // Closing the Cursor
-                                mDb.setTransactionSuccessful();
+
                             } catch (SQLException sqe) {
                                 sqe.printStackTrace();
-                            } finally {
-                                mDb.endTransaction();
                             }
 
                             Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
@@ -428,9 +419,10 @@ public class MainActivity extends AppCompatActivity implements
                  */
                 private void deleteChartDroppedMovies(Set<Long> idOldSet) {
                     for (Long deleteOldId : idOldSet) {
-                        mDb.delete(MovieEntry.TABLE_NAME,
-                                MovieEntry._ID + " = ? ",
-                                new String[] {"" + deleteOldId});
+                        getContentResolver().delete(
+                                MovieEntry.buildUriWithMovieId(deleteOldId),
+                                null,
+                                null);
                     }
                 }
 
@@ -455,12 +447,16 @@ public class MainActivity extends AppCompatActivity implements
                                     = new String[] {"" + newId
                                     , getOldPositionOfNewId(isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
 
-                            mDb.update(MovieEntry.TABLE_NAME,
+                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
+                            getContentResolver().update(
+                                    MovieEntry.CONTENT_URI,
                                     movieContentValues[i],
-                                    MovieEntry._ID + " = ? AND " + orderType + " = ? ",
+                                    where,
                                     whereArgs);
                         } else {
-                            mDb.insert(MovieEntry.TABLE_NAME, null, movieContentValues[i]);
+                            getContentResolver().insert(
+                                    MovieEntry.CONTENT_URI,
+                                    movieContentValues[i]);
                         }
                     }
                 }
@@ -571,13 +567,13 @@ public class MainActivity extends AppCompatActivity implements
                     }
 
                     String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+                    String selectionIsNotNull = selection + " IS NOT NULL ";
                     // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
                     // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
-                    return mDb.query(MovieEntry.TABLE_NAME,
+                    return getContentResolver().query(
+                            MovieEntry.CONTENT_URI,
                             posterPathMovieIdColumns,
-                            selection + " IS NOT NULL ",  // When doing Populuar,
-                            null,
-                            null,
+                            selectionIsNotNull,
                             null,
                             orderByTypeIndex);
                 }

@@ -253,12 +253,12 @@ public class MovieContentProvider extends ContentProvider {
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues
             , @Nullable String selection, @Nullable String[] selectionArgs) {
 
-        long updateId = Long.parseLong(uri.getLastPathSegment());
 
         int rowsUpdated = 0;
 
         switch (sUriMatcher.match(uri)) {
             case MOVIES_WITH_ID:
+                long updateId = Long.parseLong(uri.getLastPathSegment());
                 rowsUpdated = mMovieDBHelper.getWritableDatabase().update(
                         MovieEntry.TABLE_NAME
                         ,contentValues
