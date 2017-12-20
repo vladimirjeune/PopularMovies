@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -142,12 +143,18 @@ public class MovieContentProvider extends ContentProvider {
                         null,
                         contentValues);
 
-                retUri = uri.buildUpon().appendPath("" + newId).build();
-                Log.d(TAG, "insert: Uri: " + retUri);
+                if (newId != -1) {  // If no error, then return the amended Uri
+                    retUri = uri.buildUpon().appendPath("" + newId).build();
+                    Log.d(TAG, "insert: Uri: " + retUri);
+                } else {
+                    throw new SQLException("Insert failed for Uri: " + uri);
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
         }
+
+        getContext().getContentResolver().notifyChange(uri, null);  // Important, so Resolver knows to update DB and UI
 
         return retUri;
     }
