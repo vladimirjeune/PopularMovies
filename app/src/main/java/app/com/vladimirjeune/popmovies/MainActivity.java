@@ -35,9 +35,12 @@ import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
+import static android.widget.Toast.makeText;
+
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
-        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, String>>> {
+        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, String>>>,
+        MovieAdapter.MovieOnClickHandler {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
@@ -112,8 +115,9 @@ public class MainActivity extends AppCompatActivity implements
         // Creates efficiency because no need to unnecessarily measure
         mRecyclerView.setHasFixedSize(true);
 
-        // Adapter links our poster data with views that will show the posters
-        mMovieAdapter = new MovieAdapter(this, mNumberOfFakeMovies);
+        // Adapter links our poster data with views that will show the posters.
+        // 2 this are because of separation of concerns.  Not a mistake.
+        mMovieAdapter = new MovieAdapter(this, this, mNumberOfFakeMovies);
 
         // Attaches Adapter to RecyclerView in our layout
         mRecyclerView.setAdapter(mMovieAdapter);
@@ -153,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements
                 startActivity(startSettingsActivity);
                 return true;
             case R.id.action_about:
-                Toast.makeText(this, "About Dialog goes here!!!", Toast.LENGTH_SHORT).show();
+                makeText(this, "About Dialog goes here!!!", Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 return super.onOptionsItemSelected(menuItem);
@@ -600,4 +604,14 @@ public class MainActivity extends AppCompatActivity implements
         // Nothing here
     }
 
+    /**
+     * ONCLICK - Responds to clicks from our list
+     * @param movieId - ID of movie represented by the one list item that was clicked
+     */
+    @Override
+    public void onClick(long movieId) {
+        Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
+        makeText(this, "ID is: " + movieId, Toast.LENGTH_SHORT).show();
+
+    }
 }

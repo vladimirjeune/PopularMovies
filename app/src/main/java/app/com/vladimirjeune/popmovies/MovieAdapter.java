@@ -35,12 +35,21 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     private SQLiteDatabase mDb;
 
+    // Interface to accept clicks is below.  Will take a handler in Ctor
+    // for when an item is clicked on the list
+    final private MovieOnClickHandler mClickHandler;
+
+    public interface MovieOnClickHandler {
+        void onClick(long movieId);
+    }
+
     /**
      * MOVIEADAPTER - CONSTRUCTOR
      * @param numberOfItems - Number of posters that should ultimately be displayed to the user
      */
-    public MovieAdapter(Context context, int numberOfItems) {
+    public MovieAdapter(Context context, MovieOnClickHandler aMovieOnClickHandler, int numberOfItems) {
         mContext = context;
+        mClickHandler = aMovieOnClickHandler;
         mNumberOfItems = numberOfItems;
         mIsPopular = true;  // Defaulting to true, will change when data is set
 
@@ -70,6 +79,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
         View vhView = layoutInflater.inflate(layoutForListItem, parent, attachToParentNow);
 
+        vhView.setFocusable(true);
+
         return new PosterViewHolder(vhView);
     }
 
@@ -94,7 +105,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     /**
      * Cache of the child views of a list item
      */
-    class PosterViewHolder extends RecyclerView.ViewHolder {
+    class PosterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         // Will hold the poster for this item.
         ImageView listItemPosterView;
@@ -106,13 +117,27 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
         public PosterViewHolder(View itemView) {
             super(itemView);
             listItemPosterView = itemView.findViewById(R.id.iv_movie_poster_item);
+            itemView.setOnClickListener(this);
+        }
+
+        /**
+         * ONCLICK - This gets called by child views during a click.  We call the onClickHandler
+         * registered with the adapter, passing the Movie Id associated with the view passed in.
+         * @param view - View that was clicked
+         */
+        public void onClick(View view) {
+
+            ImageView imageView = view.findViewById(R.id.iv_movie_poster_item);  // Find the view with the Tag U set
+            long movieId = (Long) imageView.getTag();  // Get the tag you set on the imageView
+            mClickHandler.onClick(movieId);
+
         }
 
         /**
          * BINDTO - A convenience method that will attach inputted data to child views.
          * @param aPosterMovieData - Single Movie Data so we can access poster path and ID
          */
-        private void bindTo(Pair<Long, String> aPosterMovieData) {  // TODO: Change to Pairs
+        private void bindTo(Pair<Long, String> aPosterMovieData) {
 
             // If there is no actual movie, use placeholder and leave
             if (aPosterMovieData.first < 0){
@@ -133,11 +158,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
                         .into(listItemPosterView);
 
                 listItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
+
             }
         }
 
     }
-
 
     /**
      * SETDATA - Takes list of posters in order and whether this batch is popular
