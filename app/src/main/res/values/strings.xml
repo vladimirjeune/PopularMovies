@@ -18,4 +18,7 @@
     <string name="pref_sort_popular_value" translatable="false">popular</string>
     <string name="pref_sort_top_rated_value" translatable="false">top rated</string>
 
+    <!-- Tools -->
+    <string name="tools_poster_description">One Sheet</string>
+    <string name="tools_lorem_paragraph" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam id felis sed arcu vehicula aliquet. Donec nec elementum erat, eget vulputate enim. Nam ultricies mi id lacus malesuada, eu ullamcorper neque accumsan. Sed nec risus ante. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc tempor enim interdum tortor semper, varius molestie eros feugiat. Donec nec mi dolor.</string>
 </resources>
