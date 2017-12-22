@@ -11,9 +11,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:launchMode="singleTop">
-            <!-- singleTop makes sure that you do not remake MainActivity when return from SettingsActivity-->
+
+            <!-- singleTop makes sure that you do not remake MainActivity when return from SettingsActivity -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,18 +26,21 @@
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity">
+
             <!--  -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
         <!-- Register MovieContentProvider -->
-        <!-- Setting exported to false says this Content Provider is to be accessed by this app  -->
+        <!-- Setting exported to false says this Content Provider is to be accessed by this app -->
         <!-- Set name, authorities and exported -->
         <provider
-            android:name="app.com.vladimirjeune.popmovies.data.MovieContentProvider"
+            android:name=".data.MovieContentProvider"
             android:authorities="@string/package_name"
             android:exported="false" />
+
+        <activity android:name=".DetailActivity"></activity>
     </application>
 
 </manifest>
