@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
@@ -286,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements
                     getString(R.string.pref_sort_default));
 
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
-//            mMovieAdapter.notifyDataSetChanged();   // Made no difference
+            mMovieAdapter.notifyDataSetChanged();   // Made no difference
         }
         Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
@@ -611,7 +613,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onClick(long movieId) {
         Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
-        makeText(this, "ID is: " + movieId, Toast.LENGTH_SHORT).show();
-
+        Intent movieDetailIntent = new Intent(this, DetailActivity.class);
+        Uri movieDataUri = MovieContract.MovieEntry.buildUriWithMovieId(movieId);
+        movieDetailIntent.setData(movieDataUri);
+        startActivity(movieDetailIntent);
     }
 }

@@ -35,12 +35,22 @@
         <!-- Register MovieContentProvider -->
         <!-- Setting exported to false says this Content Provider is to be accessed by this app -->
         <!-- Set name, authorities and exported -->
+        <activity
+            android:name=".DetailActivity"
+            android:label="@string/action_details"
+            android:parentActivityName=".MainActivity">
+
+            <!-- -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+            >
+        </activity>
         <provider
             android:name=".data.MovieContentProvider"
             android:authorities="@string/package_name"
             android:exported="false" />
 
-        <activity android:name=".DetailActivity"></activity>
     </application>
 
 </manifest>
