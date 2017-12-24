@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="app.com.vladimirjeune.popmovies.AboutActivity">
+
+    <ImageView
+        android:id="@+id/imageViewDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        app:srcCompat="@android:color/holo_orange_dark"
+        android:padding="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+    <ImageView
+        android:id="@+id/imageViewTMDbLogo"
+        android:contentDescription="@string/about_tmdb_logo"
+        app:srcCompat="@drawable/tmd_green_small_about"
+        android:layout_width="108dp"
+        android:layout_height="112dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageViewDivider"
+        />
+
+    <TextView
+        android:id="@+id/textViewLegal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/about_tmdb_legal"
+        android:textStyle="italic"
+        app:layout_constraintLeft_toRightOf="@+id/imageViewTMDbLogo"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/imageViewTMDbLogo" />
+
+
+</android.support.constraint.ConstraintLayout>

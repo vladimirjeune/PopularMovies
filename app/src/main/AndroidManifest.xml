@@ -40,12 +40,15 @@
             android:label="@string/action_details"
             android:parentActivityName=".MainActivity">
 
-            <!-- -->
+            <!--  -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
             >
         </activity>
+
+        <activity android:name=".AboutActivity"
+            android:label="@string/action_about"></activity>
         <provider
             android:name=".data.MovieContentProvider"
             android:authorities="@string/package_name"

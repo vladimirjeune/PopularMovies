@@ -37,8 +37,6 @@ import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
-import static android.widget.Toast.makeText;
-
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
         LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, String>>>,
@@ -51,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
+    private int mPosition = RecyclerView.NO_POSITION;
 
     private final int mNumberOfFakeMovies = 20;
 
@@ -159,7 +158,8 @@ public class MainActivity extends AppCompatActivity implements
                 startActivity(startSettingsActivity);
                 return true;
             case R.id.action_about:
-                makeText(this, "About Dialog goes here!!!", Toast.LENGTH_SHORT).show();
+                Intent startAboutActivity = new Intent(this, AboutActivity.class);
+                startActivity(startAboutActivity);
                 return true;
             default:
                 return super.onOptionsItemSelected(menuItem);
@@ -594,11 +594,26 @@ public class MainActivity extends AppCompatActivity implements
     public void onLoadFinished(Loader<ArrayList<Pair<Long, String>>> loader, ArrayList<Pair<Long, String>> data) {
         Log.d(TAG, "onLoadFinished: ");
 
-        if (data != null) {
+        if ((data != null) && (data.size() != 0)) {
+
+            setRecyclerVIewToCorrectPosition();
+
             mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
         }
 
         Log.d(TAG, "onLoadFinished: ");
+    }
+
+    /**
+     * SETRECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
+     * when the user switches from one type of list to another.  Otherwise, we would be
+     * in the same position as we were before the change, but in another list.
+     */
+    private void setRecyclerVIewToCorrectPosition() {
+        if (RecyclerView.NO_POSITION == mPosition) {
+            mPosition = 0;
+        }
+        mRecyclerView.scrollToPosition(mPosition);
     }
 
     @Override

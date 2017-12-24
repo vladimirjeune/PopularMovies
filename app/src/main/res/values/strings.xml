@@ -29,4 +29,7 @@
     <string name="detail_runtime">Runtime</string>
     <string name="detail_synopsis">Synopsis</string>
     <string name="action_details">Details</string>
+    <string name="about_tmdb_logo">The Movie Database Logo</string>
+    <string name="about_tmdb_legal">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
+
 </resources>

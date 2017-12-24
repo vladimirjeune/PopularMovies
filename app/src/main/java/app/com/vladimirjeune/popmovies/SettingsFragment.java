@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.preference.CheckBoxPreference;
@@ -7,6 +8,8 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
+
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 
 /**
  * Created by vladimirjeune on 11/23/17.
@@ -74,7 +77,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
      */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Activity activity = getActivity();
         Preference preference = findPreference(key);
+
+        // Sort has changed, update the list
+        if (key.equals(getString(R.string.pref_sort_key))) {
+            activity.getContentResolver().notifyChange(MovieContract.MovieEntry.CONTENT_URI, null);  // TODO:  Just added 12/21
+        }
 
         if (preference != null) {
             if (!(preference instanceof CheckBoxPreference)) {
