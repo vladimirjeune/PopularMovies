@@ -379,19 +379,25 @@ public class MainActivity extends AppCompatActivity implements
                                             null
                                     );  // Do not need order for Set
 
-                                    // Make set of IDs currently in DB
-                                    Set<Long> idOldSet = new HashSet<>();
-                                    makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
+                                    // If already stuff in db, will need to update, as well as, insert and remove
+                                    if ((idAndTitleOldCursor != null)
+                                            && (idAndTitleOldCursor.getCount() > 0)) {  // So if there are already things in db
+                                        // Make set of IDs currently in DB
+                                        Set<Long> idOldSet = new HashSet<>();
+                                        makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
 
-                                    // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
-                                    Set<Long> idNewSet = new HashSet<>();
-                                    insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
+                                        // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
+                                        Set<Long> idNewSet = new HashSet<>();
+                                        insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
 
-                                    // Delete movies that moved off list
-                                    idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-                                    deleteChartDroppedMovies(idOldSet);
+                                        // Delete movies that moved off list
+                                        idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
+                                        deleteChartDroppedMovies(idOldSet);
 
-                                    idAndTitleOldCursor.close();  // Closing the Cursor
+                                        idAndTitleOldCursor.close();  // Closing the Cursor
+                                    } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates.
+                                        getContentResolver().bulkInsert(MovieEntry.CONTENT_URI, movieContentValues);
+                                    }
 
                                 } catch (SQLException sqe) {
                                     sqe.printStackTrace();
@@ -498,10 +504,12 @@ public class MainActivity extends AppCompatActivity implements
                  */
                 private void makeSetOfOldIds(int idPos, Cursor idAndTitleOldCursor, Set<Long> idOldSet) {
                     // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
-                    idAndTitleOldCursor.moveToFirst();
-                    do {
-                        idOldSet.add(idAndTitleOldCursor.getLong(idPos));
-                    } while(idAndTitleOldCursor.moveToNext()) ;
+                    if ((idAndTitleOldCursor != null) && (idAndTitleOldCursor.getCount() > 0)) {
+                        idAndTitleOldCursor.moveToFirst();
+                        do {
+                            idOldSet.add(idAndTitleOldCursor.getLong(idPos));
+                        } while (idAndTitleOldCursor.moveToNext());
+                    }
                 }
 
                 /**
@@ -527,17 +535,17 @@ public class MainActivity extends AppCompatActivity implements
                     int retIndex = -1;
                     String orderType = getTypeOrderIn(isPopular);
 
-                    idAndTitleOldCursor.moveToFirst();
-                    int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
-                    int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
+                    if ((idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
+                        int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
+                        int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
 
-                    do {
-                        if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
-                            retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
-                            return "" + retIndex;  // Found it, jump out.
-                        }
-                    } while (idAndTitleOldCursor.moveToNext());
-
+                        do {
+                            if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
+                                retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
+                                return "" + retIndex;  // Found it, jump out.
+                            }
+                        } while (idAndTitleOldCursor.moveToNext());
+                    }
                     Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
                     return "" + retIndex;
                 }
