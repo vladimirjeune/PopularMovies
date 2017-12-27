@@ -128,8 +128,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
         public void onClick(View view) {
 
             ImageView imageView = view.findViewById(R.id.iv_movie_poster_item);  // Find the view with the Tag U set
-            long movieId = (Long) imageView.getTag();  // Get the tag you set on the imageView
-            mClickHandler.onClick(movieId);
+            if (imageView.getTag() != null) {
+                long movieId = (Long) imageView.getTag();  // Get the tag you set on the imageView
+                mClickHandler.onClick(movieId);
+            }
 
         }
 

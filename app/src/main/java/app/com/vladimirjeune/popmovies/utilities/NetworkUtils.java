@@ -9,7 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -211,6 +214,30 @@ public final class NetworkUtils {
         }
         return null;
     }
+
+    /**
+     * DOWEHAVEINTERNET - Checks for internet access without asking for extra permissions
+     * Should be run on a background thread.
+     * @return boolean - Whether we have access or not
+     */
+    public static boolean doWeHaveInternet()  {
+        try {
+            final int timeoutInMilliseconds = 1500;
+            final Socket socket = new Socket();
+            final String hostname = "8.8.8.8";
+            final int port = 53;
+
+            final SocketAddress socketAddress = new InetSocketAddress(hostname, port);
+
+            socket.connect(socketAddress, timeoutInMilliseconds);
+            socket.close();
+            return true;
+        } catch (IOException e) {
+            return false;  // We weren't able to make the connection
+        }
+
+    }
+
 
     /**
      * OBTAINTEMPJSON - A temporary function to present theMovieDb JSON.

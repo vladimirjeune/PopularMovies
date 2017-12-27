@@ -341,70 +341,90 @@ public class MainActivity extends AppCompatActivity implements
                         idsAndPosters = new ArrayList<>();
 
                         try {
-
-                            tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
-
-                            Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
-
                             isPopular = mIsPopular.equals(NetworkUtils.TMDB_POPULAR);
-                            movieContentValues = OpenTMDJsonUtils
-                                    .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
 
-                            try {
-                                // Projection and following final ints need to always be in sync
-                                final String[] projection = new String[] {
-                                        MovieEntry._ID,
-                                        MovieEntry.ORIGINAL_TITLE,
-                                        MovieEntry.POPULAR_ORDER_IN,
-                                        MovieEntry.TOP_RATED_ORDER_IN
-                                };
+                            // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
+                            if (NetworkUtils.doWeHaveInternet()) {
 
-                                // Preceding Projection and these final ints always MUST be in sync
-                                final int idPos = 0;
-                                final int titlePos = 1;
-                                final int popOrderInPos = 2;
-                                final int topRatedOrderInPos = 3;
+                                tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
 
-                                String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
+                                Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
 
-                                // Query of what already in DB
-                                Cursor idAndTitleOldCursor = getContentResolver().query(
-                                        MovieEntry.CONTENT_URI,
-                                        projection,
-                                        where,
-                                        null,
-                                        null
-                                );  // Do not need order for Set
+                                movieContentValues = OpenTMDJsonUtils
+                                        .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
 
-                                // Make set of IDs currently in DB
-                                Set<Long> idOldSet = new HashSet<>();
-                                makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
+                                try {
+                                    // Projection and following final ints need to always be in sync
+                                    final String[] projection = new String[]{
+                                            MovieEntry._ID,
+                                            MovieEntry.ORIGINAL_TITLE,
+                                            MovieEntry.POPULAR_ORDER_IN,
+                                            MovieEntry.TOP_RATED_ORDER_IN
+                                    };
 
-                                // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
-                                Set<Long> idNewSet = new HashSet<>();
-                                insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
+                                    // Preceding Projection and these final ints always MUST be in sync
+                                    final int idPos = 0;
+                                    final int titlePos = 1;
+                                    final int popOrderInPos = 2;
+                                    final int topRatedOrderInPos = 3;
 
-                                // Delete movies that moved off list
-                                idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-                                deleteChartDroppedMovies(idOldSet);
+                                    String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
 
-                                idAndTitleOldCursor.close();  // Closing the Cursor
+                                    // Query of what already in DB
+                                    Cursor idAndTitleOldCursor = getContentResolver().query(
+                                            MovieEntry.CONTENT_URI,
+                                            projection,
+                                            where,
+                                            null,
+                                            null
+                                    );  // Do not need order for Set
 
-                            } catch (SQLException sqe) {
-                                sqe.printStackTrace();
+                                    // Make set of IDs currently in DB
+                                    Set<Long> idOldSet = new HashSet<>();
+                                    makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
+
+                                    // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
+                                    Set<Long> idNewSet = new HashSet<>();
+                                    insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
+
+                                    // Delete movies that moved off list
+                                    idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
+                                    deleteChartDroppedMovies(idOldSet);
+
+                                    idAndTitleOldCursor.close();  // Closing the Cursor
+
+                                } catch (SQLException sqe) {
+                                    sqe.printStackTrace();
+                                }
+
+                                Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
+
+                                if (cursorPosterPathsMovieIds != null) {
+
+                                    // Add Runtimes to DB for Movies
+                                    getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
+                                    createArrayListOfPairsForPosters(idsAndPosters, cursorPosterPathsMovieIds);
+
+                                    cursorPosterPathsMovieIds.close();  // Closing Cursor
+                                }
+                            } else {  // No internet for call, get data from DB if any available for wanted type.
+
+                                // You CANNOT make a Toast from a Thread.  Toasts must be done on UI Thread.
+                                // This function puts call on the UI queue
+                                // https://stackoverflow.com/questions/3875184/cant-create-handler-inside-thread-that-has-not-called-looper-prepare
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this, R.string.warning_toast_internet, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+
+                                Cursor cursorForIdsAndPosters = getCursorPosterPathsMovieIds(isPopular);
+                                if (cursorForIdsAndPosters != null) {
+                                    createArrayListOfPairsForPosters(idsAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+                                    cursorForIdsAndPosters.close();
+                                }
                             }
-
-                            Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
-
-                            if (cursorPosterPathsMovieIds != null) {
-
-                                // Add Runtimes to DB for Movies
-                                getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
-                                createArrayListOfPairsForPosters(idsAndPosters, cursorPosterPathsMovieIds);
-
-                                cursorPosterPathsMovieIds.close();  // Closing Cursor
-                            }
-
                         } catch (JSONException je) {
                             je.printStackTrace();
                             return null;
@@ -412,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements
                             ioe.printStackTrace();
                             return null;
                         }
+
                         Log.d(TAG, "loadInBackground: Poster Count: " + idsAndPosters.size() );
                     }
 
@@ -628,9 +649,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onClick(long movieId) {
         Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
-        Intent movieDetailIntent = new Intent(this, DetailActivity.class);
-        Uri movieDataUri = MovieContract.MovieEntry.buildUriWithMovieId(movieId);
-        movieDetailIntent.setData(movieDataUri);
-        startActivity(movieDetailIntent);
+            Intent movieDetailIntent = new Intent(this, DetailActivity.class);
+            Uri movieDataUri = MovieContract.MovieEntry.buildUriWithMovieId(movieId);
+            movieDetailIntent.setData(movieDataUri);
+            startActivity(movieDetailIntent);
     }
 }
