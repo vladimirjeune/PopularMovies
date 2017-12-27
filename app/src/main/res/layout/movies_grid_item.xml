@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@android:color/black"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@android:color/black">
 
     <ImageView
         android:id="@+id/iv_movie_poster_item"
@@ -14,4 +13,33 @@
         tools:src="@drawable/tmd_error_poster"
         />
 
-</FrameLayout>
+    <View
+        android:id="@+id/v_title_background"
+        android:layout_width="0dp"
+        android:layout_height="30dp"
+        android:background="#77000000"
+        app:layout_constraintLeft_toLeftOf="@id/iv_movie_poster_item"
+        app:layout_constraintRight_toRightOf="@id/iv_movie_poster_item"
+        app:layout_constraintBottom_toBottomOf="@id/iv_movie_poster_item"
+        />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="@android:style/TextAppearance.Inverse"
+        android:textStyle="italic"
+        tools:text="Too Wong Fu, Thanks for Everything! Julie Newmar"
+        android:paddingLeft="8dp"
+        android:paddingStart="8dp"
+        android:paddingRight="0dp"
+        android:paddingEnd="0dp"
+        app:layout_constraintBottom_toTopOf="@id/v_title_background"
+        app:layout_constraintLeft_toLeftOf="@id/v_title_background"
+        app:layout_constraintRight_toRightOf="@id/v_title_background"
+        app:layout_constraintTop_toBottomOf="@id/v_title_background"
+        />
+
+
+</android.support.constraint.ConstraintLayout>
