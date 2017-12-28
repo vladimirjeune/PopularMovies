@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
@@ -39,7 +38,7 @@ import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
-        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, String>>>,
+        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, Pair<String, String>>>>,
         MovieAdapter.MovieOnClickHandler {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -242,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements
 
         Bundle urlBundle = getTMDQueryBundle();
 
-        Loader<ArrayList<Pair<Long, String>>> tmdbQueryLoader = getSupportLoaderManager()
+        Loader<ArrayList<Pair<Long, Pair<String, String>>>> tmdbQueryLoader = getSupportLoaderManager()
                 .getLoader(TMDBQUERY_LOADER);
 
         if (null == tmdbQueryLoader) {
@@ -300,13 +299,13 @@ public class MainActivity extends AppCompatActivity implements
      * @return - New Loader instance that is ready to start loading
      */
     @Override
-    public Loader<ArrayList<Pair<Long, String>>> onCreateLoader(int id, final Bundle args) {
+    public Loader<ArrayList<Pair<Long, Pair<String, String>>>> onCreateLoader(int id, final Bundle args) {
 
         if (TMDBQUERY_LOADER == id) {
-            return new AsyncTaskLoader<ArrayList<Pair<Long, String>>>(this) {
+            return new AsyncTaskLoader<ArrayList<Pair<Long, Pair<String, String>>>>(this) {
 
                 // Holds and helps to cache our data
-                ArrayList<Pair<Long, String>> mIdsAndPosters = null;
+                ArrayList<Pair<Long, Pair<String, String>>> mIdsAndPosters = null;
 
                 @Override
                 protected void onStartLoading() {
@@ -325,20 +324,20 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * LOADINBACKGROUND - Done on a background thread
-                 * @return - ArrayList<Pair<Long, String>> - Ordered Arraylist of Movie posters and ids.
+                 * @return - ArrayList<Pair<Long, Pair<String, String>>> - Ordered Arraylist of Movie posters and ids.
                  */
                 @Override
-                public ArrayList<Pair<Long, String>> loadInBackground() {
+                public ArrayList<Pair<Long, Pair<String, String>>> loadInBackground() {
 
                     Log.d(TAG, "loadInBackground: ");
                     boolean isPopular = true;
 
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
-                    ArrayList<Pair<Long, String>> idsAndPosters = null;
+                    ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters = null;
 
                     if (urlString != null) {
                         String tmdbJsonString = "";
-                        idsAndPosters = new ArrayList<>();
+                        titlesAndPosters = new ArrayList<>();
 
                         try {
                             isPopular = mIsPopular.equals(NetworkUtils.TMDB_POPULAR);
@@ -409,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements
 
                                     // Add Runtimes to DB for Movies
                                     getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
-                                    createArrayListOfPairsForPosters(idsAndPosters, cursorPosterPathsMovieIds);
+                                    createArrayListOfPairsForPosters(titlesAndPosters, cursorPosterPathsMovieIds);
 
                                     cursorPosterPathsMovieIds.close();  // Closing Cursor
                                 }
@@ -427,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements
 
                                 Cursor cursorForIdsAndPosters = getCursorPosterPathsMovieIds(isPopular);
                                 if (cursorForIdsAndPosters != null) {
-                                    createArrayListOfPairsForPosters(idsAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+                                    createArrayListOfPairsForPosters(titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
                                     cursorForIdsAndPosters.close();
                                 }
                             }
@@ -439,10 +438,10 @@ public class MainActivity extends AppCompatActivity implements
                             return null;
                         }
 
-                        Log.d(TAG, "loadInBackground: Poster Count: " + idsAndPosters.size() );
+                        Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
                     }
 
-                    return idsAndPosters;
+                    return titlesAndPosters;
                 }
 
                 /**
@@ -535,7 +534,8 @@ public class MainActivity extends AppCompatActivity implements
                     int retIndex = -1;
                     String orderType = getTypeOrderIn(isPopular);
 
-                    if ((idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
+                    if ((idAndTitleOldCursor != null)
+                            && (idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
                         int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
                         int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
 
@@ -552,21 +552,25 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
-                 * @param idsAndPosters - ArrayList<Pairs<Long, String>> - Posters for MainActivity in order
+                 * @param idsTitlesAndPosters - ArrayList<Pairs<Long, Pair<String, String>>> - Posters for MainActivity in order
                  * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
                  */
-                private void createArrayListOfPairsForPosters(ArrayList<Pair<Long, String>> idsAndPosters, Cursor cursorPosterPathsMovieIds) {
+                private void createArrayListOfPairsForPosters(ArrayList<Pair<Long, Pair<String, String>>> idsTitlesAndPosters, Cursor cursorPosterPathsMovieIds) {
                     // Create ArrayList of Pairs for posters
-                    if (cursorPosterPathsMovieIds.moveToFirst()) {
+                    if ((cursorPosterPathsMovieIds != null)
+                            && (cursorPosterPathsMovieIds.moveToFirst())) {
                         int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
+                        int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
                         int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
 
-                        if ((-1 != idIndex) && (-1 != posterPathIndex)) {
+                        if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
                             do {
                                 long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
+                                String title = cursorPosterPathsMovieIds.getString(titleIndex);
                                 String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
 
-                                idsAndPosters.add(new Pair<>(movieId, posterPath));
+                                Pair<String, String> payload = new Pair<>(title, posterPath);
+                                idsTitlesAndPosters.add(new Pair<>(movieId, payload));
                             } while (cursorPosterPathsMovieIds.moveToNext()) ;
                         }
                     }
@@ -574,10 +578,10 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
-                 * @param data - ArrayList<Pair<Long, String>>
+                 * @param data - ArrayList<Pair<Long, Pair<String, String>>>
                  */
                 @Override
-                public void deliverResult(ArrayList<Pair<Long, String>> data) {
+                public void deliverResult(ArrayList<Pair<Long, Pair<String, String>>> data) {
                     mIdsAndPosters = data;  // Assignment for caching
                     super.deliverResult(data);  // Then deliver results
                 }
@@ -601,10 +605,10 @@ public class MainActivity extends AppCompatActivity implements
                         selection = MovieEntry.TOP_RATED_ORDER_IN;
                     }
 
-                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.POSTER_PATH};
+                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.ORIGINAL_TITLE, MovieEntry.POSTER_PATH};
                     String selectionIsNotNull = selection + " IS NOT NULL ";
-                    // Trying to say SELECT movieId, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-                    // Give me 2 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+                    // Trying to say SELECT movieId, original title, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
+                    // Give me 3 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
                     return getContentResolver().query(
                             MovieEntry.CONTENT_URI,
                             posterPathMovieIdColumns,
@@ -620,7 +624,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onLoadFinished(Loader<ArrayList<Pair<Long, String>>> loader, ArrayList<Pair<Long, String>> data) {
+    public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
         Log.d(TAG, "onLoadFinished: ");
 
         if ((data != null) && (data.size() != 0)) {
@@ -642,11 +646,12 @@ public class MainActivity extends AppCompatActivity implements
         if (RecyclerView.NO_POSITION == mPosition) {
             mPosition = 0;
         }
+//        Log.d(TAG, "setRecyclerVIewToCorrectPosition() called" + mRecyclerView.getLayoutManager().onSaveInstanceState());
         mRecyclerView.scrollToPosition(mPosition);
     }
 
     @Override
-    public void onLoaderReset(Loader<ArrayList<Pair<Long, String>>> loader) {
+    public void onLoaderReset(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader) {
         // Nothing here
     }
 
@@ -658,7 +663,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onClick(long movieId) {
         Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
             Intent movieDetailIntent = new Intent(this, DetailActivity.class);
-            Uri movieDataUri = MovieContract.MovieEntry.buildUriWithMovieId(movieId);
+            Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
             movieDetailIntent.setData(movieDataUri);
             startActivity(movieDetailIntent);
     }

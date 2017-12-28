@@ -24,6 +24,7 @@
         />
 
     <TextView
+        android:id="@+id/tv_movie_title_item"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"

@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -31,7 +32,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     private boolean mIsPopular;
 
-    private ArrayList<Pair<Long, String>> mPosterAndIds;
+    private ArrayList<Pair<Long, Pair<String, String>>> mPosterAndIds;
 
     private SQLiteDatabase mDb;
 
@@ -45,6 +46,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     /**
      * MOVIEADAPTER - CONSTRUCTOR
+     * @param context - Needed for some function calls
+     * @param aMovieOnClickHandler - For when an item is clicked on the list
      * @param numberOfItems - Number of posters that should ultimately be displayed to the user
      */
     public MovieAdapter(Context context, MovieOnClickHandler aMovieOnClickHandler, int numberOfItems) {
@@ -65,9 +68,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     private void populateMovieArrayWithDummyData() {
         final Long fakeId = -1L;
         String fakePath = "";
+        String fakeTitle = "";
 
         for (int i = 0; i < mNumberOfItems; i++) {
-            mPosterAndIds.add(new Pair<>(fakeId, fakePath));
+            Pair<String, String> fakePair = new Pair<>(fakeTitle, fakePath);
+            mPosterAndIds.add(new Pair<>(fakeId, fakePair));
         }
     }
 
@@ -108,7 +113,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     class PosterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         // Will hold the poster for this item.
-        ImageView listItemPosterView;
+        ImageView mListItemPosterView;
+        TextView mListItemTextView;
 
         /**
          * POSTERVIEWHOLDER - Constructor gets a reference to our textViews holding children.
@@ -116,7 +122,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
          */
         public PosterViewHolder(View itemView) {
             super(itemView);
-            listItemPosterView = itemView.findViewById(R.id.iv_movie_poster_item);
+            mListItemPosterView = itemView.findViewById(R.id.iv_movie_poster_item);
+            mListItemTextView = itemView.findViewById(R.id.tv_movie_title_item);
             itemView.setOnClickListener(this);
         }
 
@@ -137,18 +144,23 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
         /**
          * BINDTO - A convenience method that will attach inputted data to child views.
-         * @param aPosterMovieData - Single Movie Data so we can access poster path and ID
+         * @param aPosterMovieData - Single Movie Data so we can access ID, title and posterPath
          */
-        private void bindTo(Pair<Long, String> aPosterMovieData) {
+        private void bindTo(Pair<Long, Pair<String, String>> aPosterMovieData) {
 
             // If there is no actual movie, use placeholder and leave
             if (aPosterMovieData.first < 0){
-                listItemPosterView.setImageDrawable(ContextCompat
+                mListItemPosterView.setImageDrawable(ContextCompat
                         .getDrawable(mContext, R.drawable.tmd_placeholder_poster));
                 return;
             }
 
-            String posterPath = aPosterMovieData.second;
+            Pair<String, String> payload = aPosterMovieData.second;  // This gets you the interior Pair
+
+            String title = payload.first;  // Set Title
+            mListItemTextView.setText(title);
+
+            String posterPath = payload.second;  // Set Poster
             if (posterPath != null) {
                 String urlForPosterPath = NetworkUtils.buildURLForImage(posterPath)
                         .toString();
@@ -157,10 +169,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
                         .load(urlForPosterPath)
                         .placeholder(R.drawable.tmd_placeholder_poster)
                         .placeholder(R.drawable.tmd_error_poster)
-                        .into(listItemPosterView);
+                        .into(mListItemPosterView);
 
-                listItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
-
+                mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
             }
         }
 
@@ -168,10 +179,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
     /**
      * SETDATA - Takes list of posters in order and whether this batch is popular
-     * @param dataList - List of Movie Posters with IDs
+     * @param dataList - List of Movie data.  Posters and Titles
      * @param isPopular - Whether want Popular or Top-rated movies
      */
-    public void setData(ArrayList<Pair<Long, String>> dataList, boolean isPopular) {
+    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, boolean isPopular) {
 
         if (dataList != null) {
             mPosterAndIds = dataList;
