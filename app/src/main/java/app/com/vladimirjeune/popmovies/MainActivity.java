@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mRecyclerView.setLayoutManager(gridLayoutManager);
 
+        mRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
         // Creates efficiency because no need to unnecessarily measure
         mRecyclerView.setHasFixedSize(true);
 
