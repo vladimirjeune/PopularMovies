@@ -3,4 +3,35 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="logo_orange">@color/orange_bright</color>
+    <color name="logo_blue">@color/blue_bright</color>
+    <color name="poster_scrim_background">@color/black_translucent</color>
+    <color name="header_popular_background">@color/orange_dark_translucent</color>
+    <color name="header_top_rated_background">@color/blue_dark_translucent</color>
+    <color name="text_header_blue">@color/blue_bright</color>
+    <color name="text_header_orange">@color/orange_bright</color>
+
+
+
+    <!-- Palettes, for internal use only, private functions and colors.xml -->
+    <!-- blacks -->
+    <color name="black_translucent">#77000000</color>
+
+    <!-- greys -->
+    <color name="grey_dark">#2b2b2b</color>
+
+    <!--whites -->
+    <color name="white_translucent">#77FFFFFF</color>
+
+    <!-- orange -->
+    <color name="orange_dark_translucent">#77200c00</color>
+    <color name="orange_dark">#271300</color>
+    <color name="orange_bright">#fd9229</color>
+
+    <!-- blue -->
+    <color name="blue_dark_translucent">#77000c20</color>
+    <color name="blue_dark">#00031a</color>
+    <color name="blue_bright">#0b24fb</color>
+
 </resources>

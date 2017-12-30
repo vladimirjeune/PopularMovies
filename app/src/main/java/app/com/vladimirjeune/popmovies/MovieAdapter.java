@@ -22,13 +22,21 @@ import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
  * Created by vladimirjeune on 11/7/17.
  */
 
-public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHolder> {
+public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final String TAG = MovieAdapter.class.getSimpleName();
 
     private Context mContext;
 
     private int mNumberOfItems;
+
+    private static final int ITEM_VIEW_TYPE_HEADER = 0;
+
+    private static final int ITEM_VIEW_TYPE_POSTER = 1;
+
+    private static final int HEADER_TAG = -100;
+
+    private final View mHeader;
 
     private boolean mIsPopular;
 
@@ -50,8 +58,14 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
      * @param aMovieOnClickHandler - For when an item is clicked on the list
      * @param numberOfItems - Number of posters that should ultimately be displayed to the user
      */
-    public MovieAdapter(Context context, MovieOnClickHandler aMovieOnClickHandler, int numberOfItems) {
+    public MovieAdapter(Context context, MovieOnClickHandler aMovieOnClickHandler, View aHeader, int numberOfItems) {
+
+        if (null == aHeader) {
+            throw new IllegalArgumentException("Header must not be null");
+        }
+
         mContext = context;
+        mHeader = aHeader;
         mClickHandler = aMovieOnClickHandler;
         mNumberOfItems = numberOfItems;
         mIsPopular = true;  // Defaulting to true, will change when data is set
@@ -76,8 +90,23 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
         }
     }
 
+    /**
+     * ISHEADER - Tells whether this position is the position of the header for the MainActivity.
+     * @param position - index passed in
+     * @return - boolean - Whether the index passed in is a header or not
+     */
+    public boolean isHeader(int position) {
+        return position == 0;
+    }
+
     @Override
-    public MovieAdapter.PosterViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        // If this is a header there is nothing else to do wrap that header
+        if (ITEM_VIEW_TYPE_HEADER == viewType) {
+            return new HeaderViewHolder(mHeader);
+        }
+
         int layoutForListItem = R.layout.movies_grid_item;
         LayoutInflater layoutInflater = LayoutInflater.from(mContext);
         boolean attachToParentNow = false;
@@ -90,10 +119,25 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
     }
 
     @Override
-    public void onBindViewHolder(MovieAdapter.PosterViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
 
+        if (isHeader(position)) {
+            if (mIsPopular) {
+                ((HeaderViewHolder)holder).textViewHeader.setText(R.string.pref_sort_popular_label);
+                ((HeaderViewHolder)holder).textViewHeader.setTextColor(ContextCompat.getColor(mContext, R.color.text_header_orange));
+                ((HeaderViewHolder)holder).textViewHeader.setBackgroundColor(ContextCompat.getColor(mContext, R.color.header_popular_background));
+            } else {
+                ((HeaderViewHolder)holder).textViewHeader.setText(R.string.pref_sort_top_rated_label);
+                ((HeaderViewHolder)holder).textViewHeader.setTextColor(ContextCompat.getColor(mContext, R.color.text_header_blue));
+                ((HeaderViewHolder)holder).textViewHeader.setBackgroundColor(ContextCompat.getColor(mContext, R.color.header_top_rated_background));
+            }
+            return;
+        }
+
+        // Remember, the header took the 0th position.  Must make up for it so 0th position can get seen
+        int correctedPosition = position - 1;
         if (mPosterAndIds != null) {
-            holder.bindTo(mPosterAndIds.get(position));
+            ((PosterViewHolder) holder).bindTo(mPosterAndIds.get(correctedPosition));
         }
 
     }
@@ -104,7 +148,43 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
      */
     @Override
     public int getItemCount() {
-        return mNumberOfItems;
+        return mNumberOfItems + 1;  // Making up for header taking up the 0
+    }
+
+    /**
+     * GETITEMVIEWTYPE - Returns appropriate itemViewType
+     * @param position - index we are currently at
+     * @return - Proper viewType integer
+     */
+    public int getItemViewType(int position) {
+        return isHeader(position) ? ITEM_VIEW_TYPE_HEADER : ITEM_VIEW_TYPE_POSTER;
+    }
+
+    /**
+     * SETDATA - Takes list of posters in order and whether this batch is popular
+     * @param dataList - List of Movie data.  Posters and Titles
+     * @param isPopular - Whether want Popular or Top-rated movies
+     */
+    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, boolean isPopular) {
+
+        if (dataList != null) {
+            mPosterAndIds = dataList;
+            mIsPopular = isPopular;
+            mNumberOfItems = mPosterAndIds.size();  // Should always be 20
+            notifyDataSetChanged();  // This function was called because there was a change, so update things.
+        }
+    }
+
+    /**
+     * HEADERVIEWHOLDER - VH for the Header View Type
+     */
+    class HeaderViewHolder extends RecyclerView.ViewHolder {
+        public TextView textViewHeader;
+
+        public HeaderViewHolder(View itemView) {
+            super(itemView);
+            textViewHeader = (TextView) itemView.findViewById(R.id.textView_main_header);
+        }
     }
 
     /**
@@ -173,22 +253,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.PosterViewHo
 
                 mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
             }
-        }
-
-    }
-
-    /**
-     * SETDATA - Takes list of posters in order and whether this batch is popular
-     * @param dataList - List of Movie data.  Posters and Titles
-     * @param isPopular - Whether want Popular or Top-rated movies
-     */
-    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, boolean isPopular) {
-
-        if (dataList != null) {
-            mPosterAndIds = dataList;
-            mIsPopular = isPopular;
-            mNumberOfItems = mPosterAndIds.size();  // Should always be 20
-            notifyDataSetChanged();  // This function was called because there was a change, so update things.
         }
 
     }

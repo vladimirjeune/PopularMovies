@@ -15,11 +15,14 @@ import android.support.v4.content.Loader;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -116,9 +119,26 @@ public class MainActivity extends AppCompatActivity implements
         // Creates efficiency because no need to unnecessarily measure
         mRecyclerView.setHasFixedSize(true);
 
+        // Inflate the header we are using in the RecyclerView
+        View header = LayoutInflater.from(this)
+                .inflate(R.layout.main_page_header, mRecyclerView, false);
+
         // Adapter links our poster data with views that will show the posters.
         // 2 this are because of separation of concerns.  Not a mistake.
-        mMovieAdapter = new MovieAdapter(this, this, mNumberOfFakeMovies);
+        mMovieAdapter = new MovieAdapter(this, this, header, mNumberOfFakeMovies);
+
+        // Need reference so we can set span
+        final GridLayoutManager gridLayoutManager
+                = (GridLayoutManager) mRecyclerView.getLayoutManager();
+
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                // Will return at least 1
+                return mMovieAdapter.isHeader(position)
+                        ? gridLayoutManager.getSpanCount() : 1;
+            }
+        });
 
         // Attaches Adapter to RecyclerView in our layout
         mRecyclerView.setAdapter(mMovieAdapter);
