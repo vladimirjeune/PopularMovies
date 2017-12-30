@@ -15,7 +15,6 @@ import android.support.v4.content.Loader;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
@@ -105,12 +104,13 @@ public class MainActivity extends AppCompatActivity implements
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
 
-        boolean reverseLayoutForGridView = false;
-        int spanCount = 2;
-        GridLayoutManager gridLayoutManager
-                = new GridLayoutManager(this, spanCount, GridLayoutManager.VERTICAL, reverseLayoutForGridView);
-
-        mRecyclerView.setLayoutManager(gridLayoutManager);
+        // TODO: Unblock this to go back to 2 columns, no matter what orientation
+//        boolean reverseLayoutForGridView = false;
+//        int spanCount = 2;
+//        GridLayoutManager gridLayoutManager
+//                = new GridLayoutManager(this, spanCount, GridLayoutManager.VERTICAL, reverseLayoutForGridView);
+//
+//        mRecyclerView.setLayoutManager(gridLayoutManager);
 
         mRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
         // Creates efficiency because no need to unnecessarily measure

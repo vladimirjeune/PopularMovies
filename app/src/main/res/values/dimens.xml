@@ -4,8 +4,10 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="item_margin">8dp</dimen>
-    <dimen name="item_margin_half">8dp</dimen>
+    <!-- Both were originally 8dp -->
+    <dimen name="item_margin">4dp</dimen>
+    <dimen name="item_margin_half">4dp</dimen>
 
-    <dimen name="column_width">80dp</dimen>
+    <!-- Was 80 for Chiukis project, 342 was too big, 180 with 4 margin looks ok so far -->
+    <dimen name="column_width">180dp</dimen>
 </resources>
