@@ -307,6 +307,8 @@ public class MainActivity extends AppCompatActivity implements
             mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
 
+            setRecyclerVIewToCorrectPosition();  // I think this belongs here.
+
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
             mMovieAdapter.notifyDataSetChanged();   // Made no difference
         }
@@ -650,7 +652,7 @@ public class MainActivity extends AppCompatActivity implements
 
         if ((data != null) && (data.size() != 0)) {
 
-            setRecyclerVIewToCorrectPosition();
+//            setRecyclerVIewToCorrectPosition();
 
             mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
         }
@@ -666,8 +668,9 @@ public class MainActivity extends AppCompatActivity implements
     private void setRecyclerVIewToCorrectPosition() {
         if (RecyclerView.NO_POSITION == mPosition) {
             mPosition = 0;
-        }
+        }  // TODO: Do what Carlos said
 //        Log.d(TAG, "setRecyclerVIewToCorrectPosition() called" + mRecyclerView.getLayoutManager().onSaveInstanceState());
+
         mRecyclerView.scrollToPosition(mPosition);
     }
 

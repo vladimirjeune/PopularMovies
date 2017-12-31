@@ -6,11 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp"
-    android:text="@string/pref_sort_popular_label"
     tools:text="@string/pref_sort_popular_label"
     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
     android:textColor="@color/text_header_orange"
     android:textStyle="bold|italic"
-    android:background="@color/header_popular_background"
+    tools:background="@color/header_popular_background"
     />
 
