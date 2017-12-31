@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -56,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private ContentValues[] movieContentValues;
     private String mIsPopular ;
+
+    private ProgressBar mProgressBar;
 
     private Toast mToast;
 
@@ -104,6 +107,8 @@ public class MainActivity extends AppCompatActivity implements
 
         MovieDBHelper movieDBHelper = new MovieDBHelper(this);
 
+        mProgressBar = findViewById(R.id.pb_grid_movies);
+
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
 
@@ -144,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.setAdapter(mMovieAdapter);
 
         setupSharedPreferences();
+
+        showLoading();  // Until data is ready.
 
         loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
         Log.d(TAG, "END::onCreate: ");
@@ -308,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements
                     getString(R.string.pref_sort_default));
 
             setRecyclerVIewToCorrectPosition();  // I think this belongs here.
+            showLoading();
 
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
             mMovieAdapter.notifyDataSetChanged();   // Made no difference
@@ -653,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements
         if ((data != null) && (data.size() != 0)) {
 
 //            setRecyclerVIewToCorrectPosition();
-
+            showPosters();  // The data is here, we should show it.
             mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
         }
 
@@ -691,4 +699,24 @@ public class MainActivity extends AppCompatActivity implements
             movieDetailIntent.setData(movieDataUri);
             startActivity(movieDetailIntent);
     }
+
+    /**
+     * SHOWLOADING - Shows the loading indicator and hides the posters.  This shoule be
+     * used to hide the posters until the data has come in.
+     */
+    public void showLoading() {
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * SHOWPOSTERS - Shows the posters and hides the loadingIndicator.  This should be
+     * called when the poster data has arrived and it is safe for the user to interact
+     * with the posters.
+     */
+    public void showPosters() {
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mRecyclerView.setVisibility(View.VISIBLE);
+    }
+
 }
