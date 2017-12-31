@@ -162,9 +162,6 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void setupSharedPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // TODO: Do stuff here, you want to be able to pick from Pop or Top.  Get curr from SharedPrefs
-
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);  // Should be done early like in OnCreate
     }
 
@@ -314,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements
             mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
 
-            setRecyclerVIewToCorrectPosition();  // I think this belongs here.
+            setRecyclerVIewToCorrectPosition();  // I think this works best here.
             showLoading();
 
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
@@ -676,8 +673,7 @@ public class MainActivity extends AppCompatActivity implements
     private void setRecyclerVIewToCorrectPosition() {
         if (RecyclerView.NO_POSITION == mPosition) {
             mPosition = 0;
-        }  // TODO: Do what Carlos said
-//        Log.d(TAG, "setRecyclerVIewToCorrectPosition() called" + mRecyclerView.getLayoutManager().onSaveInstanceState());
+        }
 
         mRecyclerView.scrollToPosition(mPosition);
     }

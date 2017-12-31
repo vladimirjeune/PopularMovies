@@ -139,7 +139,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 .into(mOneSheetImageView);
 
         // Title
-        // TODO: Figure out how to handle too long text for font and space available
         mTitle.setText(data.getString(DETAIL_INDEX_ORIGINAL_TITLE));
 
         // Rating
