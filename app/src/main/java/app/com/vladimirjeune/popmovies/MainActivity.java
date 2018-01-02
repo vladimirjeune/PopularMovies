@@ -406,20 +406,33 @@ public class MainActivity extends AppCompatActivity implements
                                             null
                                     );  // Do not need order for Set
 
+                                    final String oppositeWhere = MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL "
+                                            + " AND " + MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ";
+                                    Cursor idandTitleOppositeCursor = getContentResolver().query(
+                                            MovieEntry.CONTENT_URI,
+                                            projection,
+                                            oppositeWhere,
+                                            null,
+                                            null
+                                    );  // If not NULL, then this is the opposite type of idAndTtitleOldCursor
+
+
+
+
                                     // If already stuff in db, will need to update, as well as, insert and remove
                                     if ((idAndTitleOldCursor != null)
                                             && (idAndTitleOldCursor.getCount() > 0)) {  // So if there are already things in db
                                         // Make set of IDs currently in DB
                                         Set<Long> idOldSet = new HashSet<>();
-                                        makeSetOfOldIds(idPos, idAndTitleOldCursor, idOldSet);
+                                        makeSetOfIdsFromCursor(idPos, idAndTitleOldCursor, idOldSet);
 
                                         // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
                                         Set<Long> idNewSet = new HashSet<>();
-                                        insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idOldSet, idNewSet);
+                                        insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idandTitleOppositeCursor, idOldSet, idNewSet);
 
                                         // Delete movies that moved off list
                                         idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-                                        deleteChartDroppedMovies(idOldSet);
+                                        deleteChartDroppedMovies(isPopular, idOldSet, idandTitleOppositeCursor);
 
                                         idAndTitleOldCursor.close();  // Closing the Cursor
                                     } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates.
@@ -474,15 +487,39 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
-                 * @param idOldSet - Modified set of old Movie IDs consists of Old IDs - New Ids
+                 * @param isPopular - What type we are currently dealing with
+                 * @param idDeleteSet - Modified set of old Movie IDs consists of Old IDs - New Ids
                  *                 and the Intersection of Old & New
+                 * @param oppositeTitlesCursor - In case we have to delete something that is both types.  Just update
                  */
-                private void deleteChartDroppedMovies(Set<Long> idOldSet) {
-                    for (Long deleteOldId : idOldSet) {
-                        getContentResolver().delete(
-                                MovieEntry.buildUriWithMovieId(deleteOldId),
-                                null,
-                                null);
+                private void deleteChartDroppedMovies(boolean isPopular, Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
+
+                    Set<Long> idOppositeSet = new HashSet<>();
+                    makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+
+                    for (Long deleteOldId : idDeleteSet) {  // TODO: Test this out
+
+                        // Situation: ID is in bot types.  Want this one updated to exists only in the other
+                        if (idOppositeSet.contains(deleteOldId)) {
+                            ContentValues nullOutTypeCV = new ContentValues();
+                            // Nulling out this usage, since ID is currently used for other type.
+                            nullOutTypeCV.put(getTypeOrderIn(isPopular), (String) null);
+
+                            String where = MovieEntry._ID + " = ? ";
+                            String[] whereArgs = {"" + deleteOldId};
+
+                            // Updating the ID that is in both types to no longer be in this one.
+                            getContentResolver().update(
+                                    MovieEntry.CONTENT_URI,
+                                    nullOutTypeCV,
+                                    where,
+                                    whereArgs);
+                        } else {  // Situation: Normal, delete ID
+                            getContentResolver().delete(  // TODO: Test against OppositeSet, to see if need update instead
+                                    MovieEntry.buildUriWithMovieId(deleteOldId),
+                                    null,
+                                    null);
+                        }
                     }
                 }
 
@@ -491,16 +528,40 @@ public class MainActivity extends AppCompatActivity implements
                  * new ID set of incoming movies to compare against what is already in the database
                  * @param isPopular - Type the user is looking for
                  * @param idAndTitleOldCursor - Cursor of titles that are previously in DB
+                 * @param oppositeTitlesCursor - Cursor of the opposite type to this one, in case this ID is in both types.
                  * @param idOldSet - Set of IDs of movies previously in our DB
                  * @param idNewSet - Set of IDs that are coming in from TMDb.
                  */
-                private void insertUpdateAndMakeNewIdSet(boolean isPopular, Cursor idAndTitleOldCursor, Set<Long> idOldSet, Set<Long> idNewSet) {
+                private void insertUpdateAndMakeNewIdSet(boolean isPopular, Cursor idAndTitleOldCursor,
+                                                         Cursor oppositeTitlesCursor,Set<Long> idOldSet, Set<Long> idNewSet) {
+                    // Makes Set from the movies of the opposite type, in case same movie is both types,
+                    // but can only take 1 id.
+                    Set<Long> idOppositeSet = new HashSet<>();
+                    makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+
                     for (int i = 0; i < movieContentValues.length; i++) {
 
                         Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
                         idNewSet.add(newId);    // Create new Set for difference op later
 
-                        if (idOldSet.contains(newId)) {
+                        // TODO: If NewId is in OppositeSet, Update
+                        // If this ID exists in the opposite type, need special processing so always
+                        // 1 entry.  Update instead so is Pop&Top.
+                        if (idOppositeSet.contains(newId)) {
+                            // Update Item position of other thing for this type.
+                            // Update
+                            String orderType = getTypeOrderIn(!isPopular);
+                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
+                            String[] whereArgs
+                                    = new String[] {"" + newId
+                                    , getOldPositionOfNewId(!isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
+
+                            getContentResolver().update(
+                                    MovieEntry.CONTENT_URI,
+                                    movieContentValues[i],
+                                    where,
+                                    whereArgs);
+                        } else if (idOldSet.contains(newId)) {
                             // Update
                             String orderType = getTypeOrderIn(isPopular);
                             String[] whereArgs
@@ -522,20 +583,20 @@ public class MainActivity extends AppCompatActivity implements
                 }
 
                 /**
-                 * MAKESETOFOLDIDS - Create a Set of the IDs that are currently in the DB.
+                 * MAKESETOFIDSFROMCURSOR - Create a Set of the IDs that are currently in the DB.
                  * Will be used later to ensure proper updating when new data comes in.
                  * No duplicates and proper updating.
                  * @param idPos - Position of the id column
-                 * @param idAndTitleOldCursor - Cursor with old DB data
+                 * @param idAndTitleCursor - Cursor with old DB data
                  * @param idOldSet - Set holding the IDs of the old DB movies.
                  */
-                private void makeSetOfOldIds(int idPos, Cursor idAndTitleOldCursor, Set<Long> idOldSet) {
+                private void makeSetOfIdsFromCursor(int idPos, Cursor idAndTitleCursor, Set<Long> idOldSet) {
                     // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
-                    if ((idAndTitleOldCursor != null) && (idAndTitleOldCursor.getCount() > 0)) {
-                        idAndTitleOldCursor.moveToFirst();
+                    if ((idAndTitleCursor != null) && (idAndTitleCursor.getCount() > 0)) {
+                        idAndTitleCursor.moveToFirst();
                         do {
-                            idOldSet.add(idAndTitleOldCursor.getLong(idPos));
-                        } while (idAndTitleOldCursor.moveToNext());
+                            idOldSet.add(idAndTitleCursor.getLong(idPos));
+                        } while (idAndTitleCursor.moveToNext());
                     }
                 }
 
@@ -657,7 +718,6 @@ public class MainActivity extends AppCompatActivity implements
 
         if ((data != null) && (data.size() != 0)) {
 
-//            setRecyclerVIewToCorrectPosition();
             showPosters();  // The data is here, we should show it.
             mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
         }
