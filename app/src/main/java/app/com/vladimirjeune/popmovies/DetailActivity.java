@@ -10,9 +10,11 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -53,6 +55,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     private Uri mUri;
     private TextView mTitle;
+    private View mTitleBackgroundView;
     private TextView mSynopsisTextView;
     private TextView mReleaseTextView;
     private TextView mRatingTextView;
@@ -64,7 +67,42 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             mOneSheetImageView.setImageBitmap(bitmap);
 
+            Palette.Builder palleteBuilder = new Palette.Builder(bitmap)
+                    .addFilter(new Palette.Filter() {
+                        @Override
+                        public boolean isAllowed(int rgb, float[] hsl) {
+                            // From: https://stackoverflow.com/questions/3942878/
+                            // how-to-decide-font-color-in-white-or-black-depending-on-background-color
+                            float contrastFormulaBlackWhiteText = 0.179f;
+                            int luminanceIndex = 2;
+                            float luminance = hsl[luminanceIndex];
 
+                            return luminance <= contrastFormulaBlackWhiteText;  // Good BG for White Text
+                        }
+                    });
+
+            palleteBuilder.generate(new Palette.PaletteAsyncListener() {
+                @Override
+                public void onGenerated(Palette palette) {
+
+                    final int blackColor = 0;
+                    final int vibrantColor = palette.getVibrantColor(blackColor);
+                    final int darkVibrantColor = palette.getDarkVibrantColor(blackColor);
+                    final int darkMutedColor = palette.getDarkMutedColor(blackColor);
+                    final int mutedColor = palette.getMutedColor(blackColor);
+
+                    if (vibrantColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(vibrantColor);
+                    } else if (darkVibrantColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(darkVibrantColor);
+                    } else if (darkMutedColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(darkMutedColor);
+                    } else if (mutedColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(mutedColor);
+                    }
+
+                }
+            });
 
         }
 
@@ -94,6 +132,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
 
         mTitle = findViewById(R.id.textViewTitle);
+        mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
         mSynopsisTextView = findViewById(R.id.textViewSynopsis);
         mReleaseTextView = findViewById(R.id.textViewRelease);
         mRatingTextView = findViewById(R.id.textViewRating);
