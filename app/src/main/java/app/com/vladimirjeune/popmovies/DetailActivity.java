@@ -2,6 +2,8 @@ package app.com.vladimirjeune.popmovies;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -15,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.net.URL;
 
@@ -55,6 +58,26 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTextView;
     private TextView mRuntimeTextView;
     private ImageView mOneSheetImageView;
+
+    private Target mTarget = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            mOneSheetImageView.setImageBitmap(bitmap);
+
+
+
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            mOneSheetImageView.setBackground(errorDrawable);
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            mOneSheetImageView.setBackground(placeHolderDrawable);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,7 +159,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 .load(String.valueOf(imageURL))
                 .placeholder(R.drawable.tmd_placeholder_poster)
                 .placeholder(R.drawable.tmd_error_poster)
-                .into(mOneSheetImageView);
+                .into(mTarget);
 
         // Title
         mTitle.setText(data.getString(DETAIL_INDEX_ORIGINAL_TITLE));
