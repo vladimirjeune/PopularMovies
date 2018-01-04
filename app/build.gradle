@@ -30,5 +30,6 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.android.support:preference-v7:26.0.1'
     compile 'com.android.support:palette-v7:26.0.1'
+    compile 'com.android.support:design:26.0.1'
     testCompile 'junit:junit:4.12'
 }

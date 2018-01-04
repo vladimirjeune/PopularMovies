@@ -100,10 +100,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     } else if (mutedColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(mutedColor);
                     }
-
                 }
             });
-
         }
 
         @Override

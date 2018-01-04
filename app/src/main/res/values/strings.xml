@@ -29,8 +29,13 @@
     <string name="detail_runtime">Runtime</string>
     <string name="detail_synopsis">Synopsis</string>
     <string name="action_details">Details</string>
+
+    <!-- About -->
     <string name="about_tmdb_logo">The Movie Database Logo</string>
     <string name="about_tmdb_legal">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
-    <string name="warning_toast_internet">No internet connection. Enable internet for updated data.</string>
+
+    <!-- Text for Toasts and Snackbars -->
+    <string name="snackbar_settings">SETTINGS</string>
+    <string name="warning_snackbar_internet">No internet connection.\nEnable internet for updated data.</string>
 
 </resources>

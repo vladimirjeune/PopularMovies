@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -461,7 +462,10 @@ public class MainActivity extends AppCompatActivity implements
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(MainActivity.this, R.string.warning_toast_internet, Toast.LENGTH_LONG).show();
+                                        Snackbar.make(findViewById(R.id.coordinator_layout_main),
+                                                R.string.warning_snackbar_internet, Snackbar.LENGTH_LONG)
+                                                .setAction(R.string.snackbar_settings, new MySettingsListener())
+                                                .show();
                                     }
                                 });
 
