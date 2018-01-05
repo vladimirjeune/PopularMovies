@@ -8,7 +8,6 @@ import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -37,6 +36,7 @@ import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
+import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
@@ -113,14 +113,6 @@ public class MainActivity extends AppCompatActivity implements
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
 
-        // TODO: Unblock this to go back to 2 columns, no matter what orientation
-//        boolean reverseLayoutForGridView = false;
-//        int spanCount = 2;
-//        GridLayoutManager gridLayoutManager
-//                = new GridLayoutManager(this, spanCount, GridLayoutManager.VERTICAL, reverseLayoutForGridView);
-//
-//        mRecyclerView.setLayoutManager(gridLayoutManager);
-
         mRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
         // Creates efficiency because no need to unnecessarily measure
         mRecyclerView.setHasFixedSize(true);
@@ -157,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "END::onCreate: ");
     }
 
+
     /**
      * SETUPSHAREDPREFERENCES - Anything having to do with SharedPreferences will be handled here.
      *
@@ -166,12 +159,14 @@ public class MainActivity extends AppCompatActivity implements
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);  // Should be done early like in OnCreate
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = new MenuInflater(this);
         menuInflater.inflate(R.menu.main_menu, menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
@@ -192,67 +187,6 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-    /**
-     * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
-     * JSON call that should precede this one.  Update database with runtimes
-     * Note: Makes network call.  Calls DB
-     * @param cursor - Holds data we need to look through
-     */
-    private void getRuntimesForMoviesInList(Cursor cursor) {
-        Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
-        // Get runtime for found movies and place in correct Movies.
-        if (cursor != null) {  // Cursor exists
-            if (cursor.moveToFirst()) {  // Cursor is valid
-                ContentValues idContentValues;
-                int movieIdCursorIndex = cursor.getColumnIndex(MovieEntry._ID);  // Ge index of id
-                for (int i = 0; cursor.moveToPosition(i); i++) {
-                    idContentValues = new ContentValues();
-                    long movieID = cursor.getLong(movieIdCursorIndex);  // Get movieId for later in loop
-
-                    int runtime = getSingleMovieRuntimeFromTMDB("" + movieID);  // Get runtime for this id
-                    idContentValues.put(MovieEntry.RUNTIME, runtime);  // It is the runtime we want to update
-
-                    // Update runtime where ID = id
-                    getContentResolver().update(
-                            MovieEntry.buildUriWithMovieId(movieID),
-                            idContentValues,
-                            null,
-                            null);
-
-                }
-            }
-        }
-        Log.d(TAG, "END::getRuntimesForMoviesInList: ");
-    }
-
-    /**
-     * GETSINGLEMOVIERUNTIMEFROMTMDB - Get the runtime for the movie with the given movieId.
-     * Note: Makes network call.
-     * @param aMovieId - Movie Id for movie we are getting the runtime for
-     * @return int - Runtime of movie
-     */
-    private int getSingleMovieRuntimeFromTMDB(String aMovieId) {
-        int movieRuntime = 0;
-        Log.d(TAG, "BEGIN::getSingleMovieRuntimeFromTMDB: ");
-        try {
-            String receivedSingleMovieJSON = NetworkUtils
-                    .getResponseFromHttpUrl(NetworkUtils
-                            .buildUrlForSingleMovie(this, aMovieId));
-            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: >>>" + receivedSingleMovieJSON + "<<<");
-
-            movieRuntime = OpenTMDJsonUtils
-                    .getRuntimeOfSingleMovie(this, receivedSingleMovieJSON);
-
-            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: Runtime: " + movieRuntime + "\n");
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {  // There was a problem with the network
-            e.printStackTrace();
-        }
-        Log.d(TAG, "END::getSingleMovieRuntimeFromTMDB: ");
-        return movieRuntime;
-    }
 
     /**
      * LOADPREFERREDMOVIELIST - Loads the movie list that the user has set in SharedPreferences
@@ -281,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "END::loadPreferredMovieList: ");
     }
 
+
     /**
      * GETTMDQUERYBUNDLE - Bundles the needed URL as a string so that it can be
      * used later by the loader.
@@ -298,12 +233,14 @@ public class MainActivity extends AppCompatActivity implements
         return urlBundle;
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
+
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
@@ -320,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements
         }
         Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
+
 
     /**
      * ONCREATELOADER - Create and return a new loader for the the given id
@@ -350,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements
                         forceLoad();
                     }
                 }
+
 
                 /**
                  * LOADINBACKGROUND - Done on a background thread
@@ -396,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements
                                     final int popOrderInPos = 2;
                                     final int topRatedOrderInPos = 3;
 
-                                    String where = getTypeOrderIn(isPopular) + " IS NOT NULL ";
+                                    String where = MainLoadingUtils.getTypeOrderIn(isPopular) + " IS NOT NULL ";
 
                                     // Query of what already in DB
                                     Cursor idAndTitleOldCursor = getContentResolver().query(
@@ -425,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements
                                             && (idAndTitleOldCursor.getCount() > 0)) {  // So if there are already things in db
                                         // Make set of IDs currently in DB
                                         Set<Long> idOldSet = new HashSet<>();
-                                        makeSetOfIdsFromCursor(idPos, idAndTitleOldCursor, idOldSet);
+                                        MainLoadingUtils.makeSetOfIdsFromCursor(idPos, idAndTitleOldCursor, idOldSet);
 
                                         // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
                                         Set<Long> idNewSet = new HashSet<>();
@@ -444,13 +383,15 @@ public class MainActivity extends AppCompatActivity implements
                                     sqe.printStackTrace();
                                 }
 
-                                Cursor cursorPosterPathsMovieIds = getCursorPosterPathsMovieIds(isPopular);
+                                Cursor cursorPosterPathsMovieIds = MainLoadingUtils
+                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
 
                                 if (cursorPosterPathsMovieIds != null) {
 
                                     // Add Runtimes to DB for Movies
-                                    getRuntimesForMoviesInList(cursorPosterPathsMovieIds);
-                                    createArrayListOfPairsForPosters(titlesAndPosters, cursorPosterPathsMovieIds);
+                                    MainLoadingUtils.getRuntimesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+                                    MainLoadingUtils.createArrayListOfPairsForPosters(
+                                            titlesAndPosters, cursorPosterPathsMovieIds);
 
                                     cursorPosterPathsMovieIds.close();  // Closing Cursor
                                 }
@@ -469,9 +410,11 @@ public class MainActivity extends AppCompatActivity implements
                                     }
                                 });
 
-                                Cursor cursorForIdsAndPosters = getCursorPosterPathsMovieIds(isPopular);
+                                Cursor cursorForIdsAndPosters = MainLoadingUtils
+                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
                                 if (cursorForIdsAndPosters != null) {
-                                    createArrayListOfPairsForPosters(titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+                                    MainLoadingUtils.createArrayListOfPairsForPosters(
+                                            titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
                                     cursorForIdsAndPosters.close();
                                 }
                             }
@@ -489,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements
                     return titlesAndPosters;
                 }
 
+
                 /**
                  * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
                  * @param isPopular - What type we are currently dealing with
@@ -499,7 +443,7 @@ public class MainActivity extends AppCompatActivity implements
                 private void deleteChartDroppedMovies(boolean isPopular, Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
 
                     Set<Long> idOppositeSet = new HashSet<>();
-                    makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
 
                     for (Long deleteOldId : idDeleteSet) {  // TODO: Test this out
 
@@ -507,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements
                         if (idOppositeSet.contains(deleteOldId)) {
                             ContentValues nullOutTypeCV = new ContentValues();
                             // Nulling out this usage, since ID is currently used for other type.
-                            nullOutTypeCV.put(getTypeOrderIn(isPopular), (String) null);
+                            nullOutTypeCV.put(MainLoadingUtils.getTypeOrderIn(isPopular), (String) null);
 
                             String where = MovieEntry._ID + " = ? ";
                             String[] whereArgs = {"" + deleteOldId};
@@ -527,6 +471,7 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 }
 
+
                 /**
                  * INSERTUPDATEANDMAKENEWIDSET - Inserts new movies into DB, Updates chart movers in DB, and makes a
                  * new ID set of incoming movies to compare against what is already in the database
@@ -541,7 +486,7 @@ public class MainActivity extends AppCompatActivity implements
                     // Makes Set from the movies of the opposite type, in case same movie is both types,
                     // but can only take 1 id.
                     Set<Long> idOppositeSet = new HashSet<>();
-                    makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
 
                     for (int i = 0; i < movieContentValues.length; i++) {
 
@@ -554,11 +499,12 @@ public class MainActivity extends AppCompatActivity implements
                         if (idOppositeSet.contains(newId)) {
                             // Update Item position of other thing for this type.
                             // Update
-                            String orderType = getTypeOrderIn(!isPopular);
+                            String orderType = MainLoadingUtils.getTypeOrderIn(!isPopular);
                             String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
                             String[] whereArgs
                                     = new String[] {"" + newId
-                                    , getOldPositionOfNewId(!isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
+                                    , MainLoadingUtils.getOldPositionOfNewId(
+                                            !isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
 
                             getContentResolver().update(
                                     MovieEntry.CONTENT_URI,
@@ -567,10 +513,11 @@ public class MainActivity extends AppCompatActivity implements
                                     whereArgs);
                         } else if (idOldSet.contains(newId)) {
                             // Update
-                            String orderType = getTypeOrderIn(isPopular);
+                            String orderType = MainLoadingUtils.getTypeOrderIn(isPopular);
                             String[] whereArgs
                                     = new String[] {"" + newId
-                                    , getOldPositionOfNewId(isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
+                                    , MainLoadingUtils.getOldPositionOfNewId(
+                                            isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
 
                             String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
                             getContentResolver().update(
@@ -586,88 +533,6 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 }
 
-                /**
-                 * MAKESETOFIDSFROMCURSOR - Create a Set of the IDs that are currently in the DB.
-                 * Will be used later to ensure proper updating when new data comes in.
-                 * No duplicates and proper updating.
-                 * @param idPos - Position of the id column
-                 * @param idAndTitleCursor - Cursor with old DB data
-                 * @param idOldSet - Set holding the IDs of the old DB movies.
-                 */
-                private void makeSetOfIdsFromCursor(int idPos, Cursor idAndTitleCursor, Set<Long> idOldSet) {
-                    // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
-                    if ((idAndTitleCursor != null) && (idAndTitleCursor.getCount() > 0)) {
-                        idAndTitleCursor.moveToFirst();
-                        do {
-                            idOldSet.add(idAndTitleCursor.getLong(idPos));
-                        } while (idAndTitleCursor.moveToNext());
-                    }
-                }
-
-                /**
-                 * GETTYPEORDERIN - Used to get the proper [TYPE]OrderIn depending on the boolean
-                 * @param isPopular - boolean - Does the User want Popular order, or Top-Rated order
-                 * @return - String - Proper key based on the boolean passed in
-                 */
-                @Nullable
-                private String getTypeOrderIn(boolean isPopular) {
-                    return (isPopular) ? MovieEntry.POPULAR_ORDER_IN : MovieEntry.TOP_RATED_ORDER_IN;
-                }
-
-                /**
-                 * GETOLDPOSITIONOFNEWID - Returns the old Position of the movie with this ID
-                 * @param isPopular - Popular, or Top-Rated
-                 * @param idAndTitleOldCursor - Cursor - Place to find old ID
-                 * @param oldId - Long - Old Id we are looking for
-                 * @return - String - Order Index of the Type that the user is asking for.  Or "-1", if no match
-                 */
-                @Nullable
-                private String getOldPositionOfNewId(boolean isPopular, final Cursor idAndTitleOldCursor, final Long oldId) {
-
-                    int retIndex = -1;
-                    String orderType = getTypeOrderIn(isPopular);
-
-                    if ((idAndTitleOldCursor != null)
-                            && (idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
-                        int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
-                        int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
-
-                        do {
-                            if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
-                                retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
-                                return "" + retIndex;  // Found it, jump out.
-                            }
-                        } while (idAndTitleOldCursor.moveToNext());
-                    }
-                    Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
-                    return "" + retIndex;
-                }
-
-                /**
-                 * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
-                 * @param idsTitlesAndPosters - ArrayList<Pairs<Long, Pair<String, String>>> - Posters for MainActivity in order
-                 * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
-                 */
-                private void createArrayListOfPairsForPosters(ArrayList<Pair<Long, Pair<String, String>>> idsTitlesAndPosters, Cursor cursorPosterPathsMovieIds) {
-                    // Create ArrayList of Pairs for posters
-                    if ((cursorPosterPathsMovieIds != null)
-                            && (cursorPosterPathsMovieIds.moveToFirst())) {
-                        int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
-                        int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
-                        int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
-
-                        if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
-                            do {
-                                long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
-                                String title = cursorPosterPathsMovieIds.getString(titleIndex);
-                                String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
-
-                                Pair<String, String> payload = new Pair<>(title, posterPath);
-                                idsTitlesAndPosters.add(new Pair<>(movieId, payload));
-                            } while (cursorPosterPathsMovieIds.moveToNext()) ;
-                        }
-                    }
-                }
 
                 /**
                  * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
@@ -679,42 +544,13 @@ public class MainActivity extends AppCompatActivity implements
                     super.deliverResult(data);  // Then deliver results
                 }
 
-                /**
-                 * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
-                 * of the specified type.
-                 * @param isPopular - boolean - Whether this is for Popular or Top-Rated
-                 * @return Cursor - Result of query.  Can return NULL if database not yet set.
-                 */
-                private Cursor getCursorPosterPathsMovieIds(boolean isPopular) {
-                    // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depnding on isPopular
-                    // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
-                    String orderByTypeIndex;
-                    String selection ;
-                    if (isPopular) {
-                        orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
-                        selection = MovieEntry.POPULAR_ORDER_IN;
-                    } else {
-                        orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
-                        selection = MovieEntry.TOP_RATED_ORDER_IN;
-                    }
-
-                    String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.ORIGINAL_TITLE, MovieEntry.POSTER_PATH};
-                    String selectionIsNotNull = selection + " IS NOT NULL ";
-                    // Trying to say SELECT movieId, original title, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-                    // Give me 3 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
-                    return getContentResolver().query(
-                            MovieEntry.CONTENT_URI,
-                            posterPathMovieIdColumns,
-                            selectionIsNotNull,
-                            null,
-                            orderByTypeIndex);
-                }
 
             };
         }
 
         return null;
     }
+
 
     @Override
     public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
@@ -729,6 +565,7 @@ public class MainActivity extends AppCompatActivity implements
         Log.d(TAG, "onLoadFinished: ");
     }
 
+
     /**
      * SETRECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
      * when the user switches from one type of list to another.  Otherwise, we would be
@@ -742,10 +579,12 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.scrollToPosition(mPosition);
     }
 
+
     @Override
     public void onLoaderReset(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader) {
         // Nothing here
     }
+
 
     /**
      * ONCLICK - Responds to clicks from our list
@@ -760,6 +599,7 @@ public class MainActivity extends AppCompatActivity implements
             startActivity(movieDetailIntent);
     }
 
+
     /**
      * SHOWLOADING - Shows the loading indicator and hides the posters.  This shoule be
      * used to hide the posters until the data has come in.
@@ -768,6 +608,7 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
     }
+
 
     /**
      * SHOWPOSTERS - Shows the posters and hides the loadingIndicator.  This should be
@@ -778,5 +619,6 @@ public class MainActivity extends AppCompatActivity implements
         mProgressBar.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
+
 
 }
