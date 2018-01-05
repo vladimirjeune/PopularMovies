@@ -1,7 +1,10 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v7.widget.RecyclerView;
@@ -235,6 +238,8 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 return;
             }
 
+            createRippleDrawableEffectMarshmallowUp();
+
             Pair<String, String> payload = aPosterMovieData.second;  // This gets you the interior Pair
 
             String title = payload.first;  // Set Title
@@ -253,6 +258,26 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
                 mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
             }
+        }
+
+        /**
+         * CREATERIPPLEDRAWABLEEFFECTMARSHMALLOWUP - Makes ripple drawable effect on the posters
+         * when touched.
+         */
+        private void createRippleDrawableEffectMarshmallowUp() {
+            // Add Ripple to Poster in post Lollipop phones. Otherwise, nothing
+            int[] attrs = new int[]{R.attr.selectableItemBackground};
+            TypedArray typedArray = mContext.obtainStyledAttributes(attrs);
+            int indexValue = 0;
+            int defaultValue = 0;
+            int backgroundResource = typedArray.getResourceId(indexValue, defaultValue);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Drawable ripple = ContextCompat.getDrawable(mContext, backgroundResource);
+                mListItemPosterView.setForeground(ripple);
+            }
+
+            typedArray.recycle();  // MUST recycle
         }
 
     }
