@@ -11,6 +11,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.view.Menu;
@@ -228,7 +229,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return;
         }
 
-        int textTypeColor = getTextColorBasedOnType();
 
         // Image
         String posterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
@@ -240,17 +240,24 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 .placeholder(R.drawable.tmd_error_poster)
                 .into(mTarget);
 
+        // Foreground and Background color for Section Titles
+        Pair<Integer, Integer> titleTextAndBackgroundColor = getTextAndBackgroundColorsBasedOnType();
+        int textTypeColor = titleTextAndBackgroundColor.first;
+        int backgroundColor = titleTextAndBackgroundColor.second;
+
         // Title
         mTitle.setText(data.getString(DETAIL_INDEX_ORIGINAL_TITLE));
 
         // Rating
         mRatingTextView.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));
         mRatingTitleTextView.setTextColor(textTypeColor);
+        mRatingTitleTextView.setBackgroundColor(backgroundColor);
 
         // Preparing Runtime
         String fullRuntime = String.format("%s min", data.getString(DETAIL_INDEX_RUNTIME));  // 141 min
         mRuntimeTextView.setText(fullRuntime);
         mRuntimeTitleTextView.setTextColor(textTypeColor);
+        mRuntimeTitleTextView.setBackgroundColor(backgroundColor);
 
         // Preparing Release Year
         String releaseDate = data.getString(DETAIL_INDEX_RELEASE_DATE);  // 2017-12-13
@@ -258,22 +265,34 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String releaseYear = releaseDataParts[0];  // 2017
         mReleaseTextView.setText(releaseYear);
         mReleaseTitleTextView.setTextColor(textTypeColor);
+        mReleaseTitleTextView.setBackgroundColor(backgroundColor);
 
         mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
         mSynopsisTitleTextView.setTextColor(textTypeColor);
+        mSynopsisTitleTextView.setBackgroundColor(backgroundColor);
 
     }
+
 
     /**
-     * GETTEXTCOLORBASEDONTYPE - Returns the color the text should be, based on the Type this Movie
-     * is from
-     * @return - int - Color that the text should be based on Type
+     * GETTEXTANDBACKGROUNDCOLORSBASEDONTYPE - Returns the colors the text and background should be,
+     * based on the type the movie is from.
+     * @return - Pair<Integer, Integer> - Title and Background color for this type
      */
-    private int getTextColorBasedOnType() {
-        return mIsPopular ?
+    private Pair<Integer, Integer> getTextAndBackgroundColorsBasedOnType() {
+
+        int titleColor = mIsPopular ?
                 ContextCompat.getColor(this, R.color.logo_orange) :
                 ContextCompat.getColor(this, R.color.logo_blue);
+
+        int backgroundColor = mIsPopular ?
+                ContextCompat.getColor(this, R.color.header_popular_background) :
+                ContextCompat.getColor(this, R.color.header_top_rated_background);
+
+        return new Pair<>(titleColor, backgroundColor);
+
     }
+
 
     /**
      * Called when a previously created loader is being reset, thus making its data unavailable.

@@ -68,17 +68,25 @@
 
         <TextView
             android:id="@+id/textViewRatingTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="24dp"
             android:layout_marginStart="24dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingStart="2dp"
+            android:paddingLeft="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/detail_rating"
             android:textColor="@color/logo_orange"
             android:textStyle="bold|italic"
             android:background="@color/header_popular_background"
             android:letterSpacing="0.1"
             app:layout_constraintLeft_toRightOf="@+id/imageViewOnesheet"
-            app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet" />
+            app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet"
+            app:layout_constraintRight_toRightOf="@+id/textViewOutOfTen"
+            />
 
         <TextView
             android:id="@+id/textViewRating"
@@ -105,16 +113,24 @@
 
         <TextView
             android:id="@+id/textViewRuntimeTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingStart="2dp"
+            android:paddingLeft="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/detail_runtime"
             android:textColor="@color/logo_orange"
             android:textStyle="bold|italic"
             android:background="@color/header_popular_background"
             android:letterSpacing="0.1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRating"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRating" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewRating"
+            app:layout_constraintRight_toRightOf="@+id/textViewRuntime"
+            />
 
         <TextView
             android:id="@+id/textViewRuntime"
@@ -128,16 +144,24 @@
 
         <TextView
             android:id="@+id/textViewReleaseTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingStart="2dp"
+            android:paddingLeft="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/detail_release"
             android:textColor="@color/logo_orange"
             android:textStyle="bold|italic"
             android:background="@color/header_popular_background"
             android:letterSpacing="0.1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRuntime"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRuntime" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewRuntime"
+            app:layout_constraintRight_toRightOf="@+id/textViewRelease"
+            />
 
         <TextView
             android:id="@+id/textViewRelease"
@@ -151,9 +175,17 @@
 
         <TextView
             android:id="@+id/textViewSynopsisTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingStart="2dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="8dp"
+            android:paddingEnd="8dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:text="@string/detail_synopsis"
             android:textAllCaps="false"
             android:textColor="@color/logo_orange"
@@ -161,7 +193,9 @@
             android:background="@color/header_popular_background"
             android:letterSpacing="0.1"
             app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewOnesheet" />
+            app:layout_constraintTop_toBottomOf="@+id/imageViewOnesheet"
+            app:layout_constraintRight_toRightOf="@+id/textViewSynopsis"
+            />
 
         <TextView
             android:id="@+id/textViewSynopsis"
