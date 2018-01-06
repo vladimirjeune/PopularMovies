@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
@@ -53,6 +55,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final int DETAIL_INDEX_RUNTIME = 7;
     private static final int DETAIL_INDEX_POSTER = 8;
 
+    private boolean mIsPopular;
+
     private Uri mUri;
     private TextView mTitle;
     private View mTitleBackgroundView;
@@ -62,25 +66,24 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRuntimeTextView;
     private ImageView mOneSheetImageView;
 
+    private TextView mSynopsisTitleTextView;
+    private TextView mReleaseTitleTextView;
+    private TextView mRatingTitleTextView;
+    private TextView mRuntimeTitleTextView;
+
+
     private Target mTarget = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             mOneSheetImageView.setImageBitmap(bitmap);
 
-            Palette.Builder palleteBuilder = new Palette.Builder(bitmap)
-                    .addFilter(new Palette.Filter() {
-                        @Override
-                        public boolean isAllowed(int rgb, float[] hsl) {
-                            // From: https://stackoverflow.com/questions/3942878/
-                            // how-to-decide-font-color-in-white-or-black-depending-on-background-color
-                            float contrastFormulaBlackWhiteText = 0.179f;
-                            int luminanceIndex = 2;
-                            float luminance = hsl[luminanceIndex];
+            Palette.Builder palleteBuilder = getBuilderWithWhiteTextBGFilter(bitmap);
+            setTitleTextBackgroundColor(palleteBuilder);
 
-                            return luminance <= contrastFormulaBlackWhiteText;  // Good BG for White Text
-                        }
-                    });
+        }
 
+        private void setTitleTextBackgroundColor(Palette.Builder palleteBuilder) {
+            // Use the Palette Builder to generate an appropriate background for Title text
             palleteBuilder.generate(new Palette.PaletteAsyncListener() {
                 @Override
                 public void onGenerated(Palette palette) {
@@ -104,6 +107,30 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             });
         }
 
+        /**
+         * GETBUILDERWITHWHITETEXTBGFILTER - Returns a Builder that has filtered out the Palettes
+         * that would make white text placed on top of it look bad.
+         * @param bitmap - The Bitmap we are looking at to get the appropriate background color
+         * @return - Palette.Builder - Palettes that would make good white text backgrounds
+         * based on Bitmap.
+         */
+        @NonNull
+        private Palette.Builder getBuilderWithWhiteTextBGFilter(Bitmap bitmap) {
+            return new Palette.Builder(bitmap)
+                            .addFilter(new Palette.Filter() {
+                                @Override
+                                public boolean isAllowed(int rgb, float[] hsl) {
+                                    // From: https://stackoverflow.com/questions/3942878/
+                                    // how-to-decide-font-color-in-white-or-black-depending-on-background-color
+                                    float contrastFormulaBlackWhiteText = 0.179f;
+                                    int luminanceIndex = 2;
+                                    float luminance = hsl[luminanceIndex];
+
+                                    return luminance <= contrastFormulaBlackWhiteText;  // Good BG for White Text
+                                }
+                            });
+        }
+
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
             mOneSheetImageView.setBackground(errorDrawable);
@@ -114,6 +141,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             mOneSheetImageView.setBackground(placeHolderDrawable);
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,14 +156,26 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             throw new NullPointerException("Uri passed to DetailActivity cannot be null");
         }
 
+        boolean isPopularDefault = true;
+        mIsPopular = movieIntent.getBooleanExtra(MainActivity.EXTRA_TYPE, isPopularDefault);
+
 
         mTitle = findViewById(R.id.textViewTitle);
         mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
+
+        // Data
         mSynopsisTextView = findViewById(R.id.textViewSynopsis);
         mReleaseTextView = findViewById(R.id.textViewRelease);
         mRatingTextView = findViewById(R.id.textViewRating);
         mRuntimeTextView = findViewById(R.id.textViewRuntime);
         mOneSheetImageView = findViewById(R.id.imageViewOnesheet);
+
+        // Titles
+        mSynopsisTitleTextView = findViewById(R.id.textViewSynopsisTitle);
+        mReleaseTitleTextView = findViewById(R.id.textViewReleaseTitle);
+        mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
+        mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
+
 
         getSupportLoaderManager().initLoader(DETAIL_LOADER_ID, null, this);
 
@@ -188,6 +228,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return;
         }
 
+        int textTypeColor = getTextColorBasedOnType();
+
         // Image
         String posterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
         URL imageURL = NetworkUtils.buildURLForImage(posterPath);
@@ -203,19 +245,34 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         // Rating
         mRatingTextView.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));
+        mRatingTitleTextView.setTextColor(textTypeColor);
 
         // Preparing Runtime
         String fullRuntime = String.format("%s min", data.getString(DETAIL_INDEX_RUNTIME));  // 141 min
         mRuntimeTextView.setText(fullRuntime);
+        mRuntimeTitleTextView.setTextColor(textTypeColor);
 
         // Preparing Release Year
         String releaseDate = data.getString(DETAIL_INDEX_RELEASE_DATE);  // 2017-12-13
         String[] releaseDataParts = releaseDate.split("-");  // 0:[2017] 1:[12] 2:[13]
         String releaseYear = releaseDataParts[0];  // 2017
         mReleaseTextView.setText(releaseYear);
+        mReleaseTitleTextView.setTextColor(textTypeColor);
 
         mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
+        mSynopsisTitleTextView.setTextColor(textTypeColor);
 
+    }
+
+    /**
+     * GETTEXTCOLORBASEDONTYPE - Returns the color the text should be, based on the Type this Movie
+     * is from
+     * @return - int - Color that the text should be based on Type
+     */
+    private int getTextColorBasedOnType() {
+        return mIsPopular ?
+                ContextCompat.getColor(this, R.color.logo_orange) :
+                ContextCompat.getColor(this, R.color.logo_blue);
     }
 
     /**

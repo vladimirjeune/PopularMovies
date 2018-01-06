@@ -24,7 +24,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import org.json.JSONException;
 
@@ -48,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
+    public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a boolean
+
     private String mTMDKey;
 
     private RecyclerView mRecyclerView;
@@ -60,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements
     private String mIsPopular ;
 
     private ProgressBar mProgressBar;
-
-    private Toast mToast;
 
     // *** IMPORTANT ***  This projection and the following ints MUST REMAIN CORRELATED in order
     private static String[] MAIN_MOVIE_PROJECTION = {
@@ -308,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements
                         titlesAndPosters = new ArrayList<>();
 
                         try {
-                            isPopular = mIsPopular.equals(NetworkUtils.TMDB_POPULAR);
+                            isPopular = isCurrentTypePopular();
 
                             // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
                             if (NetworkUtils.doWeHaveInternet()) {
@@ -551,6 +550,10 @@ public class MainActivity extends AppCompatActivity implements
         return null;
     }
 
+    private boolean isCurrentTypePopular() {
+        return mIsPopular.equals(getString(R.string.pref_sort_popular));
+    }
+
 
     @Override
     public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
@@ -559,7 +562,7 @@ public class MainActivity extends AppCompatActivity implements
         if ((data != null) && (data.size() != 0)) {
 
             showPosters();  // The data is here, we should show it.
-            mMovieAdapter.setData(data, mIsPopular.equals(getString(R.string.pref_sort_popular)));
+            mMovieAdapter.setData(data, isCurrentTypePopular());
         }
 
         Log.d(TAG, "onLoadFinished: ");
@@ -593,10 +596,11 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onClick(long movieId) {
         Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
-            Intent movieDetailIntent = new Intent(this, DetailActivity.class);
-            Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
-            movieDetailIntent.setData(movieDataUri);
-            startActivity(movieDetailIntent);
+        Intent movieDetailIntent = new Intent(this, DetailActivity.class);
+        Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
+        movieDetailIntent.setData(movieDataUri);
+        movieDetailIntent.putExtra(EXTRA_TYPE, isCurrentTypePopular());
+        startActivity(movieDetailIntent);
     }
 
 
