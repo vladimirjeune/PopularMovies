@@ -24,10 +24,10 @@
 
     <!-- DetailActivity -->
     <string name="detail_out_of_10">/10</string>
-    <string name="detail_rating">Rating</string>
-    <string name="detail_release">Release</string>
-    <string name="detail_runtime">Runtime</string>
-    <string name="detail_synopsis">Synopsis</string>
+    <string name="detail_rating">RATING</string>
+    <string name="detail_release">RELEASE</string>
+    <string name="detail_runtime">RUNTIME</string>
+    <string name="detail_synopsis">SYNOPSIS</string>
     <string name="action_details">Details</string>
 
     <!-- About -->
