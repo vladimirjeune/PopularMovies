@@ -94,6 +94,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     final int darkVibrantColor = palette.getDarkVibrantColor(blackColor);
                     final int darkMutedColor = palette.getDarkMutedColor(blackColor);
                     final int mutedColor = palette.getMutedColor(blackColor);
+                    final int lightVibrantColor = palette.getLightVibrantColor(blackColor);
 
                     if (vibrantColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(vibrantColor);
@@ -101,6 +102,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                         mTitleBackgroundView.setBackgroundColor(darkVibrantColor);
                     } else if (darkMutedColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(darkMutedColor);
+                    } else if (lightVibrantColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(lightVibrantColor);
                     } else if (mutedColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(mutedColor);
                     }
