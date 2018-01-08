@@ -34,6 +34,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
                 setPreferenceSummary(preference, value);
             }
         }
+
     }
 
     /**

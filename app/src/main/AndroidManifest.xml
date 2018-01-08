@@ -25,7 +25,9 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+
+            >
 
             <!--  -->
             <meta-data
@@ -38,7 +40,8 @@
         <activity
             android:name=".DetailActivity"
             android:label="@string/action_details"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".MainActivity"
+            >
 
             <!--  -->
             <meta-data
