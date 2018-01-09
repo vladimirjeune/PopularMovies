@@ -45,7 +45,7 @@
             android:maxLines="2"
             android:ellipsize="end"
             android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:letterSpacing="0.05"
             app:layout_constraintBottom_toBottomOf="@+id/textViewTitleBackground"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -93,7 +93,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="7.2"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Display3"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRatingTitle"
             app:layout_constraintTop_toBottomOf="@+id/textViewRatingTitle" />
@@ -103,7 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/detail_out_of_10"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
             android:paddingTop="8dp"
             app:layout_constraintLeft_toRightOf="@+id/textViewRating"
@@ -137,7 +137,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="141 min"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRuntimeTitle"
             app:layout_constraintTop_toBottomOf="@+id/textViewRuntimeTitle" />
@@ -168,7 +168,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="2017"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:textAppearance="@style/TextAppearance.AppCompat.Display1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewReleaseTitle"
             app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle" />
@@ -200,7 +200,7 @@
         <TextView
             android:id="@+id/textViewSynopsis"
             tools:text="@string/tools_lorem_paragraph"
-            android:textColor="@color/white_translucent_more_solid"
+            android:textColor="@color/white_translucent"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

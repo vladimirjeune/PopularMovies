@@ -42,7 +42,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/about_tmdb_legal"
         android:textStyle="italic"
-        android:textColor="@color/white_translucent_more_solid"
+        android:textColor="@color/white_translucent"
         app:layout_constraintLeft_toRightOf="@+id/imageViewTMDbLogo"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/imageViewTMDbLogo" />

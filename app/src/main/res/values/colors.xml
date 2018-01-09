@@ -22,17 +22,14 @@
     <color name="grey_dark">#2b2b2b</color>
 
     <!--whites -->
-    <color name="white_translucent">#77FFFFFF</color>
-    <color name="white_translucent_more_solid">#CCFFFFFF</color>
+    <color name="white_translucent">#CCFFFFFF</color>
 
     <!-- orange -->
     <color name="orange_dark_translucent">#99200c00</color>
-    <color name="orange_dark">#271300</color>
     <color name="orange_bright">#fd9229</color>
 
     <!-- blue -->
     <color name="blue_dark_translucent">#aa001334</color>  <!-- #7700c20 -->
-    <color name="blue_dark">#00031a</color>
     <color name="blue_bright">#0b24fb</color>
 
 </resources>
