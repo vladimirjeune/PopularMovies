@@ -14,15 +14,16 @@ import android.util.Log;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
-import static app.com.vladimirjeune.popmovies.MovieData.TAG;
 
 /**
  * ContentProvider for Movie Data
  * Created by vladimirjeune on 12/6/17.
  */
 
+
 public class MovieContentProvider extends ContentProvider {
 
+    private static final String TAG = MovieContentProvider.class.getSimpleName();
     private MovieDBHelper mMovieDBHelper;
 
     // content://<package>/path/#

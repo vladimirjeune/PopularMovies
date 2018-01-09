@@ -9,8 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import app.com.vladimirjeune.popmovies.MovieData;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+
 
 /**
  * Handles interactions with TheMovieDB's JSON data
@@ -45,66 +45,7 @@ public final class OpenTMDJsonUtils {
     private static final int TMD_ERROR_STATUS_NO_KEY = 7;
     private static final int TMD_ERROR_STATUS_RESOURCE_NOT_FOUND = 34;
 
-    /**
-     * GETPOPULARORTOPJSON - Can be used to get data from JSON for, 'popular', or, 'top-rated'
-     * since they have the same schema.
-     * *Note* - Neither endpoint have movie runtime.  That will have to be obtained from somewhere
-     * else.
-     * @param context - Necessary if we need to use the Utility functions
-     * @param tmdJSONStr - The JSON data from the Database
-     * @return - ArrayList of Movie data
-     */
-    public static MovieData[] getPopularOrTopJSON(Context context, String tmdJSONStr) throws JSONException {
-        MovieData[] parsedMovieDataArray;
-        Log.d(TAG, "BEGIN::getPopularOrTopJSON: ");
 
-        JSONObject movieJSONObject = new JSONObject(tmdJSONStr);
-        if (isThereDataError(context, movieJSONObject)) {  // If there is a error in data; abort processing.
-            return null;
-        }
-
-
-        // Loop thru data
-        JSONArray movieJsonArray = movieJSONObject.getJSONArray(TMD_RESULTS_LIST);
-        parsedMovieDataArray = new MovieData[movieJsonArray.length()];
-
-
-        for (int i = 0; i < movieJsonArray.length(); i++) {
-            MovieData movieData = new MovieData();
-
-            JSONObject movieJson = movieJsonArray.getJSONObject(i);
-
-            movieData.setMovieId(movieJson.getInt(TMD_MOVIE_ID));
-
-            movieData.setOriginalTitle(movieJson.getString(TMD_ORIGINAL_TITLE));
-
-            // If the value is null, optString(), will return an empty string
-            String posterPath = movieJson.optString(TMD_POSTER_PATH);
-            posterPath = (("".equals(posterPath)) ? "" : posterPath.substring(1));  // RMing preceding '/'
-            movieData.setPosterPath(posterPath);
-
-            movieData.setSynopsis(movieJson.getString(TMD_SYNOPSIS));
-
-            // MMMM-YY-DD.  May save as MMMM-YY-DD 00:00:00
-            movieData.setReleaseDate(movieJson.getString(TMD_RELEASE_DATE));
-
-            movieData.setVoterAverage(movieJson.getDouble(TMD_VOTER_AVERAGE));
-
-            // If the value is null, optString(), will return an empty string
-            String backdropPath = movieJson.optString(TMD_BACKDROP_PATH);
-            backdropPath = (("".equals(backdropPath)) ? "" : backdropPath.substring(1));  // RMing preceding '/'
-            movieData.setBackdropPath(backdropPath);
-
-            movieData.setPopularity(movieJson.getDouble(TMD_POPULARITY));
-
-            // Set mostly complete new movie in position
-            parsedMovieDataArray[i] = movieData;
-
-        }
-
-        Log.d(TAG, "END::getPopularOrTopJSON: ");
-        return parsedMovieDataArray;
-    }
     /**
      * GETPOPULARORTOPJSON - Can be used to get data from JSON for, 'popular', or, 'top-rated'
      * since they have the same schema.
@@ -178,6 +119,7 @@ public final class OpenTMDJsonUtils {
         return parsedContentValuesArray;
     }
 
+
     /**
      * CONDITIONALOPTIONS - These values may or may not be available to be
      * incorporated into the database.  They may be NULL or not suitable for this database call.
@@ -204,6 +146,7 @@ public final class OpenTMDJsonUtils {
             contentValues.put(MovieEntry.TOP_RATED_ORDER_IN, index);
         }
     }
+
 
     /**
      * ISTHEREDATAERROR - If there is a status code in the JSON then there was a problem with the
@@ -235,6 +178,7 @@ public final class OpenTMDJsonUtils {
         return false;
     }
 
+
     /**
      * GETRUNTIMROFSINGLEMOVIE - Returns the runtime of a single movie whose info was obtained from the
      * movies endpoint.  Not the popular/ or toprated/ endpoints.  Those endpoints do not have runtime
@@ -244,7 +188,7 @@ public final class OpenTMDJsonUtils {
      * @return int - Runtime of movie
      * @throws JSONException
      */
-    public static int getRuntimeOfSingleMovie(Context context, String singleMovieJSONStr) throws JSONException {
+    static int getRuntimeOfSingleMovie(Context context, String singleMovieJSONStr) throws JSONException {
         int runtimeOfMovie;
 
         JSONObject singleMovieJSON = new JSONObject(singleMovieJSONStr);
@@ -254,18 +198,5 @@ public final class OpenTMDJsonUtils {
         return runtimeOfMovie;
     }
 
-    /**
-     * JSONCHECKPRESENTANDNOTNULL - Checks that the key is not null and present. Then checks that
-     * the value is not null.  Necessary because if the value is null, an exception is thrown.
-     * Note: The key we use follows the schema of theMovieDb, so really if this is tripped it means
-     * we got a null value.
-     * This function proceeds under this assumption.
-     * @param aKey - Key to the value we want
-     * @return boolean - whether key is present and value is not null
-     */
-    public static boolean jsonCheckPresentAndNotNull(JSONObject jsonObject, String aKey) {
-        // Is the key not null; is the value the key points to not null.
-        return (jsonObject.has(aKey) && (!jsonObject.isNull(aKey)));
-    }
 
 }

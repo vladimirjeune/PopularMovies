@@ -102,8 +102,6 @@ public class MainActivity extends AppCompatActivity implements
 
         mIsPopular = getString(R.string.pref_sort_popular);
 
-//        MovieDBHelper movieDBHelper = new MovieDBHelper(this);
-
         mProgressBar = findViewById(R.id.pb_grid_movies);
 
         // Find RecyclerView from XML
