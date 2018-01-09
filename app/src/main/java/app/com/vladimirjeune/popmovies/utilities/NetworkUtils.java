@@ -24,7 +24,7 @@ import app.com.vladimirjeune.popmovies.R;
  */
 
 public final class NetworkUtils {
-    public final static String TAG = NetworkUtils.class.getSimpleName();
+    private final static String TAG = NetworkUtils.class.getSimpleName();
     public final static String TMDB_BASE_URL = "https://api.themoviedb.org/3/movie";
     public final static String TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
@@ -197,7 +197,7 @@ public final class NetworkUtils {
      * a file with the appropriate file name.
      * @return - String: The TheMovieDb API Key needed to access the database.
      */
-    public static String obtainTMDKey(Context context) {
+    private static String obtainTMDKey(Context context) {
         // In order for the movie requests to work we must obtain key from file in assets
         try {
 

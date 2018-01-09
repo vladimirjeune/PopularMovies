@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
-import app.com.vladimirjeune.popmovies.data.MovieDBHelper;
 import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
@@ -48,8 +47,6 @@ public class MainActivity extends AppCompatActivity implements
     private static final int TMDBQUERY_LOADER = 41;
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
     public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a boolean
-
-    private String mTMDKey;
 
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
@@ -105,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mIsPopular = getString(R.string.pref_sort_popular);
 
-        MovieDBHelper movieDBHelper = new MovieDBHelper(this);
+//        MovieDBHelper movieDBHelper = new MovieDBHelper(this);
 
         mProgressBar = findViewById(R.id.pb_grid_movies);
 
@@ -608,7 +605,7 @@ public class MainActivity extends AppCompatActivity implements
      * SHOWLOADING - Shows the loading indicator and hides the posters.  This shoule be
      * used to hide the posters until the data has come in.
      */
-    public void showLoading() {
+    private void showLoading() {
         mRecyclerView.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
     }
@@ -619,7 +616,7 @@ public class MainActivity extends AppCompatActivity implements
      * called when the poster data has arrived and it is safe for the user to interact
      * with the posters.
      */
-    public void showPosters() {
+    private void showPosters() {
         mProgressBar.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }

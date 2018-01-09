@@ -2,7 +2,6 @@ package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -25,7 +24,7 @@ import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
  * Created by vladimirjeune on 11/7/17.
  */
 
-public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final String TAG = MovieAdapter.class.getSimpleName();
 
@@ -44,8 +43,6 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private boolean mIsPopular;
 
     private ArrayList<Pair<Long, Pair<String, String>>> mPosterAndIds;
-
-    private SQLiteDatabase mDb;
 
     // Interface to accept clicks is below.  Will take a handler in Ctor
     // for when an item is clicked on the list
@@ -186,7 +183,7 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         public HeaderViewHolder(View itemView) {
             super(itemView);
-            textViewHeader = (TextView) itemView.findViewById(R.id.textView_main_header);
+            textViewHeader = itemView.findViewById(R.id.textView_main_header);
         }
     }
 
@@ -245,7 +242,7 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             String title = payload.first;  // Set Title
             mListItemTextView.setText(title);
 
-            String posterPath = payload.second;  // Set Poster
+            String posterPath = payload.second;  // Set Poster and Content Description
             if (posterPath != null) {
                 String urlForPosterPath = NetworkUtils.buildURLForImage(posterPath)
                         .toString();
@@ -256,6 +253,9 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         .placeholder(R.drawable.tmd_error_poster)
                         .into(mListItemPosterView);
 
+
+                String a11yPoster = mContext.getString(R.string.a11y_poster, title);
+                mListItemPosterView.setContentDescription(a11yPoster);
                 mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
             }
         }

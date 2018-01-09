@@ -8,6 +8,6 @@
     <dimen name="item_margin">4dp</dimen>
     <dimen name="item_margin_half">4dp</dimen>
 
-    <!-- Was 80 for Chiukis project, 342 was too big, 180 with 4 margin looks ok so far -->
+    <!-- Was 80 for Chiuki's project, 342 was too big, 180 with 4 margin looks ok so far -->
     <dimen name="column_width">180dp</dimen>
 </resources>

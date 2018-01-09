@@ -13,9 +13,9 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
 public class MovieDBHelper extends SQLiteOpenHelper {
 
-    public static final String DATABASE_NAME = "movie.db";
+    private static final String DATABASE_NAME = "movie.db";
 
-    public static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 3;
 
     public MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,9 +48,9 @@ public class MovieDBHelper extends SQLiteOpenHelper {
      * ONUPGRADE - Called when version# of DB becomes larger than version on the device.
      * For now we drop and call onCreate.  Later, we may need to do an Alter call as needed
      * so we do not lose the users data while modifying the database structure.
-     * @param sqLiteDatabase
-     * @param oldVersion
-     * @param newVersion
+     * @param sqLiteDatabase - Database to needing upgrade
+     * @param oldVersion - Version number currently on
+     * @param newVersion - Version number to get to
      */
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {

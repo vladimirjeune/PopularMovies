@@ -16,6 +16,9 @@ import app.com.vladimirjeune.popmovies.data.MovieContract;
  */
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private final String TAG = SettingsFragment.class.getSimpleName();
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         addPreferencesFromResource(R.xml.pref_main);  // Generates a prefscreen for the fragment
@@ -36,6 +39,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
         }
 
     }
+
 
     /**
      * SETPREFERENCESUMMARY - Take a preference and find the label of the ListPreference item that

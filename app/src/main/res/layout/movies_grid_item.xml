@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         tools:src="@drawable/tmd_error_poster"
         android:foreground="?attr/selectableItemBackground"
-        />
+        tools:ignore="ContentDescription" />
 
     <View
         android:id="@+id/v_title_background"

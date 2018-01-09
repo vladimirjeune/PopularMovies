@@ -151,7 +151,7 @@ public final class MainLoadingUtils {
      * @param aMovieId - Movie Id for movie we are getting the runtime for
      * @return int - Runtime of movie
      */
-    public static int getSingleMovieRuntimeFromTMDB(String aMovieId, Context context) {
+    private static int getSingleMovieRuntimeFromTMDB(String aMovieId, Context context) {
         int movieRuntime = 0;
         Log.d(TAG, "BEGIN::getSingleMovieRuntimeFromTMDB: ");
         try {

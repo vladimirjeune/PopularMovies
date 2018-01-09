@@ -6,11 +6,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 /**
- * Using ItemDecoration for space. Modified from SquareIsland Blog's implemenation
+ * Using ItemDecoration for space. Modified from SquareIsland Blog's implementation
  * Created by vladimirjeune on 12/29/17.
  */
 
-public class SpaceDecoration extends RecyclerView.ItemDecoration {
+class SpaceDecoration extends RecyclerView.ItemDecoration {
     private int margin;
 
 

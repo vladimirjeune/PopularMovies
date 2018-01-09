@@ -26,7 +26,7 @@ public class MovieContentProvider extends ContentProvider {
     private MovieDBHelper mMovieDBHelper;
 
     // content://<package>/path/#
-    public static final String ANYNUMBER = "/#";  // Should match any movie id.
+    private static final String ANYNUMBER = "/#";  // Should match any movie id.
     public static final int MOVIES = 100;
     public static final int MOVIES_WITH_ID = 101;
 

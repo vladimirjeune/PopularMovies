@@ -16,11 +16,11 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:contentDescription="@string/about_tmdb_logo" />
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/imageViewTMDbLogo"
-        android:contentDescription="@string/about_tmdb_logo"
+        android:contentDescription="@string/a11y_tmdb_logo"
         app:srcCompat="@drawable/tmd_green_small_about"
         android:layout_width="108dp"
         android:layout_height="112dp"

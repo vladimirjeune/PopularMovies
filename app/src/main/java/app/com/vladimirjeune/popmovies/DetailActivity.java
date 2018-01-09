@@ -33,7 +33,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     private static final int DETAIL_LOADER_ID = 117;
 
-    private static String[] DETAIL_MOVIE_PROJECTION = {
+    private static final String[] DETAIL_MOVIE_PROJECTION = {
             MovieEntry._ID,
             MovieEntry.ORIGINAL_TITLE,
             MovieEntry.POSTER_PATH,
@@ -78,14 +78,14 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             mOneSheetImageView.setImageBitmap(bitmap);
 
-            Palette.Builder palleteBuilder = getBuilderWithWhiteTextBGFilter(bitmap);
-            setTitleTextBackgroundColor(palleteBuilder);
+            Palette.Builder paletteBuilder = getBuilderWithWhiteTextBGFilter(bitmap);
+            setTitleTextBackgroundColor(paletteBuilder);
 
         }
 
-        private void setTitleTextBackgroundColor(Palette.Builder palleteBuilder) {
+        private void setTitleTextBackgroundColor(Palette.Builder paletteBuilder) {
             // Use the Palette Builder to generate an appropriate background for Title text
-            palleteBuilder.generate(new Palette.PaletteAsyncListener() {
+            paletteBuilder.generate(new Palette.PaletteAsyncListener() {
                 @Override
                 public void onGenerated(Palette palette) {
 
@@ -100,11 +100,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                         mTitleBackgroundView.setBackgroundColor(vibrantColor);
                     } else if (darkVibrantColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(darkVibrantColor);
-                    } else if (darkMutedColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(darkMutedColor);
                     } else if (lightVibrantColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(lightVibrantColor);
-                    } else if (mutedColor != blackColor) {
+                    } else if (darkMutedColor != blackColor) {
+                        mTitleBackgroundView.setBackgroundColor(darkMutedColor);
+                    }  else if (mutedColor != blackColor) {
                         mTitleBackgroundView.setBackgroundColor(mutedColor);
                     }
                 }
@@ -248,8 +248,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         int textTypeColor = titleTextAndBackgroundColor.first;
         int backgroundColor = titleTextAndBackgroundColor.second;
 
-        // Title
-        mTitle.setText(data.getString(DETAIL_INDEX_ORIGINAL_TITLE));
+        // Title & set ImageView ContentDescription
+        String originalTitle = data.getString(DETAIL_INDEX_ORIGINAL_TITLE);
+        String a11yPosterText = getString(R.string.a11y_poster, originalTitle);
+        mTitle.setText(originalTitle);
+        mOneSheetImageView.setContentDescription(a11yPosterText);
 
         // Rating
         mRatingTextView.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));

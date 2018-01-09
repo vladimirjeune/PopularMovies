@@ -212,7 +212,7 @@ public final class OpenTMDJsonUtils {
      * @param context - Needed to indicate to tester that they need to remember API Key
      * @param movieJSONObject - Searched for Status tag.
      * @return boolean - T means there is an error in the incoming data.  F means parsing of data can continue
-     * @throws JSONException
+     * @throws JSONException - Something was wrong with the JSON
      */
     private static boolean isThereDataError(Context context, JSONObject movieJSONObject) throws JSONException {
         // Check that we are not in a bad status

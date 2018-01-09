@@ -7,7 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 
 /**
- * Using to fill RecyclerView during landscape mode. Modified from SquareIsland Blog's implemenation
+ * Using to fill RecyclerView during landscape mode. Modified from SquareIsland Blog's implementation
  * Created by vladimirjeune on 12/29/17.
  */
 

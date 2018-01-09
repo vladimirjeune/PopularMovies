@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Pop Movies</string>
     <string name="package_name" translatable="false">app.com.vladimirjeune.popmovies</string>
 
@@ -31,11 +31,14 @@
     <string name="action_details">Details</string>
 
     <!-- About -->
-    <string name="about_tmdb_logo">The Movie Database Logo</string>
     <string name="about_tmdb_legal">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
 
     <!-- Text for Toasts and Snackbars -->
     <string name="snackbar_settings">SETTINGS</string>
     <string name="warning_snackbar_internet">No internet connection.\nEnable internet for updated data.</string>
+
+    <!-- a11y -->
+    <string name="a11y_poster">Poster for <xliff:g id="poster">%1$s</xliff:g></string>
+    <string name="a11y_tmdb_logo">The Movie Database Logo</string>
 
 </resources>

@@ -12,12 +12,12 @@ import android.view.View;
  * Created by vladimirjeune on 1/3/18.
  */
 
-public class MySettingsListener implements View.OnClickListener {
+class MySettingsListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         Context context = view.getContext();
 
-        // Going to Settings because the Internet Activities either went to Aiplane Mode
+        // Going to Settings because the Internet Activities either went to Airplane Mode
         // Or Wireless ON/OFF, not both.
         Intent settingsIntent = new Intent(Settings.ACTION_SETTINGS);
 
