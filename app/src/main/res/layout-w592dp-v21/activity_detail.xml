@@ -105,7 +105,7 @@
             android:text="@string/detail_out_of_10"
             android:textColor="@color/white_translucent"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
-            android:paddingTop="8dp"
+            android:paddingTop="16dp"
             app:layout_constraintLeft_toRightOf="@+id/textViewRating"
             app:layout_constraintTop_toTopOf="@+id/textViewRating"
             android:layout_marginLeft="0dp"
