@@ -21,7 +21,7 @@
         android:id="@+id/v_title_background"
         android:layout_width="0dp"
         android:layout_height="30dp"
-        android:background="#77000000"
+        android:background="@color/poster_scrim_background"
         app:layout_constraintLeft_toLeftOf="@id/iv_movie_poster_item"
         app:layout_constraintRight_toRightOf="@id/iv_movie_poster_item"
         app:layout_constraintBottom_toBottomOf="@id/iv_movie_poster_item"
