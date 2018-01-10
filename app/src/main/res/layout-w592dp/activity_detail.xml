@@ -94,9 +94,11 @@
             android:layout_height="wrap_content"
             tools:text="7.2"
             android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display3"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display4"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRatingTitle"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRatingTitle" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewRatingTitle"
+            android:layout_marginTop="0dp"
+            android:layout_marginLeft="0dp" />
 
         <TextView
             android:id="@+id/textViewOutOfTen"
@@ -108,14 +110,15 @@
             android:paddingTop="8dp"
             app:layout_constraintLeft_toRightOf="@+id/textViewRating"
             app:layout_constraintTop_toTopOf="@+id/textViewRating"
-            />
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="8dp" />
 
 
         <TextView
             android:id="@+id/textViewRuntimeTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="0dp"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"
             android:paddingStart="2dp"
@@ -127,10 +130,10 @@
             android:textStyle="bold|italic"
             android:background="@color/header_popular_background"
             android:letterSpacing="0.1"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewRating"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRating"
+            app:layout_constraintLeft_toRightOf="@+id/textViewOutOfTen"
+            app:layout_constraintTop_toTopOf="@+id/textViewRatingTitle"
             app:layout_constraintRight_toRightOf="@+id/textViewRuntime"
-            />
+            android:layout_marginLeft="24dp" />
 
         <TextView
             android:id="@+id/textViewRuntime"

@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements
         showLoading();  // Until data is ready.
 
         loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
+
         Log.d(TAG, "END::onCreate: ");
     }
 
