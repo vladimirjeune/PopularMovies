@@ -11,6 +11,10 @@
     <color name="header_top_rated_background">@color/blue_dark_translucent</color>
     <color name="text_header_blue">@color/blue_bright</color>
     <color name="text_header_orange">@color/orange_bright</color>
+    <color name="divider_marquee_1">@color/orange_bright</color>
+    <color name="divider_marquee_2">@color/orange_found</color>
+    <color name="divider_marquee_3">@color/purple_found</color>
+    <color name="divider_marquee_4">@color/blue_bright</color>
 
 
 
@@ -19,7 +23,8 @@
     <color name="black_translucent">#77000000</color>
 
     <!-- greys -->
-    <color name="grey_dark">#2b2b2b</color>
+    <color name="grey_dark">#FF2b2b2b</color>
+    <color name="grey_darker">#FF212121</color>
 
     <!--whites -->
     <color name="white_translucent">#CCFFFFFF</color>
@@ -27,9 +32,16 @@
     <!-- orange -->
     <color name="orange_dark_translucent">#99200c00</color>
     <color name="orange_bright">#fd9229</color>
+    <color name="orange_found">#FFFD5A28</color>
 
     <!-- blue -->
     <color name="blue_dark_translucent">#aa001334</color>  <!-- #7700c20 -->
     <color name="blue_bright">#0b24fb</color>
+    <color name="blue_found">#FF3028FD</color>
+
+    <!-- purple -->
+    <color name="purple_found">#FF8828FD</color>
+
+
 
 </resources>
