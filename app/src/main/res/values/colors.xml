@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">@color/grey_dark</color>
     <color name="colorPrimaryDark">@android:color/black</color>
-    <color name="colorAccent">@color/logo_orange</color>
+    <color name="colorAccent">@color/orange_found</color>
 
     <color name="logo_orange">@color/orange_bright</color>
     <color name="logo_blue">@color/blue_bright</color>

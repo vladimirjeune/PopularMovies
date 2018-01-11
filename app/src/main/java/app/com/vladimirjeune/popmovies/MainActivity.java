@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int TMDBQUERY_LOADER = 41;
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
     public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a boolean
+
+    private static final boolean DEVELOPER_MODE = false; /** EN/DIS-ABLE String Mode**/
 
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
@@ -96,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        safeMode();  // SAFEMODE must be engaged as soon as possible.  Not a mistake.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG, "BEGIN::onCreate: ");
@@ -142,6 +146,28 @@ public class MainActivity extends AppCompatActivity implements
         loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
 
         Log.d(TAG, "END::onCreate: ");
+    }
+
+    /**
+     * SAFEMODE - StrictMode is a developer tool which detects things you might be doing by
+     * accident and brings them to your attention so you can fix them.
+     */
+    private void safeMode() {
+        if (DEVELOPER_MODE) {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()   // or .detectAll() for all detectable problems
+                    //.penaltyLog()
+                    .penaltyFlashScreen()
+                    .build());
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .penaltyDeath()  // .penaltyDeath()
+                    .build());
+        }
     }
 
 
@@ -370,6 +396,9 @@ public class MainActivity extends AppCompatActivity implements
                                         deleteChartDroppedMovies(isPopular, idOldSet, idandTitleOppositeCursor);
 
                                         idAndTitleOldCursor.close();  // Closing the Cursor
+                                        if (idandTitleOppositeCursor != null) {
+                                            idandTitleOppositeCursor.close();
+                                        }
                                     } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates.
                                         getContentResolver().bulkInsert(MovieEntry.CONTENT_URI, movieContentValues);
                                     }
