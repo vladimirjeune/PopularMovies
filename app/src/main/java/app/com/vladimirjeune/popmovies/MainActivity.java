@@ -434,6 +434,7 @@ public class MainActivity extends AppCompatActivity implements
                                     }
                                 });
 
+                                // If no internet but we have some data, deal with that
                                 Cursor cursorForIdsAndPosters = MainLoadingUtils
                                         .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
                                 if (cursorForIdsAndPosters != null) {
