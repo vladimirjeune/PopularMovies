@@ -56,6 +56,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final int DETAIL_INDEX_RUNTIME = 7;
     private static final int DETAIL_INDEX_POSTER = 8;
 
+    private static final String TAG = DetailActivity.class.getSimpleName();
+
     private boolean mIsPopular;
 
     private Uri mUri;
@@ -138,14 +140,23 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                             });
         }
 
+        /**
+         * ONBITMAPFAILED - Called when you call error
+         * @param errorDrawable - What to show in this case
+         */
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            mOneSheetImageView.setBackground(errorDrawable);
+            mOneSheetImageView.setImageDrawable(errorDrawable);
         }
 
+        /**
+         * ONPREPARELOAD - Shown if placeholder called and we are waiting for
+         * the image to arrive.  May be shown until image arrives of we error out.
+         * @param placeHolderDrawable - Image to show in this case
+         */
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            mOneSheetImageView.setBackground(placeHolderDrawable);
+            mOneSheetImageView.setImageDrawable(placeHolderDrawable);
         }
     };
 
@@ -243,7 +254,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         Picasso.with(this)
                 .load(String.valueOf(imageURL))
                 .placeholder(R.drawable.tmd_placeholder_poster)
-                .placeholder(R.drawable.tmd_error_poster)
+                .error(R.drawable.tmd_error_poster)
                 .into(mTarget);
 
         // Foreground and Background color for Section Titles
