@@ -96,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final int INDEX_POPULAR_ORDER_IN = 12;
     private static final int INDEX_TOP_RATED_ORDER_IN = 13;
 
+    private boolean snackBarTriggered = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +172,20 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // if pb.  If snackbar triggered and pb spinning
+        if ((snackBarTriggered) && (mProgressBar.getVisibility() == View.VISIBLE)) {
+            Log.i(TAG, "onResume: Is ProgressBar spinning? : [" + (mProgressBar.getVisibility() == View.VISIBLE) + "]");
+            showLoading();
+            loadPreferredMovieList();
+            snackBarTriggered = false;
+        }
+
+    }
 
     /**
      * SETUPSHAREDPREFERENCES - Anything having to do with SharedPreferences will be handled here.
@@ -431,6 +447,7 @@ public class MainActivity extends AppCompatActivity implements
                                                 R.string.warning_snackbar_internet, Snackbar.LENGTH_LONG)
                                                 .setAction(R.string.snackbar_settings, new MySettingsListener())
                                                 .show();
+                                        snackBarTriggered = true;
                                     }
                                 });
 
