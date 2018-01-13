@@ -173,20 +173,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // if pb.  If snackbar triggered and pb spinning
-        if ((snackBarTriggered) && (mProgressBar.getVisibility() == View.VISIBLE)) {
-            Log.i(TAG, "onResume: Is ProgressBar spinning? : [" + (mProgressBar.getVisibility() == View.VISIBLE) + "]");
-            showLoading();
-            loadPreferredMovieList();
-            snackBarTriggered = false;
-        }
-
-    }
-
     /**
      * SETUPSHAREDPREFERENCES - Anything having to do with SharedPreferences will be handled here.
      *
@@ -444,10 +430,9 @@ public class MainActivity extends AppCompatActivity implements
                                     @Override
                                     public void run() {
                                         Snackbar.make(findViewById(R.id.coordinator_layout_main),
-                                                R.string.warning_snackbar_internet, Snackbar.LENGTH_LONG)
+                                                R.string.warning_snackbar_internet, Snackbar.LENGTH_INDEFINITE)
                                                 .setAction(R.string.snackbar_settings, new MySettingsListener())
                                                 .show();
-                                        snackBarTriggered = true;
                                     }
                                 });
 
