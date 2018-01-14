@@ -18,7 +18,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements
         safeMode();  // SAFEMODE must be engaged as soon as possible.  Not a mistake.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "BEGIN::onCreate: ");
+//        Log.d(TAG, "BEGIN::onCreate: ");
 
         mIsPopular = getString(R.string.pref_sort_popular);
 
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements
 
         loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
 
-        Log.d(TAG, "END::onCreate: ");
+//        Log.d(TAG, "END::onCreate: ");
     }
 
     /**
@@ -215,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements
      * LOADPREFERREDMOVIELIST - Loads the movie list that the user has set in SharedPreferences
      */
     private void loadPreferredMovieList() {
-        Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
+//        Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
 
         // Get current type from SharedPrefs
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -235,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, urlBundle, this);
         }
 
-        Log.d(TAG, "END::loadPreferredMovieList: ");
+//        Log.d(TAG, "END::loadPreferredMovieList: ");
     }
 
 
@@ -250,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements
         Bundle urlBundle = new Bundle();
         URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular);
         String stringOfUrl = ((null == urlForPopularOrTopRated) ? null : urlForPopularOrTopRated.toString());
-        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+//        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
 
         urlBundle.putCharSequence(NETWORK_URL_POP_OR_TOP_KEY, stringOfUrl);
         return urlBundle;
@@ -267,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-        Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
+//        Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
         if (s.equals(getString(R.string.pref_sort_key))) {
             mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
@@ -278,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
             mMovieAdapter.notifyDataSetChanged();   // Made no difference
         }
-        Log.d(TAG, "END::onSharedPreferenceChanged: ");
+//        Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
 
 
@@ -320,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public ArrayList<Pair<Long, Pair<String, String>>> loadInBackground() {
 
-                    Log.d(TAG, "loadInBackground: ");
+//                    Log.d(TAG, "loadInBackground: ");
                     boolean isPopular = true;
 
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
@@ -338,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements
 
                                 tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
 
-                                Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
+//                                Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
 
                                 movieContentValues = OpenTMDJsonUtils
                                         .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
@@ -453,7 +452,7 @@ public class MainActivity extends AppCompatActivity implements
                             return null;
                         }
 
-                        Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
+//                        Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
                     }
 
                     return titlesAndPosters;
@@ -585,7 +584,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
-        Log.d(TAG, "onLoadFinished: ");
+//        Log.d(TAG, "onLoadFinished: ");
 
         if ((data != null) && (data.size() != 0)) {
 
@@ -593,7 +592,7 @@ public class MainActivity extends AppCompatActivity implements
             mMovieAdapter.setData(data, isCurrentTypePopular());
         }
 
-        Log.d(TAG, "onLoadFinished: ");
+//        Log.d(TAG, "onLoadFinished: ");
     }
 
 
@@ -623,7 +622,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onClick(long movieId) {
-        Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
+//        Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
         Intent movieDetailIntent = new Intent(this, DetailActivity.class);
         Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
         movieDetailIntent.setData(movieDataUri);

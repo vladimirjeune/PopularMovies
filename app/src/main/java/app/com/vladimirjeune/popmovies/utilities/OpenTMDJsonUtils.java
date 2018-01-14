@@ -2,7 +2,6 @@ package app.com.vladimirjeune.popmovies.utilities;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -60,7 +59,7 @@ public final class OpenTMDJsonUtils {
             , boolean isPopular) throws JSONException {
 
         ContentValues[] parsedContentValuesArray;
-        Log.d(TAG, "BEGIN::getPopularOrTopJSON: ");
+//        Log.d(TAG, "BEGIN::getPopularOrTopJSON: ");
 
         JSONObject movieJSONObject = new JSONObject(tmdJSONStr);
         if (isThereDataError(context, movieJSONObject)) {  // If there is a error in data; abort processing.
@@ -115,7 +114,7 @@ public final class OpenTMDJsonUtils {
 
         }
 
-        Log.d(TAG, "END::getPopularOrTopJSON: ");
+//        Log.d(TAG, "END::getPopularOrTopJSON: ");
         return parsedContentValuesArray;
     }
 
@@ -183,12 +182,11 @@ public final class OpenTMDJsonUtils {
      * GETRUNTIMROFSINGLEMOVIE - Returns the runtime of a single movie whose info was obtained from the
      * movies endpoint.  Not the popular/ or toprated/ endpoints.  Those endpoints do not have runtime
      * in their schema.
-     * @param context - Needed to access some functions
      * @param singleMovieJSONStr - JSON from individual movie from movie endpoint
      * @return int - Runtime of movie
      * @throws JSONException
      */
-    static int getRuntimeOfSingleMovie(Context context, String singleMovieJSONStr) throws JSONException {
+    static int getRuntimeOfSingleMovie(String singleMovieJSONStr) throws JSONException {
         int runtimeOfMovie;
 
         JSONObject singleMovieJSON = new JSONObject(singleMovieJSONStr);

@@ -75,7 +75,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRuntimeTitleTextView;
 
 
-    private Target mTarget = new Target() {
+    private final Target mTarget = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             mOneSheetImageView.setImageBitmap(bitmap);

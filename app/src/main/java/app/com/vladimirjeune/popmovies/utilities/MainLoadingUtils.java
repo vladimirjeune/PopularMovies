@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
-import android.util.Log;
 
 import org.json.JSONException;
 
@@ -61,7 +60,7 @@ public final class MainLoadingUtils {
                 }
             } while (idAndTitleOldCursor.moveToNext());
         }
-        Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
+//        Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
         return "" + retIndex;
     }
 
@@ -153,24 +152,22 @@ public final class MainLoadingUtils {
      */
     private static int getSingleMovieRuntimeFromTMDB(String aMovieId, Context context) {
         int movieRuntime = 0;
-        Log.d(TAG, "BEGIN::getSingleMovieRuntimeFromTMDB: ");
+//        Log.d(TAG, "BEGIN::getSingleMovieRuntimeFromTMDB: ");
         try {
             String receivedSingleMovieJSON = NetworkUtils
                     .getResponseFromHttpUrl(NetworkUtils
                             .buildUrlForSingleMovie(context, aMovieId));
-            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: >>>" + receivedSingleMovieJSON + "<<<");
+//            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: >>>" + receivedSingleMovieJSON + "<<<");
 
             movieRuntime = OpenTMDJsonUtils
-                    .getRuntimeOfSingleMovie(context, receivedSingleMovieJSON);
+                    .getRuntimeOfSingleMovie(receivedSingleMovieJSON);
 
-            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: Runtime: " + movieRuntime + "\n");
+//            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: Runtime: " + movieRuntime + "\n");
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {  // There was a problem with the network
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-        Log.d(TAG, "END::getSingleMovieRuntimeFromTMDB: ");
+//        Log.d(TAG, "END::getSingleMovieRuntimeFromTMDB: ");
         return movieRuntime;
     }
 
@@ -182,7 +179,7 @@ public final class MainLoadingUtils {
      * @param cursor - Holds data we need to look through
      */
     public static void getRuntimesForMoviesInList(Cursor cursor, Context context) {
-        Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
+//        Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
         // Get runtime for found movies and place in correct Movies.
         if (cursor != null) {  // Cursor exists
             if (cursor.moveToFirst()) {  // Cursor is valid
@@ -205,7 +202,7 @@ public final class MainLoadingUtils {
                 }
             }
         }
-        Log.d(TAG, "END::getRuntimesForMoviesInList: ");
+//        Log.d(TAG, "END::getRuntimesForMoviesInList: ");
     }
 
 

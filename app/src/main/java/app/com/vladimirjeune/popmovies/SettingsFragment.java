@@ -11,7 +11,7 @@ import android.support.v7.preference.PreferenceScreen;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract;
 
-/**
+/** Actually the PreferenceFragmentCompat
  * Created by vladimirjeune on 11/23/17.
  */
 

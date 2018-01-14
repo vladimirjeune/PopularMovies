@@ -10,7 +10,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
@@ -146,7 +145,7 @@ public class MovieContentProvider extends ContentProvider {
 
                 if (newId != -1) {  // If no error, then return the amended Uri
                     retUri = uri.buildUpon().appendPath("" + newId).build();
-                    Log.d(TAG, "insert: Uri: " + retUri);
+//                    Log.d(TAG, "insert: Uri: " + retUri);
                 } else {
                     throw new SQLException("Insert failed for Uri: " + uri);
                 }

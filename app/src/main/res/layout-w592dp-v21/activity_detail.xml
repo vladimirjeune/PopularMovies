@@ -76,6 +76,8 @@
             android:paddingBottom="2dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
+            android:paddingEnd="2dp"
+            android:paddingRight="2dp"
             android:maxLines="1"
             android:ellipsize="end"
             android:text="@string/detail_rating"
@@ -122,6 +124,8 @@
             android:paddingBottom="2dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
+            android:paddingEnd="2dp"
+            android:paddingRight="2dp"
             android:maxLines="1"
             android:ellipsize="end"
             android:text="@string/detail_runtime"
@@ -132,7 +136,9 @@
             app:layout_constraintLeft_toRightOf="@+id/textViewOutOfTen"
             app:layout_constraintTop_toTopOf="@+id/textViewRatingTitle"
             app:layout_constraintRight_toRightOf="@+id/textViewRuntime"
-            android:layout_marginLeft="24dp" />
+            android:layout_marginLeft="24dp"
+            android:layout_marginStart="24dp"
+            />
 
         <TextView
             android:id="@+id/textViewRuntime"
@@ -153,6 +159,8 @@
             android:paddingBottom="2dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
+            android:paddingEnd="2dp"
+            android:paddingRight="2dp"
             android:maxLines="1"
             android:ellipsize="end"
             android:text="@string/detail_release"

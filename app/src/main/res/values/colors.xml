@@ -14,7 +14,7 @@
     <color name="divider_marquee_1">@color/orange_bright</color>
     <color name="divider_marquee_2">@color/orange_found</color>
     <color name="divider_marquee_3">@color/purple_found</color>
-    <color name="divider_marquee_4">@color/blue_bright</color>
+    <color name="divider_marquee_4">@color/blue_found</color>
 
 
 

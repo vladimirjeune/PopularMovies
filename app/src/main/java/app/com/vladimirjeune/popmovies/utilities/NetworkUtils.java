@@ -75,13 +75,13 @@ public final class NetworkUtils {
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
         try {
-            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
+//            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
             URL popularTopRatedURL = new URL(popularTopRatedUri.toString());
-            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
+//            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
             return popularTopRatedURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
+//            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
             return null;
         }
 
@@ -94,7 +94,7 @@ public final class NetworkUtils {
      * @return URL - Properly formatted URL for a single movie with the appropriate id from the parameter list
      */
     public static URL buildUrlForSingleMovie(Context context, String movieId) {
-        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
+//        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
         Uri singleMovieUri = Uri.parse(TMDB_BASE_URL)
                 .buildUpon()
                 .appendPath(movieId)
@@ -103,12 +103,12 @@ public final class NetworkUtils {
                 .build();
         try {
             URL singleMovieURL = new URL(singleMovieUri.toString());
-            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
-            Log.d(TAG, "END::buildUrlForSingleMovie: ");
+//            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
+//            Log.d(TAG, "END::buildUrlForSingleMovie: ");
             return singleMovieURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
+//            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
             return null;
         }
     }
@@ -126,7 +126,7 @@ public final class NetworkUtils {
                 .build();
         try {
             URL imageURL = new URL(imageUri.toString());
-            Log.i(TAG, "buildURLForImage: " + imageURL);
+//            Log.i(TAG, "buildURLForImage: " + imageURL);
             return imageURL;
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -153,7 +153,7 @@ public final class NetworkUtils {
                 .build();
         try {
             URL imageURL = new URL(imageUri.toString());
-            Log.i(TAG, "buildURLForImage: " + imageURL);
+//            Log.i(TAG, "buildURLForImage: " + imageURL);
             return imageURL;
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -169,7 +169,7 @@ public final class NetworkUtils {
      * @throws IOException Related to network and stream reading
      */
     public static String getResponseFromHttpUrl(URL url) throws IOException {
-        Log.d(TAG, "BEGIN::getResponseFromHttpUrl: ");
+//        Log.d(TAG, "BEGIN::getResponseFromHttpUrl: ");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
             InputStream in = urlConnection.getInputStream();
@@ -185,7 +185,7 @@ public final class NetworkUtils {
             scanner.close();
             return response;
         } finally {
-            Log.d(TAG, "END::getResponseFromHttpUrl: ");
+//            Log.d(TAG, "END::getResponseFromHttpUrl: ");
             urlConnection.disconnect();
         }
     }
