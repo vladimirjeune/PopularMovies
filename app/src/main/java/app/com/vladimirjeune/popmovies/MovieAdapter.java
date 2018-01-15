@@ -250,7 +250,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 Picasso.with(mContext)
                         .load(urlForPosterPath)
                         .placeholder(R.drawable.tmd_placeholder_poster)
-                        .placeholder(R.drawable.tmd_error_poster)
+                        .error(R.drawable.tmd_error_poster)
                         .into(mListItemPosterView);
 
 
