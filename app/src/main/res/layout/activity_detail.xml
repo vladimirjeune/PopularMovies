@@ -173,7 +173,8 @@
             android:textColor="@color/white_translucent"
             android:textAppearance="@style/TextAppearance.AppCompat.Display1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewReleaseTitle"
-            app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle"
+            />
 
         <TextView
             android:id="@+id/textViewSynopsisTitle"

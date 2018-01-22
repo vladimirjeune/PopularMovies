@@ -3,7 +3,8 @@ package app.com.vladimirjeune.popmovies.utilities;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
-import android.util.Log;
+
+import com.facebook.stetho.urlconnection.StethoURLConnectionManager;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,6 +53,12 @@ public final class NetworkUtils {
     // Temp
     public final static String TEST_MOVIE_LIST = "testJSON";
     public final static String TEST_SINGLE_MOVIE = "testSingleMovieJSON";
+
+
+    // TODO: Remove before submission
+    private final static StethoURLConnectionManager stethoURLConnectionManager = new StethoURLConnectionManager(null);
+    private static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";
+    private static final String GZIP_ENCODING = "gzip";
 
     /**
      * BUILDURLFORPOPULARORTOPRATED - The URLs for both endpoints is very similar.  Which one is picked
@@ -172,6 +179,7 @@ public final class NetworkUtils {
 //        Log.d(TAG, "BEGIN::getResponseFromHttpUrl: ");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
+
             InputStream in = urlConnection.getInputStream();
 
             Scanner scanner = new Scanner(in);
@@ -184,6 +192,7 @@ public final class NetworkUtils {
             }
             scanner.close();
             return response;
+
         } finally {
 //            Log.d(TAG, "END::getResponseFromHttpUrl: ");
             urlConnection.disconnect();
@@ -268,6 +277,9 @@ public final class NetworkUtils {
         return null;
     }
 
-
+    // TODO: Remove before submission.  For Stetho
+    private static void requestDecompression(HttpURLConnection conn) {
+        conn.setRequestProperty(HEADER_ACCEPT_ENCODING, GZIP_ENCODING);
+    }
 
 }
