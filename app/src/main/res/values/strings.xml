@@ -12,11 +12,14 @@
     <string name="pref_sort_default" translatable="false">popular</string>
     <string name="pref_sort_popular_label">Popular</string>
     <string name="pref_sort_popular" translatable="false">popular</string>
-    <string name="pref_sort_top_rated" translatable="false">top rated</string>
     <string name="pref_sort_top_rated_label">Top Rated</string>
+    <string name="pref_sort_top_rated" translatable="false">top rated</string>
+    <string name="pref_sort_favorite_label">Favorite</string>
+    <string name="pref_sort_favorite" translatable="false">favorite</string>
 
     <string name="pref_sort_popular_value" translatable="false">popular</string>
     <string name="pref_sort_top_rated_value" translatable="false">top rated</string>
+    <string name="pref_sort_favorite_value" translatable="false">favorite</string>
 
     <!-- Tools -->
     <string name="tools_poster_description">One Sheet</string>
