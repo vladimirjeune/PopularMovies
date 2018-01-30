@@ -58,7 +58,10 @@ public class MainActivity extends AppCompatActivity implements
     private final int mNumberOfFakeMovies = 20;
 
     private ContentValues[] movieContentValues;
-    private String mIsPopular ;
+    private String mCurrentViewType;
+//    public static final String VIEW_TYPE_POPULAR;
+//    public static String VIEW_TYPE_TOP_RATED;
+//    public static String VIEW_TYPE_FAVORITE;
 
     private ProgressBar mProgressBar;
 
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         Log.d(TAG, "BEGIN::onCreate: ");
 
-        mIsPopular = getString(R.string.pref_sort_popular);
+        mCurrentViewType = getString(R.string.pref_sort_popular);
 
         mProgressBar = findViewById(R.id.pb_grid_movies);
 
@@ -219,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Get current type from SharedPrefs
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
+        mCurrentViewType = sharedPreferences.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_sort_default));  // Get from SP or default
 
         Bundle urlBundle = getTMDQueryBundle();
@@ -248,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements
     private Bundle getTMDQueryBundle() {
         // Prepare to call loader
         Bundle urlBundle = new Bundle();
-        URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular);
+        URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mCurrentViewType);
         String stringOfUrl = ((null == urlForPopularOrTopRated) ? null : urlForPopularOrTopRated.toString());
         Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
 
@@ -269,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
         if (s.equals(getString(R.string.pref_sort_key))) {
-            mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
+            mCurrentViewType = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
 
             setRecyclerVIewToCorrectPosition();  // I think this works best here.
@@ -326,15 +329,20 @@ public class MainActivity extends AppCompatActivity implements
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
                     ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters = null;
 
-                    if (urlString != null) {
+                    if (urlString != null) {  // TODO: If == null, then either nothing or, 'Favorite'
                         String tmdbJsonString = "";
-                        titlesAndPosters = new ArrayList<>();
+                        titlesAndPosters = new ArrayList<>();   // TODO: Move above
 
                         try {
                             isPopular = isCurrentTypePopular();
 
                             // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
                             if (NetworkUtils.doWeHaveInternet()) {
+
+                                // TODO: Have an if/else so can bring up favorites just by going to db
+                                // TODO: If not favorites, show EMPTY PAGE, else regular populate by Adapter
+                                // TODO: Should be function so can have same thing if NO INTERNET.  'cause works either way
+
 
                                 tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
 
@@ -578,8 +586,13 @@ public class MainActivity extends AppCompatActivity implements
         return null;
     }
 
+    /**
+     * ISCURRENTTYPEPOPULAR - Whether the current View Type is Popular.  Does not differentiate between
+     * the other 2 types.
+     * @return - boolean - Whether Popular or not
+     */
     private boolean isCurrentTypePopular() {
-        return mIsPopular.equals(getString(R.string.pref_sort_popular));
+        return mCurrentViewType.equals(getString(R.string.pref_sort_popular));
     }
 
 

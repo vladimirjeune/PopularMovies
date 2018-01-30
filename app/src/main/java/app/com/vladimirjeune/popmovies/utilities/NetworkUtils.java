@@ -3,6 +3,7 @@ package app.com.vladimirjeune.popmovies.utilities;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.util.Log;
 
 import com.facebook.stetho.urlconnection.StethoURLConnectionManager;
 
@@ -68,7 +69,14 @@ public final class NetworkUtils {
      * @return URL - URL that can be used to access appropriate JSON from theMovieDB
      */
     public static URL buildUrlForPopularOrTopRated(Context context, String popularOrTop) {
-        // There will eventually be a SharedPref to get which one it is.  But not yet
+
+        // Favorites will not have URLs, and anything else is wrong
+        if (
+                ( ! popularOrTop.equals(context.getString(R.string.pref_sort_popular_value)))
+                        && ( ! popularOrTop.equals(context.getString(R.string.pref_sort_top_rated_value)))
+                ) {
+            return null;
+        }
 
         String whichEndpoint = TMDB_TOP_RATED;
         if (popularOrTop.equals(context.getString(R.string.pref_sort_default))) {
@@ -82,13 +90,13 @@ public final class NetworkUtils {
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
         try {
-//            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
+            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
             URL popularTopRatedURL = new URL(popularTopRatedUri.toString());
-//            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
+            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
             return popularTopRatedURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-//            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
+            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
             return null;
         }
 
