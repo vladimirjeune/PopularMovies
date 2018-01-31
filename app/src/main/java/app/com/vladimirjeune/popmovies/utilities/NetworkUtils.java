@@ -109,7 +109,7 @@ public final class NetworkUtils {
      * @return URL - Properly formatted URL for a single movie with the appropriate id from the parameter list
      */
     public static URL buildUrlForSingleMovie(Context context, String movieId) {
-//        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
+        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
         Uri singleMovieUri = Uri.parse(TMDB_BASE_URL)
                 .buildUpon()
                 .appendPath(movieId)
@@ -118,12 +118,12 @@ public final class NetworkUtils {
                 .build();
         try {
             URL singleMovieURL = new URL(singleMovieUri.toString());
-//            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
-//            Log.d(TAG, "END::buildUrlForSingleMovie: ");
+            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
+            Log.d(TAG, "END::buildUrlForSingleMovie: ");
             return singleMovieURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-//            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
+            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
             return null;
         }
     }
