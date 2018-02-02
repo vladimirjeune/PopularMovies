@@ -54,7 +54,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        // Try this when you actually need to upgrade in the
+        // TODO: Try this when you actually need to upgrade in the
         // wild: https://thebhwgroup.com/blog/how-android-sqlite-onupgrade
         final String SQL_DROP_TABLE = "DROP TABLE IF EXISTS" +
                 MovieEntry.TABLE_NAME;

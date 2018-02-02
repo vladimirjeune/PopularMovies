@@ -41,6 +41,8 @@ public final class NetworkUtils {
     public final static String TMDB_API_KEY = "api_key";  // Must get key from assets
     public final static String TMDB_LANGUAGE = "language";
     public final static String TMDB_PAGE = "page";
+    private final static String TMDB_VIDEOS = "videos";
+    private final static String TMDB_REVIEWS = "reviews";
 
     // Sizes for Posters and Backdrops, not all sizes are used
     public final static String TMDB_IMAGE_W92 = "w92";
@@ -128,6 +130,61 @@ public final class NetworkUtils {
         }
     }
 
+
+    /**
+     * BUILDURLFORVIDEOS - Builds URL to get JSON for list of videos associated with inputted ID
+     * @param context - Needed for some function calls
+     * @param anId - ID of the movie to get information about
+     * @return - URL - URL to access JSON for videos
+     */
+    public static URL buildURLforVideos(Context context, String anId) {
+        Uri videosUri = Uri.parse(TMDB_BASE_URL)
+                .buildUpon()
+                .appendPath(anId)
+                .appendPath(TMDB_VIDEOS)
+                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .appendQueryParameter(TMDB_PAGE, page)
+                .build();
+
+        try {
+            URL videosURL = new URL(videosUri.toString());
+            Log.d(TAG, "buildURLforVideos() called with: context = [" + context + "], anId = [" + anId + "]"
+            + "  returned: [" + videosURL + "]");
+            return videosURL;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * BUILDURLFORREVIEWS - Builds the URL for the JSON of the Reviews for the given ID
+     * @param context - Needed for some function calls
+     * @param anId - ID of the movie for which we want the Reviews, if any are available
+     * @return - URL - URL for the Reviews for the given ID
+     */
+    public static URL buildURLForReviews(Context context, String anId) {
+        Uri reviewsURI = Uri.parse(TMDB_BASE_URL)
+                .buildUpon()
+                .appendPath(anId)
+                .appendPath(TMDB_REVIEWS)
+                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .appendQueryParameter(TMDB_PAGE, page)
+                .build();
+
+        try {
+            URL reviewsURL = new URL(reviewsURI.toString());
+            Log.d(TAG, "buildURLForReviews() called with: context = [" + context + "], anId = [" + anId + "]"
+            + " returned [" + reviewsURL + "]");
+            return reviewsURL;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * BUILDURLFORIMAGE - Builds URL for an image from the inputted path.
      * @param aPath - Path that came from theMovieDb of the form "/{letter|number}+"
@@ -175,6 +232,8 @@ public final class NetworkUtils {
             return null;
         }
     }
+
+
 
     /**
      * GETRESPONSEFROMHTTPURL - This method returns the entire result from the HTTP response.

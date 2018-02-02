@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
 
+import app.com.vladimirjeune.popmovies.R;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 
 /**
@@ -95,21 +96,25 @@ public final class MainLoadingUtils {
     /**
      * GETCURSORPOSTERPATHSMOVIEIDS - Will obtain cursor containing the movieId, and the posterPath for each movie
      * of the specified type.
-     * @param isPopular - boolean - Whether this is for Popular or Top-Rated
+     * @param viewType - String - Whether this is for Popular or Top-Rated or Favorite
      * @param context - Needed for function call
      * @return Cursor - Result of query.  Can return NULL if database not yet set.
      */
-    public static Cursor getCursorPosterPathsMovieIds(boolean isPopular, Context context) {
+    public static Cursor getCursorPosterPathsMovieIds(String viewType, Context context) {
         // Do SQL query to get Cursor.  SELECT movieId from TABLE where Type==Pop|Top depending on isPopular
         // AND runtime IS NULL.  Pass in Cursor of runtime that need filling to getRuntimesForMoviesWithIds
         String orderByTypeIndex;
         String selection ;
-        if (isPopular) {
+
+        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
             orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
             selection = MovieEntry.POPULAR_ORDER_IN;
-        } else {
+        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
             orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
             selection = MovieEntry.TOP_RATED_ORDER_IN;
+        } else {
+            orderByTypeIndex = MovieEntry.FAVORITE_ORDER_IN;
+            selection = MovieEntry.FAVORITE_ORDER_IN;
         }
 
         String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.ORIGINAL_TITLE, MovieEntry.POSTER_PATH};

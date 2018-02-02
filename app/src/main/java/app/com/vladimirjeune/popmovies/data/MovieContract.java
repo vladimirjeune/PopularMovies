@@ -66,6 +66,10 @@ public final class MovieContract {
         // instead of insert because otherwise would duplicate data.
         public static final String TOP_RATED_ORDER_IN = "top_rated_order_in";
 
+        // Order of this movie in favorites movies.  Was put in #th.  Null value means
+        // movie is not in Favorite movies
+        public static final String FAVORITE_ORDER_IN = "favorite_in";
+
         /**
          * BUILDURIWITHMOVIEID - Will be used to query details about a single movie.
          * adds the id to the end of the movie content Uri path.

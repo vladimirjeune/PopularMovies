@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int INDEX_TOP_RATED_ORDER_IN = 13;
 
     private boolean snackBarTriggered = false;
+    private View mNoFavoritesLayout;
 
 
     @Override
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements
         mCurrentViewType = getString(R.string.pref_sort_popular);
 
         mProgressBar = findViewById(R.id.pb_grid_movies);
+        mNoFavoritesLayout = findViewById(R.id.c_lyo_no_favorites);
 
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
@@ -418,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements
                                 }
 
                                 Cursor cursorPosterPathsMovieIds = MainLoadingUtils
-                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
+                                        .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
 
                                 if (cursorPosterPathsMovieIds != null) {
 
@@ -445,13 +447,7 @@ public class MainActivity extends AppCompatActivity implements
                                 });
 
                                 // If no internet but we have some data, deal with that
-                                Cursor cursorForIdsAndPosters = MainLoadingUtils
-                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
-                                if (cursorForIdsAndPosters != null) {
-                                    MainLoadingUtils.createArrayListOfPairsForPosters(
-                                            titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
-                                    cursorForIdsAndPosters.close();
-                                }
+                                useStoredDataToPopulateArraylist(titlesAndPosters);
                             }
                         } catch (JSONException je) {
                             je.printStackTrace();
@@ -462,6 +458,26 @@ public class MainActivity extends AppCompatActivity implements
                         }
 
                         Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
+                    }
+
+                    // If we are Favorites type, use stored Favorites to display
+                    if (mCurrentViewType.equals(getString(R.string.pref_sort_favorite))) {
+                        titlesAndPosters = new ArrayList<>();
+//                        useStoredDataToPopulateArraylist(isPopular, titlesAndPosters);
+
+                        if (titlesAndPosters.size() == 0) {
+
+                            // Cannot call showNoFavorites off of UIThread
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    showNoFavorites();  // Transition from current progressBar
+
+                                }
+                            });
+
+                        }
                     }
 
                     return titlesAndPosters;
@@ -586,6 +602,25 @@ public class MainActivity extends AppCompatActivity implements
         return null;
     }
 
+
+    /**
+     *  USESTOREDDATATOPOPULATEARRAYLIST - Data we already have will be used to populate list for adapter.
+     * @param titlesAndPosters - The list to populate with data
+     */
+    private void useStoredDataToPopulateArraylist(ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters) {
+
+        Cursor cursorForIdsAndPosters = MainLoadingUtils
+                .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
+
+        if (cursorForIdsAndPosters != null) {
+            MainLoadingUtils.createArrayListOfPairsForPosters(
+                    titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+
+            cursorForIdsAndPosters.close();  // Close your cursors
+        }
+
+    }
+
     /**
      * ISCURRENTTYPEPOPULAR - Whether the current View Type is Popular.  Does not differentiate between
      * the other 2 types.
@@ -651,6 +686,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void showLoading() {
         mRecyclerView.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
@@ -662,7 +698,19 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void showPosters() {
         mProgressBar.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * SHOWNOFAVORITES - Shows the empty Favorites page.  This should be triggered when Favorites
+     * is the type currently selected and there are no Favorites to show.  This page will be shown
+     * instead.
+     */
+    private void showNoFavorites() {
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.VISIBLE);
     }
 
 
