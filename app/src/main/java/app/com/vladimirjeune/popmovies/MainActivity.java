@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements
                     // If we are Favorites type, use stored Favorites to display
                     if (mCurrentViewType.equals(getString(R.string.pref_sort_favorite))) {
                         titlesAndPosters = new ArrayList<>();
-//                        useStoredDataToPopulateArraylist(isPopular, titlesAndPosters);
+                        useStoredDataToPopulateArraylist(titlesAndPosters);
 
                         if (titlesAndPosters.size() == 0) {
 
