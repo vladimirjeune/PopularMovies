@@ -58,7 +58,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     private static final String TAG = DetailActivity.class.getSimpleName();
 
-    private boolean mIsPopular;
+    private String mViewType;
 
     private Uri mUri;
     private TextView mTitle;
@@ -174,9 +174,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             throw new NullPointerException("Uri passed to DetailActivity cannot be null");
         }
 
-        boolean isPopularDefault = true;
-        mIsPopular = movieIntent.getBooleanExtra(MainActivity.EXTRA_TYPE, isPopularDefault);
-
+        mViewType =  movieIntent.getStringExtra(MainActivity.EXTRA_TYPE);
 
         mTitle = findViewById(R.id.textViewTitle);
         mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
@@ -301,13 +299,20 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      */
     private Pair<Integer, Integer> getTextAndBackgroundColorsBasedOnType() {
 
-        int titleColor = mIsPopular ?
-                ContextCompat.getColor(this, R.color.logo_orange) :
-                ContextCompat.getColor(this, R.color.logo_blue);
+        int titleColor = ContextCompat.getColor(this, R.color.logo_orange);
 
-        int backgroundColor = mIsPopular ?
-                ContextCompat.getColor(this, R.color.header_popular_background) :
-                ContextCompat.getColor(this, R.color.header_top_rated_background);
+        int backgroundColor = ContextCompat.getColor(this, R.color.header_popular_background) ;
+
+        if (mViewType.equals(getString(R.string.pref_sort_popular))) {
+            titleColor = ContextCompat.getColor(this, R.color.logo_orange);
+            backgroundColor = ContextCompat.getColor(this, R.color.header_popular_background);
+        } else if (mViewType.equals(getString(R.string.pref_sort_top_rated))) {
+            titleColor = ContextCompat.getColor(this, R.color.logo_blue);
+            backgroundColor = ContextCompat.getColor(this, R.color.header_top_rated_background);
+        } else if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
+            titleColor = ContextCompat.getColor(this, R.color.logo_purple);
+            backgroundColor = ContextCompat.getColor(this, R.color.header_favorite_background);
+        }
 
         return new Pair<>(titleColor, backgroundColor);
 

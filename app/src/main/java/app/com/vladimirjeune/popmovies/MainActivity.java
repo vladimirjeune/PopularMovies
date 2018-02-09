@@ -39,6 +39,9 @@ import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
+import static app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry.TOP_RATED_ORDER_IN;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getTypeOrderIn;
+
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
         LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, Pair<String, String>>>>,
@@ -47,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
-    public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a boolean
+    public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a String
 
     private static final boolean DEVELOPER_MODE = false; /** EN/DIS-ABLE String Mode**/
 
@@ -80,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.BACKDROP,
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
-            MovieEntry.TOP_RATED_ORDER_IN
+            TOP_RATED_ORDER_IN
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -326,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements
                 public ArrayList<Pair<Long, Pair<String, String>>> loadInBackground() {
 
                     Log.d(TAG, "loadInBackground: ");
-                    boolean isPopular = true;
+//                    boolean isPopular = true;
 
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
                     ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters = null;
@@ -336,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements
                         titlesAndPosters = new ArrayList<>();   // TODO: Move above
 
                         try {
-                            isPopular = isCurrentTypePopular();
+//                            isPopular = isCurrentTypePopular();
 
                             // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
                             if (NetworkUtils.doWeHaveInternet()) {
@@ -350,8 +353,9 @@ public class MainActivity extends AppCompatActivity implements
 
                                 Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
 
+                                // Favorites will not have JSON
                                 movieContentValues = OpenTMDJsonUtils
-                                        .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
+                                        .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isCurrentTypePopular());
 
                                 try {
                                     // Projection and following final ints need to always be in sync
@@ -359,7 +363,8 @@ public class MainActivity extends AppCompatActivity implements
                                             MovieEntry._ID,
                                             MovieEntry.ORIGINAL_TITLE,
                                             MovieEntry.POPULAR_ORDER_IN,
-                                            MovieEntry.TOP_RATED_ORDER_IN
+                                            MovieEntry.TOP_RATED_ORDER_IN,
+                                            MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES
                                     };
 
                                     // Preceding Projection and these final ints always MUST be in sync
@@ -367,8 +372,9 @@ public class MainActivity extends AppCompatActivity implements
                                     final int titlePos = 1;
                                     final int popOrderInPos = 2;
                                     final int topRatedOrderInPos = 3;
+                                    final int favoriteInPos = 4;
 
-                                    String where = MainLoadingUtils.getTypeOrderIn(isPopular) + " IS NOT NULL ";
+                                    String where = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType) + " IS NOT NULL ";
 
                                     // Query of what already in DB
                                     Cursor idAndTitleOldCursor = getContentResolver().query(
@@ -379,8 +385,9 @@ public class MainActivity extends AppCompatActivity implements
                                             null
                                     );  // Do not need order for Set
 
-                                    final String oppositeWhere = MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL "
-                                            + " AND " + MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ";
+                                    final String oppositeWhere = MainLoadingUtils
+                                            .findOppositeTypeOrderIns(getContext(), mCurrentViewType);
+
                                     Cursor idandTitleOppositeCursor = getContentResolver().query(
                                             MovieEntry.CONTENT_URI,
                                             projection,
@@ -388,8 +395,6 @@ public class MainActivity extends AppCompatActivity implements
                                             null,
                                             null
                                     );  // If not NULL, then this is the opposite type of idAndTtitleOldCursor
-
-
 
 
                                     // If already stuff in db, will need to update, as well as, insert and remove
@@ -401,11 +406,11 @@ public class MainActivity extends AppCompatActivity implements
 
                                         // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
                                         Set<Long> idNewSet = new HashSet<>();
-                                        insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idandTitleOppositeCursor, idOldSet, idNewSet);
+                                        insertUpdateAndMakeNewIdSet(idAndTitleOldCursor, idandTitleOppositeCursor, idOldSet, idNewSet);
 
                                         // Delete movies that moved off list
                                         idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-                                        deleteChartDroppedMovies(isPopular, idOldSet, idandTitleOppositeCursor);
+                                        deleteChartDroppedMovies(idOldSet, idandTitleOppositeCursor);
 
                                         idAndTitleOldCursor.close();  // Closing the Cursor
                                         if (idandTitleOppositeCursor != null) {
@@ -486,28 +491,27 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
-                 * @param isPopular - What type we are currently dealing with
                  * @param idDeleteSet - Modified set of old Movie IDs consists of Old IDs - New Ids
                  *                 and the Intersection of Old & New
                  * @param oppositeTitlesCursor - In case we have to delete something that is both types.  Just update
                  */
-                private void deleteChartDroppedMovies(boolean isPopular, Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
+                private void deleteChartDroppedMovies(Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
 
                     Set<Long> idOppositeSet = new HashSet<>();
                     MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
 
-                    for (Long deleteOldId : idDeleteSet) {  // TODO: Test this out
+                    for (Long deleteOldId : idDeleteSet) {  // TODO: Make work with multiple types
 
-                        // Situation: ID is in bot types.  Want this one updated to exists only in the other
+                        // Situation: ID is in many types.  Want this one updated to exists only in the others
                         if (idOppositeSet.contains(deleteOldId)) {
                             ContentValues nullOutTypeCV = new ContentValues();
                             // Nulling out this usage, since ID is currently used for other type.
-                            nullOutTypeCV.put(MainLoadingUtils.getTypeOrderIn(isPopular), (String) null);
+                            nullOutTypeCV.put(MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType), (String) null);
 
                             String where = MovieEntry._ID + " = ? ";
                             String[] whereArgs = {"" + deleteOldId};
 
-                            // Updating the ID that is in both types to no longer be in this one.
+                            // Updating the ID that is in many, types to no longer be in this one.
                             getContentResolver().update(
                                     MovieEntry.CONTENT_URI,
                                     nullOutTypeCV,
@@ -526,15 +530,16 @@ public class MainActivity extends AppCompatActivity implements
                 /**
                  * INSERTUPDATEANDMAKENEWIDSET - Inserts new movies into DB, Updates chart movers in DB, and makes a
                  * new ID set of incoming movies to compare against what is already in the database
-                 * @param isPopular - Type the user is looking for
                  * @param idAndTitleOldCursor - Cursor of titles that are previously in DB
-                 * @param oppositeTitlesCursor - Cursor of the opposite type to this one, in case this ID is in both types.
+                 * @param oppositeTitlesCursor - Cursor of the opposite type to this one, in case this ID multiple types.
                  * @param idOldSet - Set of IDs of movies previously in our DB
                  * @param idNewSet - Set of IDs that are coming in from TMDb.
                  */
-                private void insertUpdateAndMakeNewIdSet(boolean isPopular, Cursor idAndTitleOldCursor,
-                                                         Cursor oppositeTitlesCursor,Set<Long> idOldSet, Set<Long> idNewSet) {
-                    // Makes Set from the movies of the opposite type, in case same movie is both types,
+                private void insertUpdateAndMakeNewIdSet(Cursor idAndTitleOldCursor,
+                                                         Cursor oppositeTitlesCursor,
+                                                         Set<Long> idOldSet,
+                                                         Set<Long> idNewSet) {
+                    // Makes Set from the movies of the opposite type, in case same movie is many types,
                     // but can only take 1 id.
                     Set<Long> idOppositeSet = new HashSet<>();
                     MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
@@ -547,28 +552,101 @@ public class MainActivity extends AppCompatActivity implements
                         // TODO: If NewId is in OppositeSet, Update
                         // If this ID exists in the opposite type, need special processing so always
                         // 1 entry.  Update instead so is Pop&Top.
+                        // So finding in db the movie with the specific ID and a known position in
+                        // another type than current.  Once found, do an update to it so there is a
+                        // OrderIn for this type as well.  Make sure only THIS OrderIn is updated; not
+                        // the one that you found.  You only need to find one other Orderin, even if
+                        // there exists more than one.  We are just trying to find movies that are in
+                        // multiple locations so they are only updated instead of getting duplicates.
+                        // TODO: Look for ID with other types using query (get 1st match) and do this
+                        // TODO: Make sure that by this point one should match.  There is a function that
+                        // TODO: returns the other types.  Use that.
                         if (idOppositeSet.contains(newId)) {
+
+
+                            /////////////
+                            Pair<String, String> otherTypes = MainLoadingUtils.findOtherTypes(getContext(), mCurrentViewType);
+                            String otherType1 = otherTypes.first;
+                            String otherType2 = otherTypes.second;
+
+                            // Now query one, and if nothing, then the other.  There should be one at this point.
+                            // Use that other in the function calls below
+
+                            String[] projection = new String[] {
+                                    MovieEntry._ID,
+                                    MovieEntry.ORIGINAL_TITLE,
+                                    MovieEntry.POPULAR_ORDER_IN,
+                                    MovieEntry.TOP_RATED_ORDER_IN,
+                                    MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES
+                            };
+
+                            String whereIDTypeAndOtherType_1 =
+                                    MovieEntry._ID + " = ? AND "
+                                            + getTypeOrderIn(getContext(), mCurrentViewType)
+                                            + " IS NOT NULL AND "
+                                            + getTypeOrderIn(getContext(), otherType1) + " IS NOT NULL ";
+
+                            String[] whereArgs = new String[] {"" + newId};
+
+                            Cursor typeAndFirstCursor = getContentResolver().query(
+                                    MovieEntry.CONTENT_URI,
+                                    projection,
+                                    whereIDTypeAndOtherType_1,
+                                    whereArgs,
+                                    null
+                            );
+
+                            // If we already have a movie with the current viewType and another
+                            if (typeAndFirstCursor.moveToFirst()) {
+
+                                getContentResolver().update(
+                                        MovieEntry.CONTENT_URI,
+                                        movieContentValues[i],
+                                        whereIDTypeAndOtherType_1,
+                                        whereArgs
+                                );
+
+                            } else {  // So must have been the other type
+
+                                String whereIDTypeAndOtherType_2 =
+                                        MovieEntry._ID + " = ? AND "
+                                                + getTypeOrderIn(getContext(), mCurrentViewType)
+                                                + " IS NOT NULL AND "
+                                                + getTypeOrderIn(getContext(), otherType2) + " IS NOT NULL ";
+
+                                getContentResolver().update(
+                                        MovieEntry.CONTENT_URI,
+                                        movieContentValues[i],
+                                        whereIDTypeAndOtherType_2,
+                                        whereArgs
+                                );
+                            }
+
+                            /////////////
+
+
+
                             // Update Item position of other thing for this type.
                             // Update
-                            String orderType = MainLoadingUtils.getTypeOrderIn(!isPopular);
-                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
-                            String[] whereArgs
-                                    = new String[] {"" + newId
-                                    , MainLoadingUtils.getOldPositionOfNewId(
-                                            !isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
-
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i],
-                                    where,
-                                    whereArgs);
+//                            String orderType = MainLoadingUtils.getTypeOrderIn(getContext(), !isPopular);
+//                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
+//                            String[] whereArgs
+//                                    = new String[] {"" + newId
+//                                    , MainLoadingUtils.getOldPositionOfNewId(getContext(),
+//                                            !isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
+//
+//                            getContentResolver().update(
+//                                    MovieEntry.CONTENT_URI,
+//                                    movieContentValues[i],
+//                                    where,
+//                                    whereArgs);
                         } else if (idOldSet.contains(newId)) {
                             // Update
-                            String orderType = MainLoadingUtils.getTypeOrderIn(isPopular);
+                            String orderType = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType);
                             String[] whereArgs
                                     = new String[] {"" + newId
-                                    , MainLoadingUtils.getOldPositionOfNewId(
-                                            isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
+                                    , MainLoadingUtils.getOldPositionOfNewId(getContext(),
+                                            mCurrentViewType, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
 
                             String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
                             getContentResolver().update(
@@ -638,7 +716,7 @@ public class MainActivity extends AppCompatActivity implements
         if ((data != null) && (data.size() != 0)) {
 
             showPosters();  // The data is here, we should show it.
-            mMovieAdapter.setData(data, isCurrentTypePopular());
+            mMovieAdapter.setData(data, mCurrentViewType);
         }
 
         Log.d(TAG, "onLoadFinished: ");
@@ -675,7 +753,7 @@ public class MainActivity extends AppCompatActivity implements
         Intent movieDetailIntent = new Intent(this, DetailActivity.class);
         Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
         movieDetailIntent.setData(movieDataUri);
-        movieDetailIntent.putExtra(EXTRA_TYPE, isCurrentTypePopular());
+        movieDetailIntent.putExtra(EXTRA_TYPE, mCurrentViewType);
         startActivity(movieDetailIntent);
     }
 

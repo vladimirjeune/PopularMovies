@@ -27,27 +27,41 @@ public final class MainLoadingUtils {
 
     /**
      * GETTYPEORDERIN - Used to get the proper [TYPE]OrderIn depending on the boolean
-     * @param isPopular - boolean - Does the User want Popular order, or Top-Rated order
+     * @param viewType - String - Does the User want Popular order, Top-Rated order, or Favorite order
      * @return - String - Proper key based on the boolean passed in
      */
     @Nullable
-    public static String getTypeOrderIn(boolean isPopular) {
-        return (isPopular) ? MovieEntry.POPULAR_ORDER_IN : MovieEntry.TOP_RATED_ORDER_IN;
+    public static String getTypeOrderIn(Context context, String viewType) {
+        String typeOrder = null;
+
+        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
+            typeOrder = MovieEntry.POPULAR_ORDER_IN;
+        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
+            typeOrder = MovieEntry.TOP_RATED_ORDER_IN;
+        } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
+            typeOrder = MovieEntry.FAVORITE_ORDER_IN;
+        }
+
+        return typeOrder;
+
+        // TODO: REMOVE
+//        return (isPopular) ? MovieEntry.POPULAR_ORDER_IN : MovieEntry.TOP_RATED_ORDER_IN;
     }
 
 
     /**
      * GETOLDPOSITIONOFNEWID - Returns the old Position of the movie with this ID
-     * @param isPopular - Popular, or Top-Rated
+     * @param context - Needed for function calls
+     * @param viewType - Popular, Top-Rated, or Favorite
      * @param idAndTitleOldCursor - Cursor - Place to find old ID
      * @param oldId - Long - Old Id we are looking for
      * @return - String - Order Index of the Type that the user is asking for.  Or "-1", if no match
      */
     @Nullable
-    public static String getOldPositionOfNewId(boolean isPopular, final Cursor idAndTitleOldCursor, final Long oldId) {
+    public static String getOldPositionOfNewId(Context context, String viewType, final Cursor idAndTitleOldCursor, final Long oldId) {
 
         int retIndex = -1;
-        String orderType = getTypeOrderIn(isPopular);
+        String orderType = getTypeOrderIn(context, viewType);
 
         if ((idAndTitleOldCursor != null)
                 && (idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
@@ -146,6 +160,44 @@ public final class MainLoadingUtils {
                 idOldSet.add(idAndTitleCursor.getLong(idPos));
             } while (idAndTitleCursor.moveToNext());
         }
+    }
+
+
+    /**
+     * FINDOTHERTYPES - Finds the other 2 types of OrderIn that are not the one that belongs to what was inputted.
+     * EX: Inputted == POPULAR => TOP_RATED_ORDER_IN, FAVORITE_ORDER_IN
+     * @param context - Needed for function calls
+     * @param viewType - The current ViewType we are dealing with from calling function
+     * @return Pair<String, String> - Holding the OrderIns of the other 2 types
+     */
+    public static Pair<String,String> findOtherTypes(Context context, String viewType) {
+        Pair<String, String> retVal = null;
+
+        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
+            retVal =  new Pair<>(MovieEntry.TOP_RATED_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);
+        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
+            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);
+        } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
+            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.TOP_RATED_ORDER_IN);
+        }
+
+        return retVal;
+    }
+
+    /**
+     * FINDOPPOSITETYPEORDERINS - Creates String for a WHERE statement that consists of a OR for
+     * OrderIns of types that are not the one that is passed in.
+     * @param context - Needed for function calls
+     * @param viewType - The current ViewType we are dealing with from calling function
+     * @return String - For WHERE clause ORing the 2 OrderIns from the opposing types
+     */
+    public static String findOppositeTypeOrderIns(Context context, String viewType) {
+        Pair<String, String> otherTypes = findOtherTypes(context,  viewType);
+
+        // If Movie is in either of the other types
+        return getTypeOrderIn(context, viewType) + " IS NOT NULL "
+                + " AND (" + otherTypes.first + " IS NOT NULL "
+                + " OR " + otherTypes.second + " IS NOT NULL) ";  // TODO: Check SQL book for validity
     }
 
 

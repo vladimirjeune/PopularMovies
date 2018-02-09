@@ -6,11 +6,16 @@
 
     <color name="logo_orange">@color/orange_bright</color>
     <color name="logo_blue">@color/blue_bright</color>
+    <color name="logo_purple">@color/purple_bright</color>
     <color name="poster_scrim_background">@color/black_translucent</color>
     <color name="header_popular_background">@color/orange_dark_translucent</color>
     <color name="header_top_rated_background">@color/blue_dark_translucent</color>
+    <color name="header_favorite_background">@color/purple_dark_translucent</color>
     <color name="text_header_blue">@color/blue_bright</color>
     <color name="text_header_orange">@color/orange_bright</color>
+    <color name="text_header_purple">@color/purple_bright</color>
+
+    <!-- About Marquee -->
     <color name="divider_marquee_1">@color/orange_bright</color>
     <color name="divider_marquee_2">@color/orange_found</color>
     <color name="divider_marquee_3">@color/purple_found</color>
@@ -41,7 +46,8 @@
 
     <!-- purple -->
     <color name="purple_found">#FF8828FD</color>
-
+    <color name="purple_bright">#FF9A28FD</color>
+    <color name="purple_dark_translucent">#aa110127</color>
 
 
 </resources>

@@ -40,7 +40,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final View mHeader;
 
-    private boolean mIsPopular;
+    private String mViewType;
 
     private ArrayList<Pair<Long, Pair<String, String>>> mPosterAndIds;
 
@@ -68,7 +68,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         mHeader = aHeader;
         mClickHandler = aMovieOnClickHandler;
         mNumberOfItems = numberOfItems;
-        mIsPopular = true;  // Defaulting to true, will change when data is set
+        mViewType = context.getString(R.string.pref_sort_popular);  // Changes when data is set
 
         mPosterAndIds = new ArrayList<>(mNumberOfItems);
         populateMovieArrayWithDummyData();
@@ -122,14 +122,18 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
 
         if (isHeader(position)) {
-            if (mIsPopular) {
+            if (mViewType.equals(mContext.getString(R.string.pref_sort_popular))) {
                 ((HeaderViewHolder)holder).textViewHeader.setText(R.string.pref_sort_popular_label);
                 ((HeaderViewHolder)holder).textViewHeader.setTextColor(ContextCompat.getColor(mContext, R.color.text_header_orange));
                 ((HeaderViewHolder)holder).textViewHeader.setBackgroundColor(ContextCompat.getColor(mContext, R.color.header_popular_background));
-            } else {
+            } else if (mViewType.equals(mContext.getString(R.string.pref_sort_top_rated))) {
                 ((HeaderViewHolder)holder).textViewHeader.setText(R.string.pref_sort_top_rated_label);
                 ((HeaderViewHolder)holder).textViewHeader.setTextColor(ContextCompat.getColor(mContext, R.color.text_header_blue));
                 ((HeaderViewHolder)holder).textViewHeader.setBackgroundColor(ContextCompat.getColor(mContext, R.color.header_top_rated_background));
+            } else if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
+                ((HeaderViewHolder)holder).textViewHeader.setText(R.string.pref_sort_favorite_label);
+                ((HeaderViewHolder)holder).textViewHeader.setTextColor(ContextCompat.getColor(mContext, R.color.text_header_purple));
+                ((HeaderViewHolder)holder).textViewHeader.setBackgroundColor(ContextCompat.getColor(mContext, R.color.header_favorite_background));
             }
             return;
         }
@@ -163,13 +167,13 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     /**
      * SETDATA - Takes list of posters in order and whether this batch is popular
      * @param dataList - List of Movie data.  Posters and Titles
-     * @param isPopular - Whether want Popular or Top-rated movies
+     * @param viewType - Whether want Popular or Top-rated movies or Favorite
      */
-    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, boolean isPopular) {
+    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, String viewType) {
 
         if (dataList != null) {
             mPosterAndIds = dataList;
-            mIsPopular = isPopular;
+            mViewType = viewType;
             mNumberOfItems = mPosterAndIds.size();  // Should always be 20
             notifyDataSetChanged();  // This function was called because there was a change, so update things.
         }
