@@ -39,7 +39,6 @@ import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
-import static app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry.TOP_RATED_ORDER_IN;
 import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getTypeOrderIn;
 
 public class MainActivity extends AppCompatActivity implements
@@ -83,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.BACKDROP,
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
-            TOP_RATED_ORDER_IN
+            MovieEntry.TOP_RATED_ORDER_IN,
+            MovieEntry.FAVORITE_ORDER_IN
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int INDEX_COLUMN_TIMESTAMP = 11;
     private static final int INDEX_POPULAR_ORDER_IN = 12;
     private static final int INDEX_TOP_RATED_ORDER_IN = 13;
+    private static final int INDEX_FAVORITE_ORDER_IN = 14;
 
     private boolean snackBarTriggered = false;
     private View mNoFavoritesLayout;
