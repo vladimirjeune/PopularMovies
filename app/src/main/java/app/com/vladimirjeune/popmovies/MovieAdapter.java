@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -199,6 +200,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // Will hold the poster for this item.
         ImageView mListItemPosterView;
         TextView mListItemTextView;
+        CheckBox mListItemButtonView;
 
         /**
          * POSTERVIEWHOLDER - Constructor gets a reference to our textViews holding children.
@@ -208,6 +210,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
             mListItemPosterView = itemView.findViewById(R.id.iv_movie_poster_item);
             mListItemTextView = itemView.findViewById(R.id.tv_movie_title_item);
+            mListItemButtonView = itemView.findViewById(R.id.checkbox_favorite);
             itemView.setOnClickListener(this);
         }
 
@@ -261,6 +264,11 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 String a11yPoster = mContext.getString(R.string.a11y_poster, title);
                 mListItemPosterView.setContentDescription(a11yPoster);
                 mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
+
+
+                // TODO: Set tag for button, and set listener
+                // TODO: Set value in Pair so reflected on rotation?  Do update Tranctn in Main
+                // TODO: When Pause.  Go thru data Boolean, ID. data[id] = false/true
             }
         }
 
