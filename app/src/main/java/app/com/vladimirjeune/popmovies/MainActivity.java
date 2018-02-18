@@ -43,7 +43,7 @@ import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getType
 
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
-        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, Pair<String, String>>>>,
+        LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>,
         MovieAdapter.MovieOnClickHandler {
 
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -219,6 +219,44 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    /**
+     * ONPAUSE - Lifecycle callback triggered when activity becomes partially visible.
+     * Changes to underlying data made during display are sent to the database now.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.d(TAG, "onPause() called");
+
+        ArrayList<ContentValues> adaptersData = mMovieAdapter.getData();
+
+        // Only do anything if data is populated and is not null
+        if (!postersAreShowing() || (adaptersData == null)) {
+            return;
+        }
+
+        ContentValues heartsValues = new ContentValues();
+
+        // Loop to update DB for heart state
+        for (ContentValues currentContentValues : adaptersData) {
+
+            Integer currentHeartState = currentContentValues.
+                    getAsInteger(MovieEntry.FAVORITE_ORDER_IN);  // MAX or min. T or F
+
+            String where = MovieEntry._ID + " = ? ";
+            Long currentId = currentContentValues.getAsLong(MovieEntry._ID);
+            String[] whereArgs = {"" + currentId};
+            heartsValues.put(MovieEntry.FAVORITE_ORDER_IN, currentHeartState);
+
+            getContentResolver().update(
+                    MovieEntry.CONTENT_URI,
+                    heartsValues,
+                    where,
+                    whereArgs
+            );
+        }
+    }
 
     /**
      * LOADPREFERREDMOVIELIST - Loads the movie list that the user has set in SharedPreferences
@@ -233,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements
 
         Bundle urlBundle = getTMDQueryBundle();
 
-        Loader<ArrayList<Pair<Long, Pair<String, String>>>> tmdbQueryLoader = getSupportLoaderManager()
+        Loader<ArrayList<ContentValues>> tmdbQueryLoader = getSupportLoaderManager()
                 .getLoader(TMDBQUERY_LOADER);
 
         if (null == tmdbQueryLoader) {
@@ -298,13 +336,13 @@ public class MainActivity extends AppCompatActivity implements
      * @return - New Loader instance that is ready to start loading
      */
     @Override
-    public Loader<ArrayList<Pair<Long, Pair<String, String>>>> onCreateLoader(int id, final Bundle args) {
+    public Loader<ArrayList<ContentValues>> onCreateLoader(int id, final Bundle args) {
 
         if (TMDBQUERY_LOADER == id) {
-            return new AsyncTaskLoader<ArrayList<Pair<Long, Pair<String, String>>>>(this) {
+            return new AsyncTaskLoader<ArrayList<ContentValues>>(this) {
 
                 // Holds and helps to cache our data
-                ArrayList<Pair<Long, Pair<String, String>>> mIdsAndPosters = null;
+                ArrayList<ContentValues> mIdsAndPosters = null;
 
                 @Override
                 protected void onStartLoading() {
@@ -324,20 +362,19 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * LOADINBACKGROUND - Done on a background thread
-                 * @return - ArrayList<Pair<Long, Pair<String, String>>> - Ordered Arraylist of Movie posters and ids.
+                 * @return - ArrayList<ContentValues> - Ordered Arraylist of Movie posters and ids.
                  */
                 @Override
-                public ArrayList<Pair<Long, Pair<String, String>>> loadInBackground() {
+                public ArrayList<ContentValues> loadInBackground() {
 
                     Log.d(TAG, "loadInBackground: ");
-//                    boolean isPopular = true;
 
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
                     ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters = null;
+                    ArrayList<ContentValues> dataOutput = new ArrayList<>();
 
                     if (urlString != null) {  // TODO: If == null, then either nothing or, 'Favorite'
                         String tmdbJsonString = "";
-                        titlesAndPosters = new ArrayList<>();   // TODO: Move above
 
                         try {
 //                            isPopular = isCurrentTypePopular();
@@ -432,8 +469,12 @@ public class MainActivity extends AppCompatActivity implements
 
                                     // Add Runtimes to DB for Movies
                                     MainLoadingUtils.getRuntimesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
-                                    MainLoadingUtils.createArrayListOfPairsForPosters(
-                                            titlesAndPosters, cursorPosterPathsMovieIds);
+
+                                    // TODO: Engage
+                                    MainLoadingUtils.createArrayListOfContentValuesForPosters(
+                                            dataOutput,
+                                            cursorPosterPathsMovieIds
+                                    );
 
                                     cursorPosterPathsMovieIds.close();  // Closing Cursor
                                 }
@@ -453,7 +494,10 @@ public class MainActivity extends AppCompatActivity implements
                                 });
 
                                 // If no internet but we have some data, deal with that
-                                useStoredDataToPopulateArraylist(titlesAndPosters);
+
+                                // TODO: Engage
+                                useStoredDataToPopulateArraylistContentValues(dataOutput);
+
                             }
                         } catch (JSONException je) {
                             je.printStackTrace();
@@ -463,15 +507,16 @@ public class MainActivity extends AppCompatActivity implements
                             return null;
                         }
 
-                        Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
+                        Log.d(TAG, "loadInBackground: Poster Count: " + dataOutput.size() );        // TODO: Engage
                     }
 
                     // If we are Favorites type, use stored Favorites to display
                     if (mCurrentViewType.equals(getString(R.string.pref_sort_favorite))) {
-                        titlesAndPosters = new ArrayList<>();
-                        useStoredDataToPopulateArraylist(titlesAndPosters);
+                        dataOutput = new ArrayList<>();     // TODO: Engage
 
-                        if (titlesAndPosters.size() == 0) {
+                        useStoredDataToPopulateArraylistContentValues(dataOutput);                         // TODO: Engage
+
+                        if (dataOutput.size() == 0) {  // TODO: Engage, otherwise alphabetize FavoriteIn to show correctly
 
                             // Cannot call showNoFavorites off of UIThread
                             runOnUiThread(new Runnable() {
@@ -486,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
 
-                    return titlesAndPosters;
+                    return dataOutput; // TODO: Engage
                 }
 
 
@@ -566,9 +611,9 @@ public class MainActivity extends AppCompatActivity implements
 
 
                             /////////////
-                            Pair<String, String> otherTypes = MainLoadingUtils.findOtherTypes(getContext(), mCurrentViewType);
-                            String otherType1 = otherTypes.first;
-                            String otherType2 = otherTypes.second;
+                            Pair<String, String> otherTypes = MainLoadingUtils.findOtherTypeIns(getContext(), mCurrentViewType);
+                            String otherTypeIn1 = otherTypes.first;
+                            String otherTypeIn2 = otherTypes.second;
 
                             // Now query one, and if nothing, then the other.  There should be one at this point.
                             // Use that other in the function calls below
@@ -585,7 +630,7 @@ public class MainActivity extends AppCompatActivity implements
                                     MovieEntry._ID + " = ? AND "
                                             + getTypeOrderIn(getContext(), mCurrentViewType)
                                             + " IS NOT NULL AND "
-                                            + getTypeOrderIn(getContext(), otherType1) + " IS NOT NULL ";
+                                            + otherTypeIn1 + " IS NOT NULL ";
 
                             String[] whereArgs = new String[] {"" + newId};
 
@@ -613,7 +658,7 @@ public class MainActivity extends AppCompatActivity implements
                                         MovieEntry._ID + " = ? AND "
                                                 + getTypeOrderIn(getContext(), mCurrentViewType)
                                                 + " IS NOT NULL AND "
-                                                + getTypeOrderIn(getContext(), otherType2) + " IS NOT NULL ";
+                                                +otherTypeIn2 + " IS NOT NULL ";
 
                                 getContentResolver().update(
                                         MovieEntry.CONTENT_URI,
@@ -669,7 +714,7 @@ public class MainActivity extends AppCompatActivity implements
                  * @param data - ArrayList<Pair<Long, Pair<String, String>>>
                  */
                 @Override
-                public void deliverResult(ArrayList<Pair<Long, Pair<String, String>>> data) {
+                public void deliverResult(ArrayList<ContentValues> data) {
                     mIdsAndPosters = data;  // Assignment for caching
                     super.deliverResult(data);  // Then deliver results
                 }
@@ -682,18 +727,36 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
+//    /**
+//     *  USESTOREDDATATOPOPULATEARRAYLIST - Data we already have will be used to populate list for adapter.
+//     * @param titlesAndPosters - The list to populate with data
+//     */
+//    private void useStoredDataToPopulateArraylist(ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters) {
+//
+//        Cursor cursorForIdsAndPosters = MainLoadingUtils
+//                .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
+//
+//        if (cursorForIdsAndPosters != null) {
+//            MainLoadingUtils.createArrayListOfPairsForPosters(
+//                    titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+//
+//            cursorForIdsAndPosters.close();  // Close your cursors
+//        }
+//
+//    }
+
     /**
-     *  USESTOREDDATATOPOPULATEARRAYLIST - Data we already have will be used to populate list for adapter.
-     * @param titlesAndPosters - The list to populate with data
+     *  USESTOREDDATATOPOPULATEARRAYLISTCONTENTVALUES - Data we already have will be used to populate list for adapter.
+     * @param titlesAndData - The list to populate with data
      */
-    private void useStoredDataToPopulateArraylist(ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters) {
+    private void useStoredDataToPopulateArraylistContentValues(ArrayList<ContentValues> titlesAndData) {
 
         Cursor cursorForIdsAndPosters = MainLoadingUtils
                 .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
 
         if (cursorForIdsAndPosters != null) {
-            MainLoadingUtils.createArrayListOfPairsForPosters(
-                    titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
+            MainLoadingUtils.createArrayListOfContentValuesForPosters(
+                    titlesAndData, cursorForIdsAndPosters);  // Fill ArrayList
 
             cursorForIdsAndPosters.close();  // Close your cursors
         }
@@ -711,7 +774,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
+    public void onLoadFinished(Loader<ArrayList<ContentValues>> loader, ArrayList<ContentValues> data) {
         Log.d(TAG, "onLoadFinished: ");
 
         if ((data != null) && (data.size() != 0)) {
@@ -739,7 +802,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onLoaderReset(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader) {
+    public void onLoaderReset(Loader<ArrayList<ContentValues>> loader) {
         // Nothing here
     }
 
@@ -779,6 +842,19 @@ public class MainActivity extends AppCompatActivity implements
         mProgressBar.setVisibility(View.INVISIBLE);
         mNoFavoritesLayout.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * POSTERSARESHOWING - Tells whether we are showing posters and the load has finished.
+     * Important, so we know that the data for hearts is valid.
+     * @return - boolean - Tells whether posters are showing.
+     */
+    private boolean postersAreShowing() {
+        return (
+                (mProgressBar.getVisibility() == View.INVISIBLE)
+                && (mNoFavoritesLayout.getVisibility() == View.INVISIBLE)
+                && (mRecyclerView.getVisibility() == View.VISIBLE)
+                );
     }
 
     /**

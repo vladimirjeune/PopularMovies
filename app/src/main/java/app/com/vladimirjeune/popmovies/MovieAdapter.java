@@ -1,11 +1,11 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.util.Pair;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +18,10 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
+
+import static android.os.Build.VERSION_CODES.M;
 
 /**
  * Adapter for the Grid View of poster for the user to select from.
@@ -43,7 +46,10 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private String mViewType;
 
-    private ArrayList<Pair<Long, Pair<String, String>>> mPosterAndIds;
+    private ArrayList<ContentValues> mPosterAndIds;
+
+    private final Integer FAVORITE_IN_TRUE = Integer.MAX_VALUE;
+    private final Integer FAVORITE_IN_FALSE = Integer.MIN_VALUE;
 
     // Interface to accept clicks is below.  Will take a handler in Ctor
     // for when an item is clicked on the list
@@ -84,10 +90,17 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final Long fakeId = -1L;
         String fakePath = "";
         String fakeTitle = "";
+        Integer fakeFavoriteOff = FAVORITE_IN_FALSE;  // Trying numbers < 0, mean off, as well as, nulls
+
+        ContentValues fakeContentValues = new ContentValues();
+        fakeContentValues.put(MovieContract.MovieEntry._ID, fakeId);
+        fakeContentValues.put(MovieContract.MovieEntry.ORIGINAL_TITLE, fakeTitle);
+        fakeContentValues.put(MovieContract.MovieEntry.POSTER_PATH, fakePath);
+        fakeContentValues.put(MovieContract.MovieEntry.BACKDROP_PATH, fakePath);
+        fakeContentValues.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, fakeFavoriteOff);  // Trying to see if OK, otherwise hearts on immediately
 
         for (int i = 0; i < mNumberOfItems; i++) {
-            Pair<String, String> fakePair = new Pair<>(fakeTitle, fakePath);
-            mPosterAndIds.add(new Pair<>(fakeId, fakePair));
+            mPosterAndIds.add(fakeContentValues);
         }
     }
 
@@ -142,6 +155,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // Remember, the header took the 0th position.  Must make up for it so 0th position can get seen
         int correctedPosition = position - 1;
         if (mPosterAndIds != null) {
+//            ((PosterViewHolder) holder).bindTo(mPosterAndIds.get(correctedPosition));
             ((PosterViewHolder) holder).bindTo(mPosterAndIds.get(correctedPosition));
         }
 
@@ -170,14 +184,22 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * @param dataList - List of Movie data.  Posters and Titles
      * @param viewType - Whether want Popular or Top-rated movies or Favorite
      */
-    public void setData(ArrayList<Pair<Long, Pair<String, String>>> dataList, String viewType) {
+    public void setData(ArrayList<ContentValues> dataList, String viewType) {
 
         if (dataList != null) {
             mPosterAndIds = dataList;
             mViewType = viewType;
-            mNumberOfItems = mPosterAndIds.size();  // Should always be 20
+            mNumberOfItems = mPosterAndIds.size();  // Should usually be 20
             notifyDataSetChanged();  // This function was called because there was a change, so update things.
         }
+    }
+
+    /**
+     * GETDATA - Returns the data list used to populate the Main Page.
+     * @return - ArrayList<ContentValues> List of data for page population
+     */
+    ArrayList<ContentValues> getData() {
+        return mPosterAndIds;
     }
 
     /**
@@ -211,7 +233,37 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mListItemPosterView = itemView.findViewById(R.id.iv_movie_poster_item);
             mListItemTextView = itemView.findViewById(R.id.tv_movie_title_item);
             mListItemButtonView = itemView.findViewById(R.id.checkbox_favorite);
-            itemView.setOnClickListener(this);
+
+            // Heart: Will modify list to show whether heart on/off
+            ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CheckBox checkBox = (CheckBox)view;
+                    Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
+
+                    if (thisId != null) {
+
+                        // Find CV of ID
+                        ContentValues foundCVs;
+
+                        for (int i = 0; i < mPosterAndIds.size(); i++) {
+                            if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
+                                    .equals(thisId)) {
+                                foundCVs = mPosterAndIds.get(i);
+                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_TRUE);  // True == MAX - 1
+                                } else {
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_FALSE);  // False == NULL
+                                }
+                                break;  // FOUND IT
+                            }
+                        }
+
+                    }
+                }
+            });
+
+            itemView.setOnClickListener(this);  // For non-Heart part
         }
 
         /**
@@ -233,10 +285,17 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          * BINDTO - A convenience method that will attach inputted data to child views.
          * @param aPosterMovieData - Single Movie Data so we can access ID, title and posterPath
          */
-        private void bindTo(Pair<Long, Pair<String, String>> aPosterMovieData) {
+        private void bindTo(ContentValues aPosterMovieData) {
+
+            Long movieID = aPosterMovieData.getAsLong(MovieContract.MovieEntry._ID);
+            String movieTitle = aPosterMovieData.getAsString(MovieContract.MovieEntry.ORIGINAL_TITLE);
+            String moviePosterPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.POSTER_PATH);
+            String movieBackdropPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.BACKDROP_PATH);
+            Integer movieFavoriteIn = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_ORDER_IN);
 
             // If there is no actual movie, use placeholder and leave
-            if (aPosterMovieData.first < 0){
+//            if (aPosterMovieData.first < 0){
+            if (movieID < 0){
                 mListItemPosterView.setImageDrawable(ContextCompat
                         .getDrawable(mContext, R.drawable.tmd_placeholder_poster));
                 return;
@@ -244,14 +303,15 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             createRippleDrawableEffectMarshmallowUp();
 
-            Pair<String, String> payload = aPosterMovieData.second;  // This gets you the interior Pair
+//            Pair<String, String> payload = aPosterMovieData.second;  // This gets you the interior Pair
 
-            String title = payload.first;  // Set Title
-            mListItemTextView.setText(title);
+//            String title = payload.first;  // Set Title
+            mListItemTextView.setText(movieTitle);
 
-            String posterPath = payload.second;  // Set Poster and Content Description
-            if (posterPath != null) {
-                String urlForPosterPath = NetworkUtils.buildURLForImage(posterPath)
+//            String posterPath = payload.second;
+            // Set Poster and Content Description
+            if (moviePosterPath != null) {
+                String urlForPosterPath = NetworkUtils.buildURLForImage(moviePosterPath)
                         .toString();
 
                 Picasso.with(mContext)
@@ -261,14 +321,15 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         .into(mListItemPosterView);
 
 
-                String a11yPoster = mContext.getString(R.string.a11y_poster, title);
+                String a11yPoster = mContext.getString(R.string.a11y_poster, movieTitle);
                 mListItemPosterView.setContentDescription(a11yPoster);
-                mListItemPosterView.setTag(aPosterMovieData.first);  // This is the ID of the movie
+                mListItemPosterView.setTag(movieID);  // This is the ID of the movie
 
 
-                // TODO: Set tag for button, and set listener
-                // TODO: Set value in Pair so reflected on rotation?  Do update Tranctn in Main
-                // TODO: When Pause.  Go thru data Boolean, ID. data[id] = false/true
+                // Set tag for button
+                mListItemButtonView.setTag(movieID);
+                mListItemButtonView.setChecked(movieFavoriteIn.equals(FAVORITE_IN_TRUE));  // If MFI is MAX, Heart ON
+
             }
         }
 
@@ -284,7 +345,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             int defaultValue = 0;
             int backgroundResource = typedArray.getResourceId(indexValue, defaultValue);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= M) {
                 Drawable ripple = ContextCompat.getDrawable(mContext, backgroundResource);
                 mListItemPosterView.setForeground(ripple);
             }

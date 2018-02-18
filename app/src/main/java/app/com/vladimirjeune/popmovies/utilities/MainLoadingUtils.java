@@ -80,27 +80,69 @@ public final class MainLoadingUtils {
     }
 
 
+//    /**
+//     * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
+//     * @param idsTitlesAndPosters - ArrayList<Pairs<Long, Pair<String, String>>> - Posters for MainActivity in order
+//     * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
+//     */
+//    public static void createArrayListOfPairsForPosters(ArrayList<Pair<Long, Pair<String, String>>> idsTitlesAndPosters, Cursor cursorPosterPathsMovieIds) {
+//        // Create ArrayList of Pairs for posters
+//        if ((cursorPosterPathsMovieIds != null)
+//                && (cursorPosterPathsMovieIds.moveToFirst())) {
+//            int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
+//            int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
+//            int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
+//
+//            if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
+//                do {
+//                    long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
+//                    String title = cursorPosterPathsMovieIds.getString(titleIndex);
+//                    String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
+//
+//                    Pair<String, String> payload = new Pair<>(title, posterPath);
+//                    idsTitlesAndPosters.add(new Pair<>(movieId, payload));
+//                } while (cursorPosterPathsMovieIds.moveToNext()) ;
+//            }
+//        }
+//    }
+
     /**
      * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
-     * @param idsTitlesAndPosters - ArrayList<Pairs<Long, Pair<String, String>>> - Posters for MainActivity in order
+     * @param idsAndData - ArrayList<ContentValues> In order
      * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
      */
-    public static void createArrayListOfPairsForPosters(ArrayList<Pair<Long, Pair<String, String>>> idsTitlesAndPosters, Cursor cursorPosterPathsMovieIds) {
+    public static void createArrayListOfContentValuesForPosters(ArrayList<ContentValues> idsAndData, Cursor cursorPosterPathsMovieIds) {
         // Create ArrayList of Pairs for posters
         if ((cursorPosterPathsMovieIds != null)
                 && (cursorPosterPathsMovieIds.moveToFirst())) {
+
             int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
             int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
             int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
+            int backdropPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.BACKDROP_PATH);
+            int favoriteOrderInIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.FAVORITE_ORDER_IN);
 
             if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
                 do {
+                    ContentValues singleData = new ContentValues();
+
                     long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
                     String title = cursorPosterPathsMovieIds.getString(titleIndex);
                     String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
+                    String backdropPath = cursorPosterPathsMovieIds.getString(backdropPathIndex);
+                    Integer favoriteOrderIn = cursorPosterPathsMovieIds.getInt(favoriteOrderInIndex);
 
-                    Pair<String, String> payload = new Pair<>(title, posterPath);
-                    idsTitlesAndPosters.add(new Pair<>(movieId, payload));
+//                    Pair<String, String> payload = new Pair<>(title, posterPath);
+//                    idsTitlesAndPosters.add(new Pair<>(movieId, payload));
+
+                    singleData.put(MovieEntry._ID, movieId);
+                    singleData.put(MovieEntry.ORIGINAL_TITLE, title);
+                    singleData.put(MovieEntry.POSTER_PATH, posterPath);
+                    singleData.put(MovieEntry.BACKDROP_PATH, backdropPath);
+                    singleData.put(MovieEntry.FAVORITE_ORDER_IN, favoriteOrderIn);
+
+                    idsAndData.add(singleData);
+
                 } while (cursorPosterPathsMovieIds.moveToNext()) ;
             }
         }
@@ -127,14 +169,22 @@ public final class MainLoadingUtils {
             orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
             selection = MovieEntry.TOP_RATED_ORDER_IN;
         } else {
-            orderByTypeIndex = MovieEntry.FAVORITE_ORDER_IN;
-            selection = MovieEntry.FAVORITE_ORDER_IN;
+//            orderByTypeIndex = MovieEntry.FAVORITE_ORDER_IN;  // TODO: Go by alphabetical order, orderBy OriginalTitle
+            orderByTypeIndex = MovieEntry.ORIGINAL_TITLE;  // TODO: Go by alphabetical order, orderBy OriginalTitle
+            selection = MovieEntry.FAVORITE_ORDER_IN;  // Keep this, important
         }
 
-        String[] posterPathMovieIdColumns = {MovieEntry._ID, MovieEntry.ORIGINAL_TITLE, MovieEntry.POSTER_PATH};
+        String[] posterPathMovieIdColumns = {
+                MovieEntry._ID,
+                MovieEntry.ORIGINAL_TITLE,
+                MovieEntry.POSTER_PATH,
+                MovieEntry.BACKDROP_PATH,
+                MovieEntry.FAVORITE_ORDER_IN
+        };
+
         String selectionIsNotNull = selection + " IS NOT NULL ";
         // Trying to say SELECT movieId, original title, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
-        // Give me 3 cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
+        // Give me cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
         return context.getContentResolver().query(
                 MovieEntry.CONTENT_URI,
                 posterPathMovieIdColumns,
@@ -164,13 +214,13 @@ public final class MainLoadingUtils {
 
 
     /**
-     * FINDOTHERTYPES - Finds the other 2 types of OrderIn that are not the one that belongs to what was inputted.
+     * FINDOTHERTYPEINS - Finds the other 2 types of OrderIn that are not the one that belongs to what was inputted.
      * EX: Inputted == POPULAR => TOP_RATED_ORDER_IN, FAVORITE_ORDER_IN
      * @param context - Needed for function calls
      * @param viewType - The current ViewType we are dealing with from calling function
      * @return Pair<String, String> - Holding the OrderIns of the other 2 types
      */
-    public static Pair<String,String> findOtherTypes(Context context, String viewType) {
+    public static Pair<String,String> findOtherTypeIns(Context context, String viewType) {
         Pair<String, String> retVal = null;
 
         if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
@@ -192,12 +242,12 @@ public final class MainLoadingUtils {
      * @return String - For WHERE clause ORing the 2 OrderIns from the opposing types
      */
     public static String findOppositeTypeOrderIns(Context context, String viewType) {
-        Pair<String, String> otherTypes = findOtherTypes(context,  viewType);
+        Pair<String, String> otherTypeIns = findOtherTypeIns(context,  viewType);
 
         // If Movie is in either of the other types
         return getTypeOrderIn(context, viewType) + " IS NOT NULL "
-                + " AND (" + otherTypes.first + " IS NOT NULL "
-                + " OR " + otherTypes.second + " IS NOT NULL) ";  // TODO: Check SQL book for validity
+                + " AND (" + otherTypeIns.first + " IS NOT NULL "
+                + " OR " + otherTypeIns.second + " IS NOT NULL) ";  // TODO: Check SQL book for validity
     }
 
 
