@@ -68,7 +68,7 @@ public final class MovieContract {
 
         // Order of this movie in favorites movies.  Was put in #th.  Null value means
         // movie is not in Favorite movies
-        public static final String FAVORITE_ORDER_IN = "favorite_in";
+        public static final String FAVORITE_ORDER_IN = "favorite_in"; // TODO: LOOK AT USAGE
 
         /**
          * BUILDURIWITHMOVIEID - Will be used to query details about a single movie.

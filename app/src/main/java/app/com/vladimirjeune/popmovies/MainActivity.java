@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
             MovieEntry.TOP_RATED_ORDER_IN,
-            MovieEntry.FAVORITE_ORDER_IN
+            MovieEntry.FAVORITE_ORDER_IN   // TODO: LOOK AT USAGE
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -242,12 +242,12 @@ public class MainActivity extends AppCompatActivity implements
         for (ContentValues currentContentValues : adaptersData) {
 
             Integer currentHeartState = currentContentValues.
-                    getAsInteger(MovieEntry.FAVORITE_ORDER_IN);  // MAX or min. T or F
+                    getAsInteger(MovieEntry.FAVORITE_ORDER_IN);  // MAX or min. T or F // TODO: LOOK AT USAGE
 
             String where = MovieEntry._ID + " = ? ";
             Long currentId = currentContentValues.getAsLong(MovieEntry._ID);
             String[] whereArgs = {"" + currentId};
-            heartsValues.put(MovieEntry.FAVORITE_ORDER_IN, currentHeartState);
+            heartsValues.put(MovieEntry.FAVORITE_ORDER_IN, currentHeartState);  // TODO: LOOK AT USAGE
 
             getContentResolver().update(
                     MovieEntry.CONTENT_URI,
@@ -402,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements
                                             MovieEntry.ORIGINAL_TITLE,
                                             MovieEntry.POPULAR_ORDER_IN,
                                             MovieEntry.TOP_RATED_ORDER_IN,
-                                            MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES
+                                            MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES  // TODO: LOOK AT USAGE
                                     };
 
                                     // Preceding Projection and these final ints always MUST be in sync
@@ -623,7 +623,7 @@ public class MainActivity extends AppCompatActivity implements
                                     MovieEntry.ORIGINAL_TITLE,
                                     MovieEntry.POPULAR_ORDER_IN,
                                     MovieEntry.TOP_RATED_ORDER_IN,
-                                    MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES
+                                    MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES  // TODO: LOOK AT USAGE
                             };
 
                             String whereIDTypeAndOtherType_1 =

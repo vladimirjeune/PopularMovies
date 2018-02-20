@@ -39,7 +39,7 @@ public final class MainLoadingUtils {
         } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
             typeOrder = MovieEntry.TOP_RATED_ORDER_IN;
         } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
-            typeOrder = MovieEntry.FAVORITE_ORDER_IN;
+            typeOrder = MovieEntry.FAVORITE_ORDER_IN;  // TODO: LOOK AT USAGE
         }
 
         return typeOrder;
@@ -120,7 +120,7 @@ public final class MainLoadingUtils {
             int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
             int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
             int backdropPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.BACKDROP_PATH);
-            int favoriteOrderInIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.FAVORITE_ORDER_IN);
+            int favoriteOrderInIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.FAVORITE_ORDER_IN);  // TODO: LOOK AT USAGE
 
             if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
                 do {
@@ -139,7 +139,7 @@ public final class MainLoadingUtils {
                     singleData.put(MovieEntry.ORIGINAL_TITLE, title);
                     singleData.put(MovieEntry.POSTER_PATH, posterPath);
                     singleData.put(MovieEntry.BACKDROP_PATH, backdropPath);
-                    singleData.put(MovieEntry.FAVORITE_ORDER_IN, favoriteOrderIn);
+                    singleData.put(MovieEntry.FAVORITE_ORDER_IN, favoriteOrderIn);  // TODO: LOOK AT USAGE
 
                     idsAndData.add(singleData);
 
@@ -171,7 +171,7 @@ public final class MainLoadingUtils {
         } else {
 //            orderByTypeIndex = MovieEntry.FAVORITE_ORDER_IN;  // TODO: Go by alphabetical order, orderBy OriginalTitle
             orderByTypeIndex = MovieEntry.ORIGINAL_TITLE;  // TODO: Go by alphabetical order, orderBy OriginalTitle
-            selection = MovieEntry.FAVORITE_ORDER_IN;  // Keep this, important
+            selection = MovieEntry.FAVORITE_ORDER_IN;  // Keep this, important  // TODO: LOOK AT USAGE
         }
 
         String[] posterPathMovieIdColumns = {
@@ -179,7 +179,7 @@ public final class MainLoadingUtils {
                 MovieEntry.ORIGINAL_TITLE,
                 MovieEntry.POSTER_PATH,
                 MovieEntry.BACKDROP_PATH,
-                MovieEntry.FAVORITE_ORDER_IN
+                MovieEntry.FAVORITE_ORDER_IN     // TODO: LOOK AT USAGE
         };
 
         String selectionIsNotNull = selection + " IS NOT NULL ";
@@ -224,9 +224,9 @@ public final class MainLoadingUtils {
         Pair<String, String> retVal = null;
 
         if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
-            retVal =  new Pair<>(MovieEntry.TOP_RATED_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);
+            retVal =  new Pair<>(MovieEntry.TOP_RATED_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);     // TODO: LOOK AT USAGE, Order Alphabetically
         } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
-            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);
+            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);     // TODO: LOOK AT USAGE, Order Alphabetically
         } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
             retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.TOP_RATED_ORDER_IN);
         }

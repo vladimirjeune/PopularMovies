@@ -96,7 +96,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         fakeContentValues.put(MovieContract.MovieEntry._ID, fakeId);
         fakeContentValues.put(MovieContract.MovieEntry.ORIGINAL_TITLE, fakeTitle);
         fakeContentValues.put(MovieContract.MovieEntry.POSTER_PATH, fakePath);
-        fakeContentValues.put(MovieContract.MovieEntry.BACKDROP_PATH, fakePath);
+        fakeContentValues.put(MovieContract.MovieEntry.BACKDROP_PATH, fakePath);     // TODO: LOOK AT USAGE
         fakeContentValues.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, fakeFavoriteOff);  // Trying to see if OK, otherwise hearts on immediately
 
         for (int i = 0; i < mNumberOfItems; i++) {
@@ -251,9 +251,9 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .equals(thisId)) {
                                 foundCVs = mPosterAndIds.get(i);
                                 if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_TRUE);  // True == MAX - 1
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_TRUE);  // True == MAX - 1   // TODO: LOOK AT USAGE
                                 } else {
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_FALSE);  // False == NULL
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_FALSE);  // False == NULL   // TODO: LOOK AT USAGE
                                 }
                                 break;  // FOUND IT
                             }
@@ -291,7 +291,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String movieTitle = aPosterMovieData.getAsString(MovieContract.MovieEntry.ORIGINAL_TITLE);
             String moviePosterPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.POSTER_PATH);
             String movieBackdropPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.BACKDROP_PATH);
-            Integer movieFavoriteIn = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_ORDER_IN);
+            Integer movieFavoriteIn = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_ORDER_IN);   // TODO: LOOK AT USAGE
 
             // If there is no actual movie, use placeholder and leave
 //            if (aPosterMovieData.first < 0){
