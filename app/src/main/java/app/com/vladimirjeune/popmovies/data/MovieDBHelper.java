@@ -15,7 +15,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     public MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,7 +38,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.BACKDROP + " BLOB, " +
                 MovieEntry.POPULAR_ORDER_IN + " INTEGER, " +  // THE ORDER POP MOVIES WERE ENTERED, NULL means not Pop
                 MovieEntry.TOP_RATED_ORDER_IN + " INTEGER, " +  // The order Top Rated movies were entered.  Null means not TR
-                MovieEntry.FAVORITE_ORDER_IN + " INTEGER, " +  // The order Favorites were added.  NULL means not Favorite   // TODO: LOOK AT USAGE
+                MovieEntry.FAVORITE_FLAG + " INTEGER DEFAULT 0, " +  // 1 Means order alphabetically.  0 means not Favorite   // TODO: LOOKED AT USAGE
                 MovieEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
                 ");";
 

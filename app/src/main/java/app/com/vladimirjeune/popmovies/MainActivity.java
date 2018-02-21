@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
             MovieEntry.TOP_RATED_ORDER_IN,
-            MovieEntry.FAVORITE_ORDER_IN   // TODO: LOOK AT USAGE
+            MovieEntry.FAVORITE_FLAG   // TODO: LOOKED AT USAGE
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -242,12 +242,12 @@ public class MainActivity extends AppCompatActivity implements
         for (ContentValues currentContentValues : adaptersData) {
 
             Integer currentHeartState = currentContentValues.
-                    getAsInteger(MovieEntry.FAVORITE_ORDER_IN);  // MAX or min. T or F // TODO: LOOK AT USAGE
+                    getAsInteger(MovieEntry.FAVORITE_FLAG);  // 0 || 1 // TODO: LOOKED AT USAGE
 
             String where = MovieEntry._ID + " = ? ";
             Long currentId = currentContentValues.getAsLong(MovieEntry._ID);
             String[] whereArgs = {"" + currentId};
-            heartsValues.put(MovieEntry.FAVORITE_ORDER_IN, currentHeartState);  // TODO: LOOK AT USAGE
+            heartsValues.put(MovieEntry.FAVORITE_FLAG, currentHeartState);  // TODO: LOOKED AT USAGE
 
             getContentResolver().update(
                     MovieEntry.CONTENT_URI,
@@ -402,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements
                                             MovieEntry.ORIGINAL_TITLE,
                                             MovieEntry.POPULAR_ORDER_IN,
                                             MovieEntry.TOP_RATED_ORDER_IN,
-                                            MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES  // TODO: LOOK AT USAGE
+                                            MovieEntry.FAVORITE_FLAG  // TODO: LOOKED AT USAGE
                                     };
 
                                     // Preceding Projection and these final ints always MUST be in sync
@@ -539,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements
                  * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
                  * @param idDeleteSet - Modified set of old Movie IDs consists of Old IDs - New Ids
                  *                 and the Intersection of Old & New
-                 * @param oppositeTitlesCursor - In case we have to delete something that is both types.  Just update
+                 * @param oppositeTitlesCursor - In case we have to delete something that is many types.  Just update
                  */
                 private void deleteChartDroppedMovies(Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
 
@@ -601,7 +601,7 @@ public class MainActivity extends AppCompatActivity implements
                         // So finding in db the movie with the specific ID and a known position in
                         // another type than current.  Once found, do an update to it so there is a
                         // OrderIn for this type as well.  Make sure only THIS OrderIn is updated; not
-                        // the one that you found.  You only need to find one other Orderin, even if
+                        // the one that you found.  You only need to find one other OrderIn, even if
                         // there exists more than one.  We are just trying to find movies that are in
                         // multiple locations so they are only updated instead of getting duplicates.
                         // TODO: Look for ID with other types using query (get 1st match) and do this
@@ -623,14 +623,14 @@ public class MainActivity extends AppCompatActivity implements
                                     MovieEntry.ORIGINAL_TITLE,
                                     MovieEntry.POPULAR_ORDER_IN,
                                     MovieEntry.TOP_RATED_ORDER_IN,
-                                    MovieEntry.FAVORITE_ORDER_IN  // Added FAVORITES  // TODO: LOOK AT USAGE
+                                    MovieEntry.FAVORITE_FLAG  // TODO: LOOKED AT USAGE
                             };
 
                             String whereIDTypeAndOtherType_1 =
                                     MovieEntry._ID + " = ? AND "
                                             + getTypeOrderIn(getContext(), mCurrentViewType)
                                             + " IS NOT NULL AND "
-                                            + otherTypeIn1 + " IS NOT NULL ";
+                                            + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn1);
 
                             String[] whereArgs = new String[] {"" + newId};
 
@@ -642,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements
                                     null
                             );
 
-                            // If we already have a movie with the current viewType and another
+                            // If we already have a movie with the current viewType and others
                             if (typeAndFirstCursor.moveToFirst()) {
 
                                 getContentResolver().update(
@@ -658,7 +658,7 @@ public class MainActivity extends AppCompatActivity implements
                                         MovieEntry._ID + " = ? AND "
                                                 + getTypeOrderIn(getContext(), mCurrentViewType)
                                                 + " IS NOT NULL AND "
-                                                +otherTypeIn2 + " IS NOT NULL ";
+                                                + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn2);
 
                                 getContentResolver().update(
                                         MovieEntry.CONTENT_URI,
@@ -670,31 +670,15 @@ public class MainActivity extends AppCompatActivity implements
 
                             /////////////
 
-
-
-                            // Update Item position of other thing for this type.
-                            // Update
-//                            String orderType = MainLoadingUtils.getTypeOrderIn(getContext(), !isPopular);
-//                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
-//                            String[] whereArgs
-//                                    = new String[] {"" + newId
-//                                    , MainLoadingUtils.getOldPositionOfNewId(getContext(),
-//                                            !isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
-//
-//                            getContentResolver().update(
-//                                    MovieEntry.CONTENT_URI,
-//                                    movieContentValues[i],
-//                                    where,
-//                                    whereArgs);
                         } else if (idOldSet.contains(newId)) {
                             // Update
-                            String orderType = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType);
+                            String orderInForType = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType);
                             String[] whereArgs
                                     = new String[] {"" + newId
                                     , MainLoadingUtils.getOldPositionOfNewId(getContext(),
                                             mCurrentViewType, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
 
-                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
+                            String where = MovieEntry._ID + " = ? AND " + orderInForType + " = ? ";
                             getContentResolver().update(
                                     MovieEntry.CONTENT_URI,
                                     movieContentValues[i],
@@ -726,24 +710,6 @@ public class MainActivity extends AppCompatActivity implements
         return null;
     }
 
-
-//    /**
-//     *  USESTOREDDATATOPOPULATEARRAYLIST - Data we already have will be used to populate list for adapter.
-//     * @param titlesAndPosters - The list to populate with data
-//     */
-//    private void useStoredDataToPopulateArraylist(ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters) {
-//
-//        Cursor cursorForIdsAndPosters = MainLoadingUtils
-//                .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
-//
-//        if (cursorForIdsAndPosters != null) {
-//            MainLoadingUtils.createArrayListOfPairsForPosters(
-//                    titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
-//
-//            cursorForIdsAndPosters.close();  // Close your cursors
-//        }
-//
-//    }
 
     /**
      *  USESTOREDDATATOPOPULATEARRAYLISTCONTENTVALUES - Data we already have will be used to populate list for adapter.

@@ -48,8 +48,8 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private ArrayList<ContentValues> mPosterAndIds;
 
-    private final Integer FAVORITE_IN_TRUE = Integer.MAX_VALUE;
-    private final Integer FAVORITE_IN_FALSE = Integer.MIN_VALUE;
+    private final Integer FAVORITE_IN_TRUE = 1;
+    private final Integer FAVORITE_IN_FALSE = 0;
 
     // Interface to accept clicks is below.  Will take a handler in Ctor
     // for when an item is clicked on the list
@@ -90,14 +90,14 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final Long fakeId = -1L;
         String fakePath = "";
         String fakeTitle = "";
-        Integer fakeFavoriteOff = FAVORITE_IN_FALSE;  // Trying numbers < 0, mean off, as well as, nulls
+        Integer fakeFavoriteOff = FAVORITE_IN_FALSE;  // 0 means False
 
         ContentValues fakeContentValues = new ContentValues();
         fakeContentValues.put(MovieContract.MovieEntry._ID, fakeId);
         fakeContentValues.put(MovieContract.MovieEntry.ORIGINAL_TITLE, fakeTitle);
         fakeContentValues.put(MovieContract.MovieEntry.POSTER_PATH, fakePath);
-        fakeContentValues.put(MovieContract.MovieEntry.BACKDROP_PATH, fakePath);     // TODO: LOOK AT USAGE
-        fakeContentValues.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, fakeFavoriteOff);  // Trying to see if OK, otherwise hearts on immediately
+        fakeContentValues.put(MovieContract.MovieEntry.BACKDROP_PATH, fakePath);
+        fakeContentValues.put(MovieContract.MovieEntry.FAVORITE_FLAG, fakeFavoriteOff);  // Initially Hearts are OFF  // TODO: LOOKED AT USAGE
 
         for (int i = 0; i < mNumberOfItems; i++) {
             mPosterAndIds.add(fakeContentValues);
@@ -251,9 +251,9 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                                     .equals(thisId)) {
                                 foundCVs = mPosterAndIds.get(i);
                                 if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_TRUE);  // True == MAX - 1   // TODO: LOOK AT USAGE
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
                                 } else {
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_ORDER_IN, FAVORITE_IN_FALSE);  // False == NULL   // TODO: LOOK AT USAGE
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
                                 }
                                 break;  // FOUND IT
                             }
@@ -291,7 +291,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String movieTitle = aPosterMovieData.getAsString(MovieContract.MovieEntry.ORIGINAL_TITLE);
             String moviePosterPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.POSTER_PATH);
             String movieBackdropPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.BACKDROP_PATH);
-            Integer movieFavoriteIn = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_ORDER_IN);   // TODO: LOOK AT USAGE
+            Integer movieFavoriteFlag = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_FLAG);   // TODO: LOOKED AT USAGE
 
             // If there is no actual movie, use placeholder and leave
 //            if (aPosterMovieData.first < 0){
@@ -328,7 +328,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                 // Set tag for button
                 mListItemButtonView.setTag(movieID);
-                mListItemButtonView.setChecked(movieFavoriteIn.equals(FAVORITE_IN_TRUE));  // If MFI is MAX, Heart ON
+                mListItemButtonView.setChecked(movieFavoriteFlag.equals(FAVORITE_IN_TRUE));  // If MFI is MAX, Heart ON
 
             }
         }

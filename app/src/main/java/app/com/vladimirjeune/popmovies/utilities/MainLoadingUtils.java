@@ -3,6 +3,7 @@ package app.com.vladimirjeune.popmovies.utilities;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 
@@ -39,13 +40,10 @@ public final class MainLoadingUtils {
         } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
             typeOrder = MovieEntry.TOP_RATED_ORDER_IN;
         } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
-            typeOrder = MovieEntry.FAVORITE_ORDER_IN;  // TODO: LOOK AT USAGE
+            typeOrder = MovieEntry.FAVORITE_FLAG;  // TODO: LOOKED AT USAGE
         }
 
         return typeOrder;
-
-        // TODO: REMOVE
-//        return (isPopular) ? MovieEntry.POPULAR_ORDER_IN : MovieEntry.TOP_RATED_ORDER_IN;
     }
 
 
@@ -120,7 +118,7 @@ public final class MainLoadingUtils {
             int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
             int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
             int backdropPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.BACKDROP_PATH);
-            int favoriteOrderInIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.FAVORITE_ORDER_IN);  // TODO: LOOK AT USAGE
+            int favoriteOrderInIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.FAVORITE_FLAG);  // TODO: LOOKED AT USAGE
 
             if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
                 do {
@@ -139,7 +137,7 @@ public final class MainLoadingUtils {
                     singleData.put(MovieEntry.ORIGINAL_TITLE, title);
                     singleData.put(MovieEntry.POSTER_PATH, posterPath);
                     singleData.put(MovieEntry.BACKDROP_PATH, backdropPath);
-                    singleData.put(MovieEntry.FAVORITE_ORDER_IN, favoriteOrderIn);  // TODO: LOOK AT USAGE
+                    singleData.put(MovieEntry.FAVORITE_FLAG, favoriteOrderIn);  // TODO: LOOKED AT USAGE
 
                     idsAndData.add(singleData);
 
@@ -164,14 +162,13 @@ public final class MainLoadingUtils {
 
         if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
             orderByTypeIndex = MovieEntry.POPULAR_ORDER_IN;
-            selection = MovieEntry.POPULAR_ORDER_IN;
+            selection = MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL ";
         } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
             orderByTypeIndex = MovieEntry.TOP_RATED_ORDER_IN;
-            selection = MovieEntry.TOP_RATED_ORDER_IN;
+            selection = MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ";
         } else {
-//            orderByTypeIndex = MovieEntry.FAVORITE_ORDER_IN;  // TODO: Go by alphabetical order, orderBy OriginalTitle
             orderByTypeIndex = MovieEntry.ORIGINAL_TITLE;  // TODO: Go by alphabetical order, orderBy OriginalTitle
-            selection = MovieEntry.FAVORITE_ORDER_IN;  // Keep this, important  // TODO: LOOK AT USAGE
+            selection = MovieEntry.FAVORITE_FLAG + " == 1 ";  // TODO: LOOKED AT USAGE
         }
 
         String[] posterPathMovieIdColumns = {
@@ -179,16 +176,15 @@ public final class MainLoadingUtils {
                 MovieEntry.ORIGINAL_TITLE,
                 MovieEntry.POSTER_PATH,
                 MovieEntry.BACKDROP_PATH,
-                MovieEntry.FAVORITE_ORDER_IN     // TODO: LOOK AT USAGE
+                MovieEntry.FAVORITE_FLAG     // TODO: LOOKED AT USAGE
         };
 
-        String selectionIsNotNull = selection + " IS NOT NULL ";
         // Trying to say SELECT movieId, original title, posterPath FROM movies WHERE selection IS NOT NULL ORDER BY xxxORDERIN
         // Give me cols of all the movies that are POPULAR|TOPRATED and have them in the order they were downloaded(by pop or top)
         return context.getContentResolver().query(
                 MovieEntry.CONTENT_URI,
                 posterPathMovieIdColumns,
-                selectionIsNotNull,
+                selection,
                 null,
                 orderByTypeIndex);
     }
@@ -215,7 +211,7 @@ public final class MainLoadingUtils {
 
     /**
      * FINDOTHERTYPEINS - Finds the other 2 types of OrderIn that are not the one that belongs to what was inputted.
-     * EX: Inputted == POPULAR => TOP_RATED_ORDER_IN, FAVORITE_ORDER_IN
+     * EX: Inputted == POPULAR => TOP_RATED_ORDER_IN, FAVORITE_FLAG
      * @param context - Needed for function calls
      * @param viewType - The current ViewType we are dealing with from calling function
      * @return Pair<String, String> - Holding the OrderIns of the other 2 types
@@ -224,9 +220,9 @@ public final class MainLoadingUtils {
         Pair<String, String> retVal = null;
 
         if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
-            retVal =  new Pair<>(MovieEntry.TOP_RATED_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);     // TODO: LOOK AT USAGE, Order Alphabetically
+            retVal =  new Pair<>(MovieEntry.TOP_RATED_ORDER_IN, MovieEntry.FAVORITE_FLAG);     // TODO: LOOKED AT USAGE, Order Alphabetically
         } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
-            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.FAVORITE_ORDER_IN);     // TODO: LOOK AT USAGE, Order Alphabetically
+            retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.FAVORITE_FLAG);     // TODO: LOOKED AT USAGE, Order Alphabetically
         } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
             retVal = new Pair<>(MovieEntry.POPULAR_ORDER_IN, MovieEntry.TOP_RATED_ORDER_IN);
         }
@@ -235,7 +231,7 @@ public final class MainLoadingUtils {
     }
 
     /**
-     * FINDOPPOSITETYPEORDERINS - Creates String for a WHERE statement that consists of a OR for
+     * FINDOPPOSITETYPEORDERINS - Creates String for a WHERE statement that consists of an OR for
      * OrderIns of types that are not the one that is passed in.
      * @param context - Needed for function calls
      * @param viewType - The current ViewType we are dealing with from calling function
@@ -246,10 +242,25 @@ public final class MainLoadingUtils {
 
         // If Movie is in either of the other types
         return getTypeOrderIn(context, viewType) + " IS NOT NULL "
-                + " AND (" + otherTypeIns.first + " IS NOT NULL "
-                + " OR " + otherTypeIns.second + " IS NOT NULL) ";  // TODO: Check SQL book for validity
+                + " AND ( " + getOtherOrderInWhereString(otherTypeIns.first )
+                + " OR " + getOtherOrderInWhereString(otherTypeIns.second) + " ) ";  // TODO: Check SQL book for validity
     }
 
+    /**
+     * GETOTHERORDERINWHERESTRING - Returns the String necessary to complete the where String to
+     * check for the presence of certain View Types for a Movie.  Handles Strings that need to be
+     * compared to ints and nulls.
+     *
+     * @param otherTypeIn1 - A View Type Order, or Flag whose presence indicates Movie Type
+     * @return String - String for a Where clause to check for presence of this type in Movie
+     */
+    @NonNull
+    public static String getOtherOrderInWhereString(String otherTypeIn1) {
+        return otherTypeIn1 + (
+                (otherTypeIn1.equals(MovieEntry.POPULAR_ORDER_IN)
+                        || (otherTypeIn1.equals(MovieEntry.TOP_RATED_ORDER_IN)))
+                        ? " IS NOT NULL " : " == 1 ");
+    }
 
     /**
      * GETSINGLEMOVIERUNTIMEFROMTMDB - Get the runtime for the movie with the given movieId.
