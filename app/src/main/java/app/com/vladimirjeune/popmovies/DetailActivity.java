@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -14,10 +15,12 @@ import android.support.v4.content.Loader;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -43,6 +46,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             MovieEntry.BACKDROP_PATH,
             MovieEntry.RUNTIME,
             MovieEntry.POSTER,
+            MovieEntry.BACKDROP,
+            MovieEntry.FAVORITE_FLAG,
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -55,8 +60,16 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final int DETAIL_INDEX_BACKDROP_PATH = 6;
     private static final int DETAIL_INDEX_RUNTIME = 7;
     private static final int DETAIL_INDEX_POSTER = 8;
+    private static final int DETAIL_INDEX_BACKDROP = 9;
+    private static final int DETAIL_INDEX_FAVORITE_FLAG = 10;
+
 
     private static final String TAG = DetailActivity.class.getSimpleName();
+    private static final Integer HEART_FALSE = 0;
+    private static final Integer HEART_TRUE = 1;
+
+    private Integer mHeartState0or1;
+    private long mIDForMovie;
 
     private String mViewType;
 
@@ -68,6 +81,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTextView;
     private TextView mRuntimeTextView;
     private ImageView mOneSheetImageView;
+    private CheckBox mHeartCheckboxView;
 
     private TextView mSynopsisTitleTextView;
     private TextView mReleaseTitleTextView;
@@ -161,6 +175,30 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     };
 
 
+    /**
+     * ONPAUSE - Lifecycle callback triggered when activity becomes partially visible.
+     * Changes to underlying data made during display are sent to the database now.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+
+        ContentValues heartContentValues = new ContentValues();
+        heartContentValues.put(MovieEntry.FAVORITE_FLAG, mHeartState0or1);
+        String where = MovieEntry._ID + " = ? ";
+        String[] whereArgs = {"" + mIDForMovie};
+
+        Log.i(TAG, "onPause: DetailActivity called. Heart state is: " + ((mHeartState0or1 == 1) ? "[TRUE]" : "[FALSE]"));
+
+        getContentResolver().update(
+                MovieEntry.CONTENT_URI,
+                heartContentValues,
+                where,
+                whereArgs
+        );
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -177,6 +215,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mViewType =  movieIntent.getStringExtra(MainActivity.EXTRA_TYPE);
 
         mTitle = findViewById(R.id.textViewTitle);
+        mHeartState0or1 = HEART_FALSE;
         mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
 
         // Data
@@ -185,6 +224,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mRatingTextView = findViewById(R.id.textViewRating);
         mRuntimeTextView = findViewById(R.id.textViewRuntime);
         mOneSheetImageView = findViewById(R.id.imageViewOnesheet);
+        mHeartCheckboxView = findViewById(R.id.checkbox_favorite);
 
         // Titles
         mSynopsisTitleTextView = findViewById(R.id.textViewSynopsisTitle);
@@ -260,7 +300,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         int textTypeColor = titleTextAndBackgroundColor.first;
         int backgroundColor = titleTextAndBackgroundColor.second;
 
-        // Title & set ImageView ContentDescription
+        // Title, ID & set ImageView ContentDescription
+        mIDForMovie = data.getLong(DETAIL_INDEX_ID);
         String originalTitle = data.getString(DETAIL_INDEX_ORIGINAL_TITLE);
         String a11yPosterText = getString(R.string.a11y_poster, originalTitle);
         mTitle.setText(originalTitle);
@@ -288,6 +329,20 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
         mSynopsisTitleTextView.setTextColor(textTypeColor);
         mSynopsisTitleTextView.setBackgroundColor(backgroundColor);
+
+        // Stuff with Checkbox
+        mHeartState0or1 = data.getInt(DETAIL_INDEX_FAVORITE_FLAG);
+        mHeartCheckboxView.setChecked(mHeartState0or1.equals(HEART_TRUE));
+        ((CheckBox) mHeartCheckboxView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mHeartCheckboxView.isChecked()) {
+                    mHeartState0or1 = HEART_TRUE;
+                } else {
+                    mHeartState0or1 = HEART_FALSE;
+                }
+            }
+        });
 
     }
 

@@ -66,6 +66,16 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewTitleBackground"
             />
 
+        <CheckBox
+            android:id="@+id/checkbox_favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:button="@drawable/btn_heart_selector"
+            android:padding="16dp"
+            app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+            app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet"
+            />
+
         <TextView
             android:id="@+id/textViewRatingTitle"
             android:layout_width="0dp"
