@@ -39,6 +39,7 @@ import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
+import static app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry.FAVORITE_FLAG;
 import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getTypeOrderIn;
 
 public class MainActivity extends AppCompatActivity implements
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
             MovieEntry.TOP_RATED_ORDER_IN,
-            MovieEntry.FAVORITE_FLAG   // TODO: LOOKED AT USAGE
+            FAVORITE_FLAG   // TODO: LOOKED AT USAGE
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -242,12 +243,12 @@ public class MainActivity extends AppCompatActivity implements
         for (ContentValues currentContentValues : adaptersData) {
 
             Integer currentHeartState = currentContentValues.
-                    getAsInteger(MovieEntry.FAVORITE_FLAG);  // 0 || 1 // TODO: LOOKED AT USAGE
+                    getAsInteger(FAVORITE_FLAG);  // 0 || 1 // TODO: LOOKED AT USAGE
 
             String where = MovieEntry._ID + " = ? ";
             Long currentId = currentContentValues.getAsLong(MovieEntry._ID);
             String[] whereArgs = {"" + currentId};
-            heartsValues.put(MovieEntry.FAVORITE_FLAG, currentHeartState);  // TODO: LOOKED AT USAGE
+            heartsValues.put(FAVORITE_FLAG, currentHeartState);  // TODO: LOOKED AT USAGE
 
             getContentResolver().update(
                     MovieEntry.CONTENT_URI,
@@ -402,7 +403,7 @@ public class MainActivity extends AppCompatActivity implements
                                             MovieEntry.ORIGINAL_TITLE,
                                             MovieEntry.POPULAR_ORDER_IN,
                                             MovieEntry.TOP_RATED_ORDER_IN,
-                                            MovieEntry.FAVORITE_FLAG  // TODO: LOOKED AT USAGE
+                                            FAVORITE_FLAG  // TODO: LOOKED AT USAGE
                                     };
 
                                     // Preceding Projection and these final ints always MUST be in sync
@@ -423,8 +424,16 @@ public class MainActivity extends AppCompatActivity implements
                                             null
                                     );  // Do not need order for Set
 
+
+                                    String onlyExistsInFavorites
+                                            =  " OR  + ( "
+                                            + MovieEntry.POPULAR_ORDER_IN + " IS NULL AND "
+                                            + MovieEntry.TOP_RATED_ORDER_IN + " IS NULL AND "
+                                            + MovieEntry.FAVORITE_FLAG + " == 1 ) ";
+
                                     final String oppositeWhere = MainLoadingUtils
-                                            .findOppositeTypeOrderIns(getContext(), mCurrentViewType);
+                                            .findOppositeTypeOrderIns(getContext(), mCurrentViewType)
+                                            + onlyExistsInFavorites ;  // TODO: Check to see if OK
 
                                     Cursor idandTitleOppositeCursor = getContentResolver().query(
                                             MovieEntry.CONTENT_URI,
@@ -623,7 +632,7 @@ public class MainActivity extends AppCompatActivity implements
                                     MovieEntry.ORIGINAL_TITLE,
                                     MovieEntry.POPULAR_ORDER_IN,
                                     MovieEntry.TOP_RATED_ORDER_IN,
-                                    MovieEntry.FAVORITE_FLAG  // TODO: LOOKED AT USAGE
+                                    FAVORITE_FLAG  // TODO: LOOKED AT USAGE
                             };
 
                             String whereIDTypeAndOtherType_1 =
@@ -643,31 +652,33 @@ public class MainActivity extends AppCompatActivity implements
                             );
 
                             // If we already have a movie with the current viewType and others
-                            if (typeAndFirstCursor.moveToFirst()) {
+                            if (typeAndFirstCursor != null) {
+                                if (typeAndFirstCursor.moveToFirst()) {
 
-                                getContentResolver().update(
-                                        MovieEntry.CONTENT_URI,
-                                        movieContentValues[i],
-                                        whereIDTypeAndOtherType_1,
-                                        whereArgs
-                                );
+                                    getContentResolver().update(
+                                            MovieEntry.CONTENT_URI,
+                                            movieContentValues[i],
+                                            whereIDTypeAndOtherType_1,
+                                            whereArgs
+                                    );
 
-                            } else {  // So must have been the other type
+                                } else {  // So must have been the other type
 
-                                String whereIDTypeAndOtherType_2 =
-                                        MovieEntry._ID + " = ? AND "
-                                                + getTypeOrderIn(getContext(), mCurrentViewType)
-                                                + " IS NOT NULL AND "
-                                                + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn2);
+                                    String whereIDTypeAndOtherType_2 =
+                                            MovieEntry._ID + " = ? AND "
+                                                    + getTypeOrderIn(getContext(), mCurrentViewType)
+                                                    + " IS NOT NULL AND "
+                                                    + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn2);
 
-                                getContentResolver().update(
-                                        MovieEntry.CONTENT_URI,
-                                        movieContentValues[i],
-                                        whereIDTypeAndOtherType_2,
-                                        whereArgs
-                                );
+                                    getContentResolver().update(
+                                            MovieEntry.CONTENT_URI,
+                                            movieContentValues[i],
+                                            whereIDTypeAndOtherType_2,
+                                            whereArgs
+                                    );
+                                }
+                                typeAndFirstCursor.close();
                             }
-
                             /////////////
 
                         } else if (idOldSet.contains(newId)) {

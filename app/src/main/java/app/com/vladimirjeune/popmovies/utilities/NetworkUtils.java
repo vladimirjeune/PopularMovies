@@ -120,7 +120,7 @@ public final class NetworkUtils {
                 .build();
         try {
             URL singleMovieURL = new URL(singleMovieUri.toString());
-            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
+            Log.d(TAG, "buildURLForSingleMovie() returned: " + movieId + "  [ " + singleMovieURL + " ]");
             Log.d(TAG, "END::buildUrlForSingleMovie: ");
             return singleMovieURL;
         } catch (MalformedURLException me) {
