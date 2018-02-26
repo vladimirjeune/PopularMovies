@@ -39,6 +39,8 @@
     <!-- Text for Toasts and Snackbars -->
     <string name="snackbar_settings">SETTINGS</string>
     <string name="warning_snackbar_internet">No internet connection.\nEnable internet for updated data.</string>
+    <string name="toast_detail_favorite_on">Favorited: <xliff:g id="movieAdd">%1$s</xliff:g></string>
+    <string name="toast_detail_favorite_off">Unfavorited: <xliff:g id="movieRemove">%1$s</xliff:g></string>
 
     <!-- a11y -->
     <string name="a11y_poster">Poster for <xliff:g id="poster">%1$s</xliff:g></string>

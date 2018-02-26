@@ -5,7 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
+import android.view.View;
 
 import org.json.JSONException;
 
@@ -321,6 +323,18 @@ public final class MainLoadingUtils {
             }
         }
 //        Log.d(TAG, "END::getRuntimesForMoviesInList: ");
+    }
+
+
+    public static void toastColorForType(Context context, String viewType, View toastBackgroundLayout) {
+        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
+            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_orange));
+        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
+            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_blue));
+        } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
+            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_purple));
+
+        }
     }
 
 
