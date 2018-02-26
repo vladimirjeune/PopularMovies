@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -246,7 +247,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             // Make function to pick correct color
 //            MainLoadingUtils.toastColorForType(mContext, mViewType, mToastLayout);
-            toastColorForType();  //
+//            toastColorForType();  //
 
             mToastTextView = mToastLayout.findViewById(R.id.tv_toast);  //
 
@@ -255,39 +256,39 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mFavoriteToast.setView(mToastLayout);
 
 
-            // Heart: Will modify list to show whether heart on/off
-            ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    CheckBox checkBox = (CheckBox)view;
-                    Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
-
-                    if (thisId != null) {
-
-                        // Find CV of ID
-                        ContentValues foundCVs;
-
-                        for (int i = 0; i < mPosterAndIds.size(); i++) {
-                            if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
-                                    .equals(thisId)) {
-                                foundCVs = mPosterAndIds.get(i);
-                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
-                                    // TODO: Move; Get title for this position, set in string.
-                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, "Avengers: Age of Ultron"));
-                                    mFavoriteToast.show();
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
-                                } else {
-                                    mToastTextView.setText("Item Unfavorited");
-                                    mFavoriteToast.show();
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
-                                }
-                                break;  // FOUND IT
-                            }
-                        }
-
-                    }
-                }
-            });
+//            // Heart: Will modify list to show whether heart on/off
+//            ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    CheckBox checkBox = (CheckBox)view;
+//                    Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
+//
+//                    if (thisId != null) {
+//
+//                        // Find CV of ID
+//                        ContentValues foundCVs;
+//
+//                        for (int i = 0; i < mPosterAndIds.size(); i++) {
+//                            if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
+//                                    .equals(thisId)) {
+//                                foundCVs = mPosterAndIds.get(i);
+//                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
+//                                    // TODO: Move; Get title for this position, set in string.
+//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, "Avengers: Age of Ultron"));
+//                                    mFavoriteToast.show();
+//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
+//                                } else {
+//                                    mToastTextView.setText("Item Unfavorited");
+//                                    mFavoriteToast.show();
+//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
+//                                }
+//                                break;  // FOUND IT
+//                            }
+//                        }
+//
+//                    }
+//                }
+//            });
 
             itemView.setOnClickListener(this);  // For non-Heart part
         }
@@ -314,7 +315,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private void bindTo(ContentValues aPosterMovieData) {
 
             Long movieID = aPosterMovieData.getAsLong(MovieContract.MovieEntry._ID);
-            String movieTitle = aPosterMovieData.getAsString(MovieContract.MovieEntry.ORIGINAL_TITLE);
+            final String movieTitle = aPosterMovieData.getAsString(MovieContract.MovieEntry.ORIGINAL_TITLE);
             String moviePosterPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.POSTER_PATH);
             String movieBackdropPath = aPosterMovieData.getAsString(MovieContract.MovieEntry.BACKDROP_PATH);
             Integer movieFavoriteFlag = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_FLAG);   // TODO: LOOKED AT USAGE
@@ -351,13 +352,46 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 mListItemPosterView.setContentDescription(a11yPoster);
                 mListItemPosterView.setTag(movieID);  // This is the ID of the movie
 
-                // Toast
-//                toastColorForType();  //
 
                 // Set tag for button
                 mListItemButtonView.setTag(movieID);
                 mListItemButtonView.setChecked(movieFavoriteFlag.equals(FAVORITE_IN_TRUE));  // If MFI is MAX, Heart ON
 
+                // Heart: Will modify list to show whether heart on/off
+                ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        CheckBox checkBox = (CheckBox)view;
+                        Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
+
+                        if (thisId != null) {
+
+                            // Find CV of ID
+                            ContentValues foundCVs;
+
+                            for (int i = 0; i < mPosterAndIds.size(); i++) {
+                                if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
+                                        .equals(thisId)) {
+                                    foundCVs = mPosterAndIds.get(i);
+                                    if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
+                                        // TODO: Move; Get title for this position, set in string.
+                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
+                                        toastColorForType();
+                                        mFavoriteToast.show();
+                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
+                                    } else {
+                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+                                        toastColorForType();
+                                        mFavoriteToast.show();
+                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
+                                    }
+                                    break;  // FOUND IT
+                                }
+                            }
+
+                        }
+                    }
+                });
 
             }
         }
@@ -387,13 +421,19 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          * TOASTCOLORFORTYPE - Sets the Toast color for the type of View we are displaying
          */
         private void toastColorForType() {
+            Drawable toastDrawable;
             if (mViewType.equals(mContext.getString(R.string.pref_sort_popular))) {
-                mToastLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.toast_background_orange));
+                toastDrawable = ContextCompat.getDrawable(mContext, R.drawable.rounded_rectangle_toast);
+                toastDrawable.setColorFilter(ContextCompat.getColor(mContext, R.color.toast_background_orange), PorterDuff.Mode.SRC);
+                mToastLayout.setBackground(toastDrawable);  // BG
             } else if (mViewType.equals(mContext.getString(R.string.pref_sort_top_rated))) {
-                mToastLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.toast_background_blue));
+                toastDrawable = ContextCompat.getDrawable(mContext, R.drawable.rounded_rectangle_toast);
+                toastDrawable.setColorFilter(ContextCompat.getColor(mContext, R.color.toast_background_blue), PorterDuff.Mode.SRC);
+                mToastLayout.setBackground(toastDrawable);  // BG
             } else if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
-                mToastLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.toast_background_purple));
-
+                toastDrawable = ContextCompat.getDrawable(mContext, R.drawable.rounded_rectangle_toast);
+                toastDrawable.setColorFilter(ContextCompat.getColor(mContext, R.color.toast_background_purple), PorterDuff.Mode.SRC);
+                mToastLayout.setBackground(toastDrawable);  // BG
             }
         }
 
