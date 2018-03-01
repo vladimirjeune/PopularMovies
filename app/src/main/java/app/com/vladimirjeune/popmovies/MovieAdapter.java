@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -158,6 +159,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // Remember, the header took the 0th position.  Must make up for it so 0th position can get seen
         int correctedPosition = position - 1;
         if (mPosterAndIds != null) {
+            Log.d(TAG, "onBindViewHolder: position" + correctedPosition);
             ((PosterViewHolder) holder).bindTo(mPosterAndIds.get(correctedPosition));
         }
 
@@ -169,7 +171,13 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      */
     @Override
     public int getItemCount() {
-        return mNumberOfItems + 1;  // Making up for header taking up the 0
+
+        if (null != mPosterAndIds) {
+            return mPosterAndIds.size() + 1;  // + 1's make up for Header taking up the 0th position.
+        } else {
+            return mNumberOfItems + 1;
+        }
+
     }
 
     /**
@@ -255,41 +263,6 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mFavoriteToast.setDuration(Toast.LENGTH_SHORT);
             mFavoriteToast.setView(mToastLayout);
 
-
-//            // Heart: Will modify list to show whether heart on/off
-//            ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    CheckBox checkBox = (CheckBox)view;
-//                    Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
-//
-//                    if (thisId != null) {
-//
-//                        // Find CV of ID
-//                        ContentValues foundCVs;
-//
-//                        for (int i = 0; i < mPosterAndIds.size(); i++) {
-//                            if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
-//                                    .equals(thisId)) {
-//                                foundCVs = mPosterAndIds.get(i);
-//                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
-//                                    // TODO: Move; Get title for this position, set in string.
-//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, "Avengers: Age of Ultron"));
-//                                    mFavoriteToast.show();
-//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
-//                                } else {
-//                                    mToastTextView.setText("Item Unfavorited");
-//                                    mFavoriteToast.show();
-//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
-//                                }
-//                                break;  // FOUND IT
-//                            }
-//                        }
-//
-//                    }
-//                }
-//            });
-
             itemView.setOnClickListener(this);  // For non-Heart part
         }
 
@@ -321,7 +294,6 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Integer movieFavoriteFlag = aPosterMovieData.getAsInteger(MovieContract.MovieEntry.FAVORITE_FLAG);   // TODO: LOOKED AT USAGE
 
             // If there is no actual movie, use placeholder and leave
-//            if (aPosterMovieData.first < 0){
             if (movieID < 0){
                 mListItemPosterView.setImageDrawable(ContextCompat
                         .getDrawable(mContext, R.drawable.tmd_placeholder_poster));
@@ -330,12 +302,8 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             createRippleDrawableEffectMarshmallowUp();
 
-//            Pair<String, String> payload = aPosterMovieData.second;  // This gets you the interior Pair
-
-//            String title = payload.first;  // Set Title
             mListItemTextView.setText(movieTitle);
 
-//            String posterPath = payload.second;
             // Set Poster and Content Description
             if (moviePosterPath != null) {
                 String urlForPosterPath = NetworkUtils.buildURLForImage(moviePosterPath)
@@ -358,42 +326,86 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 mListItemButtonView.setChecked(movieFavoriteFlag.equals(FAVORITE_IN_TRUE));  // If MFI is MAX, Heart ON
 
                 // Heart: Will modify list to show whether heart on/off
-                ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        CheckBox checkBox = (CheckBox)view;
-                        Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
-
-                        if (thisId != null) {
-
-                            // Find CV of ID
-                            ContentValues foundCVs;
-
-                            for (int i = 0; i < mPosterAndIds.size(); i++) {
-                                if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
-                                        .equals(thisId)) {
-                                    foundCVs = mPosterAndIds.get(i);
-                                    if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
-                                        // TODO: Move; Get title for this position, set in string.
-                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
-                                        toastColorForType();
-                                        mFavoriteToast.show();
-                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
-                                    } else {
-                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
-                                        toastColorForType();
-                                        mFavoriteToast.show();
-                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
-                                    }
-                                    break;  // FOUND IT
-                                }
-                            }
-
-                        }
-                    }
-                });
+                setClickListenerOnHeart(movieTitle);
 
             }
+        }
+
+        /**
+         * SETCLICKLISTENERONHEART - Sets ClickListener for Favorite Heart
+         * @param movieTitle - Needed for Toast
+         */
+        private void setClickListenerOnHeart(final String movieTitle) {
+            ((CheckBox)mListItemButtonView).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CheckBox checkBox = (CheckBox)view;
+                    Long thisId = (Long) checkBox.getTag();  // The Movie id that was set
+
+                    if ((thisId != null) && (thisId >= 0)) {  // TODO: Make resilient to no internet by also only working if ID >= 0
+
+                        // Find CV of ID
+                        ContentValues foundCVs;
+
+                        for (int i = 0; i < mPosterAndIds.size(); i++) {
+                            if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
+                                    .equals(thisId)) {
+                                foundCVs = mPosterAndIds.get(i);
+                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
+
+                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
+                                    toastColorForType();
+                                    mFavoriteToast.show();
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
+
+                                    buttonDBUpdate(thisId, FAVORITE_IN_TRUE);
+
+                                } else {
+                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+                                    toastColorForType();
+                                    mFavoriteToast.show();
+                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
+
+                                    // You can remove favorites in the list by unHearting
+                                    if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
+                                        mPosterAndIds.remove(i);
+
+                                        notifyItemRemoved(i + 1);  // +1 necessary because of HeaderView, at position 0
+
+                                        notifyItemRangeChanged(1, mPosterAndIds.size() - 1);  // Started at 1 to avoid HeaderView, but didn't test
+                                        Log.d(TAG, "onClick() called with: view = [" + view + "]\nPoster List size inside Fav If after remove : " +
+                                        mPosterAndIds.size() + "\nPosition removed is " + i );
+                                    }
+
+                                    buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
+                                }
+                                break;  // FOUND IT
+                            }
+                        }
+
+                    }
+                }
+
+            });
+        }
+
+        /**
+         * BUTTONDBUPDATE - Will update the DB with the current Favorites Value (0|1)
+         * @param thisId - ID of movie we are updating
+         * @param favorite0Or1 - Whether the Hear is On or Off
+         */
+        private void buttonDBUpdate(Long thisId, Integer favorite0Or1) {
+            String where = MovieContract.MovieEntry._ID + " = ? " ;
+            String[] whereArgs = {"" + thisId};
+            ContentValues heartsValues = new ContentValues();
+            heartsValues.put(MovieContract.MovieEntry.FAVORITE_FLAG, favorite0Or1);
+
+            mContext.getContentResolver().update(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    heartsValues,
+                    where,
+                    whereArgs
+            );
         }
 
         /**

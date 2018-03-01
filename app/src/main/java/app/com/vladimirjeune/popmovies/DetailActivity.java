@@ -165,7 +165,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         /**
          * ONPREPARELOAD - Shown if placeholder called and we are waiting for
-         * the image to arrive.  May be shown until image arrives of we error out.
+         * the image to arrive.  May be shown until image arrives or we error out.
          * @param placeHolderDrawable - Image to show in this case
          */
         @Override
