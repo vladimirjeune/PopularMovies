@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -395,11 +396,58 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          * @param favorite0Or1 - Whether the Hear is On or Off
          */
         private void buttonDBUpdate(Long thisId, Integer favorite0Or1) {
+            Integer favoriteOn = 1;
             String where = MovieContract.MovieEntry._ID + " = ? " ;
             String[] whereArgs = {"" + thisId};
             ContentValues heartsValues = new ContentValues();
             heartsValues.put(MovieContract.MovieEntry.FAVORITE_FLAG, favorite0Or1);
 
+            // If Type is NOT Favorites OR it IS but we are turning Favorites on, NORMAL
+            if (!(mViewType.equals(mContext.getString(R.string.pref_sort_favorite)))
+                    || (favorite0Or1.equals(favoriteOn))) {
+                updateSQL(where, whereArgs, heartsValues);
+            } else {  // We are FavType and we are turning Heart OFF
+
+                String[] favElseProjections =
+                        new String[] {MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
+                String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
+                        + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
+                        + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
+
+                // Search for other links that would delay deletion
+                Cursor hasOtherTypesCursor = mContext.getContentResolver().query(
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        favElseProjections,
+                        favElseWhere,
+                        new String[] {""+thisId},
+                        null
+                );
+
+                // If has other types, then update
+                if ((hasOtherTypesCursor != null)
+                        && (hasOtherTypesCursor.moveToFirst())) {
+                    updateSQL(where, whereArgs, heartsValues);
+                } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
+                    mContext.getContentResolver().delete(
+                            MovieContract.MovieEntry.CONTENT_URI,
+                            where,
+                            whereArgs);
+                }
+
+                if (hasOtherTypesCursor != null) {
+                    hasOtherTypesCursor.close();
+                }
+            }
+
+        }
+
+        /**
+         * UPDATESQL - Used in buttonUpdate
+         * @param where - Where clause
+         * @param whereArgs - Where arguments
+         * @param heartsValues - Whether Heart should be on or off
+         */
+        private void updateSQL(String where, String[] whereArgs, ContentValues heartsValues) {
             mContext.getContentResolver().update(
                     MovieContract.MovieEntry.CONTENT_URI,
                     heartsValues,

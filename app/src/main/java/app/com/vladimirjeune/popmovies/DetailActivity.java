@@ -88,6 +88,12 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTitleTextView;
     private TextView mRuntimeTitleTextView;
 
+//    private final DetailUnFavoritedHandler mDetailUnfavoritedHandler ;
+//
+//    public interface DetailUnFavoritedHandler {
+//        void onUnFavorite(boolean isFavorite);
+//    }
+
 
     private final Target mTarget = new Target() {
         @Override
@@ -238,7 +244,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     }
 
     /**
-     * ONCREATELOADER - Makes and returns a CursoLoader that loads the data for our URI and stores it in a Cursor.
+     * ONCREATELOADER - Makes and returns a CursorLoader that loads the data for our URI and stores it in a Cursor.
      * @param loaderId - Loader ID should be the ID for the loader we need to create
      * @param loaderArgs - Arguments supplied by the caller
      * @return  New Loader instance that is ready to start loading.
