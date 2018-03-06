@@ -29,6 +29,7 @@ import com.squareup.picasso.Target;
 
 import java.net.URL;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
@@ -190,13 +191,66 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         super.onPause();
 
 
+    }
+
+    /**
+     * SQLUPDATEORDELETE - Updates this movie in the database or Deletes it under the special
+     * circumstance that it is a Favorite without any other type affiliations and is unHearted.
+     */
+    private void sqlUpdateOrDelete() {
         ContentValues heartContentValues = new ContentValues();
         heartContentValues.put(MovieEntry.FAVORITE_FLAG, mHeartState0or1);
         String where = MovieEntry._ID + " = ? ";
         String[] whereArgs = {"" + mIDForMovie};
 
-        Log.i(TAG, "onPause: DetailActivity called. Heart state is: " + ((mHeartState0or1 == 1) ? "[TRUE]" : "[FALSE]"));
+        Log.i(TAG, "sqlUpdateOrDelete: DetailActivity called. Heart state is: " + ((mHeartState0or1 == 1) ? "[TRUE]" : "[FALSE]"));
 
+        // If ViewType is NOT Favorite or we are turning Heart On
+        if ((! mViewType.equals(getString(R.string.pref_sort_favorite)))
+                || (mHeartState0or1.equals(HEART_TRUE))) {
+            simpleUpdate(heartContentValues, where, whereArgs);
+        } else {
+            String[] favElseProjections =
+                    new String[] {MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
+            String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
+                    + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
+                    + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
+
+            // Search for other links that would delay deletion
+            Cursor hasOtherTypesCursor = getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    favElseProjections,
+                    favElseWhere,
+                    new String[] { "" + mIDForMovie},
+                    null
+            );
+
+            // If has other types, then update
+            if ((hasOtherTypesCursor != null)
+                    && (hasOtherTypesCursor.moveToFirst())) {
+                simpleUpdate(heartContentValues, where, whereArgs);
+            } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
+                getContentResolver().delete(
+                        MovieContract.MovieEntry.CONTENT_URI,
+                        where,
+                        whereArgs);  // TODO: Maybe set a boolean that will be returned to Main saying delete this ID and restartLoader
+            }
+
+            if (hasOtherTypesCursor != null) {
+                hasOtherTypesCursor.close();
+            }
+
+
+        }
+    }
+
+    /**
+     * SIMPLEUPDATE - Does a simple update to the database.  Is used by another function
+     * @param heartContentValues - ContentValues for update
+     * @param where - Selection Clause
+     * @param whereArgs - Arguments for Selection clause
+     */
+    private void simpleUpdate(ContentValues heartContentValues, String where, String[] whereArgs) {
         getContentResolver().update(
                 MovieEntry.CONTENT_URI,
                 heartContentValues,
@@ -344,8 +398,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             public void onClick(View view) {
                 if (mHeartCheckboxView.isChecked()) {
                     mHeartState0or1 = HEART_TRUE;
+                    sqlUpdateOrDelete();
                 } else {
                     mHeartState0or1 = HEART_FALSE;
+                    sqlUpdateOrDelete();
                 }
             }
         });
