@@ -264,6 +264,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);  // May be needed for Result
+
         Intent movieIntent = getIntent();
 
         mUri = movieIntent.getData();
@@ -464,6 +466,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Intent startAboutIntent = new Intent(this, AboutActivity.class);
             startActivity(startAboutIntent);
             return true;                     // We found it, stop looking
+        } else if (itemId == android.R.id.home) {
+            onBackPressed();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);  // Keep looking
