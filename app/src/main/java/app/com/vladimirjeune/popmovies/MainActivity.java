@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -52,7 +53,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
     public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a String
 
-    private static final boolean DEVELOPER_MODE = false; /** EN/DIS-ABLE String Mode**/
+    private static final boolean DEVELOPER_MODE = false;    /** EN/DIS-ABLE String Mode**/
+    public static final int DETAIL_CODE = 69;
 
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
@@ -795,9 +797,26 @@ public class MainActivity extends AppCompatActivity implements
         Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
         movieDetailIntent.setData(movieDataUri);
         movieDetailIntent.putExtra(EXTRA_TYPE, mCurrentViewType);
-        startActivity(movieDetailIntent);
+//        startActivity(movieDetailIntent);
+        startActivityForResult(movieDetailIntent, DETAIL_CODE);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == DETAIL_CODE) {
+
+            if (resultCode == Activity.RESULT_OK) {
+                long[] detailResults = data.getLongArrayExtra(DetailActivity.DETAIL_ACTIVITY_RETURN);
+                showLoading();
+                loadPreferredMovieList();
+                Log.d(TAG, "onActivityResult() called with: requestCode = [" + requestCode + "], resultCode = [" + resultCode + "], data = [" + data + "], ["
+                + detailResults[0] +" ], [" + detailResults[1] + "]");
+            }
+
+        }
+    }
 
     /**
      * SHOWLOADING - Shows the loading indicator and hides the posters.  This shoule be

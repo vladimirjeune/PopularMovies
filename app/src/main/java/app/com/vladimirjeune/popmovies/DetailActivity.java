@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -34,6 +35,8 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    public static final String DETAIL_ACTIVITY_RETURN =  "app.com.vladimirjeune.popmovies.DETAILACTIVITYRETURN" ;
 
     private static final int DETAIL_LOADER_ID = 117;
 
@@ -467,7 +470,13 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             startActivity(startAboutIntent);
             return true;                     // We found it, stop looking
         } else if (itemId == android.R.id.home) {
+
+            Intent detailResultIntent = new Intent();
+            detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
+            setResult(Activity.RESULT_OK, detailResultIntent);
+
             onBackPressed();
+
             return true;
         }
 
