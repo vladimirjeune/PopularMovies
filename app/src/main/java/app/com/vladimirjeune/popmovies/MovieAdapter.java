@@ -352,39 +352,98 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             if (mPosterAndIds.get(i).getAsLong(MovieContract.MovieEntry._ID)
                                     .equals(thisId)) {
                                 foundCVs = mPosterAndIds.get(i);
-                                if (checkBox.isChecked()) {  // CVs are like HashMaps, same key for value will be replaced
+                                toastColorForType();
+                                boolean isChecked = checkBox.isChecked();
 
-                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
-                                    toastColorForType();
-                                    mFavoriteToast.show();
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
+                                if (isChecked) {  // CVs are like HashMaps, same key for value will be replaced
 
-                                    buttonDBUpdate(thisId, FAVORITE_IN_TRUE);
+//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
+//                                    mFavoriteToast.show();
+//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
+//                                    buttonDBUpdate(thisId, FAVORITE_IN_TRUE);
+
+                                    updateHearts(true, thisId, foundCVs);
 
                                 } else {
-                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
-                                    toastColorForType();
-                                    mFavoriteToast.show();
-                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
 
-                                    // You can remove favorites in the list by unHearting
-                                    if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
-                                        mPosterAndIds.remove(i);
+                                    if (!(mViewType.equals(mContext.getString(R.string.pref_sort_favorite)))) {
+                                        // Needed to be here so can be avoided if the user cancels the removal in the Favorite case
+//                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+//                                        mFavoriteToast.show();
+//                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);
+//                                        buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
 
-                                        notifyItemRemoved(i + 1);  // +1 necessary because of HeaderView, at position 0
+                                        updateHearts(false, thisId, foundCVs);
 
-                                        notifyItemRangeChanged(1, mPosterAndIds.size() - 1);  // Started at 1 to avoid HeaderView, but didn't test
-                                        Log.d(TAG, "onClick() called with: view = [" + view + "]\nPoster List size inside Fav If after remove : " +
-                                        mPosterAndIds.size() + "\nPosition removed is " + i );
+                                    } else if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
+                                        // TODO: See if works out of order.  If so can reduce amount of duplication. So 1 f() above and 2 here
+//                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+//                                        mFavoriteToast.show();
+//                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
+//                                        buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
+                                        updateHearts(false, thisId, null);  // TODO: If works put in other clauses, without default values
+                                        removeAndNotifyFromDataList(i);
                                     }
 
-                                    buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
+
+
+//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+//                                    mFavoriteToast.show();
+//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
+//
+//                                    // You can remove favorites in the list by unHearting
+//                                    if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
+//                                        removeAndNotifyFromDataList(view, i);
+//                                    }
+//
+//                                    buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
                                 }
                                 break;  // FOUND IT
                             }
                         }
 
                     }
+                }
+
+
+                /**
+                 * REMOVEANDNOTIFYFROMDATALIST - Removes this index from the datalist and notifies the Adapter that
+                 * things have changed.  Takes into account the HeaderView that otherwise throws off the calculations
+                 * @param index - Index of movie being removed in datalist
+                 */
+                private void removeAndNotifyFromDataList(int index) {
+                    mPosterAndIds.remove(index);
+                    notifyItemRemoved(index + 1);  // +1 necessary because of HeaderView, at position 0
+                    notifyItemRangeChanged(1, mPosterAndIds.size() - 1);  // Started at 1 to avoid HeaderView, but didn't test
+                    Log.d(TAG, "onClick() called with: Poster List size inside Fav If after remove : " +
+                    mPosterAndIds.size() + "\nPosition removed is " + index );
+                }
+
+
+                /**
+                 * UPDATEHEARTS - Updates data that shows heart state and displays message when user
+                 * changes its state
+                 * @param isChecked - Whether the heart is checked or not
+                 * @param thisId - Id of movie that is being un/favorited
+                 * @param foundCVs - ContentValues will be used to change heart state, if needed
+                 */
+                private void updateHearts(boolean isChecked, long thisId, ContentValues foundCVs) {
+                    String toastString = (isChecked
+                            ? mContext.getString(R.string.toast_detail_favorite_on, movieTitle)
+                            : mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
+
+                    Integer favoriteIn0Or1 = (isChecked
+                            ? FAVORITE_IN_TRUE
+                            : FAVORITE_IN_FALSE);
+
+                    mToastTextView.setText(toastString);
+                    mFavoriteToast.show();
+
+                    if (foundCVs != null) {  // Not needed if we are removing favorite in MainActivity
+                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, favoriteIn0Or1);  // False == 0   // TODO: LOOKED AT USAGE
+                    }
+
+                    buttonDBUpdate(thisId, favoriteIn0Or1);
                 }
 
             });
@@ -396,7 +455,7 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          * @param favorite0Or1 - Whether the Hear is On or Off
          */
         private void buttonDBUpdate(Long thisId, Integer favorite0Or1) {
-            Integer favoriteOn = 1;
+            final Integer favoriteOn = 1;
             String where = MovieContract.MovieEntry._ID + " = ? " ;
             String[] whereArgs = {"" + thisId};
             ContentValues heartsValues = new ContentValues();

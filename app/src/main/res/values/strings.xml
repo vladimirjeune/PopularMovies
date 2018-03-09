@@ -42,8 +42,13 @@
     <string name="toast_detail_favorite_on">Favorited: <xliff:g id="movieAdd">%1$s</xliff:g></string>
     <string name="toast_detail_favorite_off">Unfavorited: <xliff:g id="movieRemove">%1$s</xliff:g></string>
 
+    <!-- Dialogs -->
+    <string name="dialog_remove_favorite">Remove movie from favorites?</string>
+
     <!-- a11y -->
     <string name="a11y_poster">Poster for <xliff:g id="poster">%1$s</xliff:g></string>
     <string name="a11y_tmdb_logo">The Movie Database Logo</string>
+    <string name="dialog_remove_button">REMOVE</string>
+    <string name="dialog_cancel_button">CANCEL</string>
 
 </resources>

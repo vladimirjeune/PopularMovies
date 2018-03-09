@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -46,7 +47,7 @@ import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getType
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
         LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>,
-        MovieAdapter.MovieOnClickHandler {
+        MovieAdapter.MovieOnClickHandler, RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
@@ -865,4 +866,28 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
+    /**
+     * SHOWREMOVEFAVORITEDIALOG - Will create an instance of the dialog fragment and then
+     * show it.
+     */
+    public void showRemoveFavoriteDialog() {
+        DialogFragment dialogFragment = new RemoveFavoriteDialogFragment();
+        dialogFragment.show(getSupportFragmentManager()
+                , RemoveFavoriteDialogFragment.REMOVEFAVORITEDIALOG_TAG);
+    }
+
+    @Override
+    public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+        // TODO: If you want to continue with adding this to Main
+        // You need to pull the appropriate functions out of PosterViewHolder and
+        // into the Adapter so you can call them from here.  Or recreate the functionality
+        // in Main since you have access to adapter and database here.
+        // Remember; there is only one specific situation when this would be called
+        // So there would not need to be as many conditionals as there are in the RecyclerView
+    }
+
+    @Override
+    public void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+
+    }
 }

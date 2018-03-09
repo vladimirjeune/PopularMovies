@@ -471,9 +471,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return true;                     // We found it, stop looking
         } else if (itemId == android.R.id.home) {
 
-            Intent detailResultIntent = new Intent();
-            detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
-            setResult(Activity.RESULT_OK, detailResultIntent);
+//            Intent detailResultIntent = new Intent();
+//            detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
+//            setResult(Activity.RESULT_OK, detailResultIntent);
 
             onBackPressed();
 
@@ -481,5 +481,15 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         return super.onOptionsItemSelected(item);  // Keep looking
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        Intent detailResultIntent = new Intent();
+        detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
+        setResult(Activity.RESULT_OK, detailResultIntent);
+
+        super.onBackPressed();
     }
 }
