@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
@@ -34,7 +35,8 @@ import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
-public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+        RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
     public static final String DETAIL_ACTIVITY_RETURN =  "app.com.vladimirjeune.popmovies.DETAILACTIVITYRETURN" ;
 
@@ -405,8 +407,13 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     mHeartState0or1 = HEART_TRUE;
                     sqlUpdateOrDelete();
                 } else {
-                    mHeartState0or1 = HEART_FALSE;
-                    sqlUpdateOrDelete();
+                    if (!(mViewType.equals(getString(R.string.pref_sort_favorite)))) {
+                        mHeartState0or1 = HEART_FALSE;
+                        sqlUpdateOrDelete();
+                    } else {
+                        mHeartCheckboxView.setChecked(true);  // Will have to set to false later, if necessary
+                        showRemoveFavoriteDialog();
+                    }
                 }
             }
         });
@@ -471,10 +478,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return true;                     // We found it, stop looking
         } else if (itemId == android.R.id.home) {
 
-//            Intent detailResultIntent = new Intent();
-//            detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
-//            setResult(Activity.RESULT_OK, detailResultIntent);
-
             onBackPressed();
 
             return true;
@@ -491,5 +494,42 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         setResult(Activity.RESULT_OK, detailResultIntent);
 
         super.onBackPressed();
+    }
+
+
+    /**
+     * SHOWREMOVEFAVORITEDIALOG - Will create an instance of the dialog fragment and then
+     * show it.
+     */
+    public void showRemoveFavoriteDialog() {
+        Log.v(TAG, "showRemoveFavoriteDialog: ");
+
+        // Do not use Constructor, it is empty
+        DialogFragment dialogFragment =  RemoveFavoriteDialogFragment.newInstance(mIDForMovie);
+        dialogFragment.show(getSupportFragmentManager()
+                , RemoveFavoriteDialogFragment.REMOVEFAVORITEDIALOG_TAG);
+    }
+
+
+    @Override
+    public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+        Log.d(TAG, "onDialogAffirmativeClick() called with: dialogFragment = [" + dialogFragment + "]");
+        mHeartState0or1 = HEART_FALSE;           // Set the Heart state to OFF
+        mHeartCheckboxView.setChecked(false);    // Set Checkbox to visibly OFF
+        mHeartCheckboxView.setEnabled(false);    // Disable Heart 'cause in some cases film won't be available to be refavorited
+        sqlUpdateOrDelete();                     // Set DB state to reflect choice.  Sometimes movie will be removed from DB entirely
+        dialogFragment.dismiss();
+    }
+
+
+    @Override
+    public void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+        Log.d(TAG, "onDialogNegativeClick() called with: dialogFragment = [" + dialogFragment + "]");
+
+//        Bundle bundle = dialogFragment.getArguments();
+//        long id = bundle.getLong(RemoveFavoriteDialogFragment.THEMOVIEID);
+
+        mHeartState0or1 = HEART_TRUE;  // Reset Heart state, since we are not removing this film
+        dialogFragment.dismiss();
     }
 }

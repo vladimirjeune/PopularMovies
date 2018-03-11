@@ -47,7 +47,8 @@ import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getType
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
         LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>,
-        MovieAdapter.MovieOnClickHandler, RemoveFavoriteDialogFragment.RemoveFavoriteListener {
+        MovieAdapter.MovieOnClickHandler,
+        RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
