@@ -541,31 +541,31 @@ public final class MainLoadingUtils {
                     popTopFavArr = connections(context, deleteThisId, viewType);
                     if (popTopFavArr != null) {  // Null condition should not occur
 
-                        // Counting the number of types this ID is associate with
-                        int cnt = getNumberOfTypesForID(popTopFavArr);
-
-                        if (cnt > threshold) {  // If we are more than just the current type, update
+//                         Counting the number of types this ID is associate with
+//                        int cnt = getNumberOfTypesForID(popTopFavArr);
+//
+//                        if (cnt > threshold) {  // If we are more than just the current type, update
                             ContentValues eraseValues = new ContentValues();
                             eraseValues.putNull(getTypeOrderIn(context, viewType));
                             String where = MovieEntry._ID + " = ? ";
-                            String[] whearArgs = new String[] {"" + deleteThisId};
+                            String[] whereArgs = new String[] {"" + deleteThisId};
 
                             context.getContentResolver().update(
                                     MovieEntry.CONTENT_URI,
                                     eraseValues,
                                     where,
-                                    whearArgs
+                                    whereArgs
                             );
 
-                        } else {
-                            context.getContentResolver().delete(
-                                    MovieEntry.buildUriWithMovieId(deleteThisId),
-                                    null,
-                                    null
-                            );
-                        }
+//                        }
 
-                    }  // End of PopFavArr NULL check
+                    } else {  // There are no extra viewTypes for this ID
+                        context.getContentResolver().delete(
+                                MovieEntry.buildUriWithMovieId(deleteThisId),
+                                null,
+                                null
+                        );
+                    }
 
             }  // END OF FOR
 
