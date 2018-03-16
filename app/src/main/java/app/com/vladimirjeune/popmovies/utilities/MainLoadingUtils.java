@@ -13,6 +13,7 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.R;
@@ -26,6 +27,8 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 public final class MainLoadingUtils {
 
     private static final String TAG = MainLoadingUtils.class.getSimpleName();
+    private static final int FAVORITE_FALSE = 0;
+    private static final int FAVORITE_TRUE = 1;
 
 
     /**
@@ -236,7 +239,7 @@ public final class MainLoadingUtils {
      * FINDOPPOSITETYPEORDERINS - Creates String for a WHERE statement that consists of an OR for
      * OrderIns of types that are not the one that is passed in.
      * @param context - Needed for function calls
-     * @param viewType - The current ViewType we are dealing with from calling function
+     * @param viewType - The current ViewType we are dealing with from calling function.  Pop|Top ONLY
      * @return String - For WHERE clause ORing the 2 OrderIns from the opposing types
      */
     public static String findOppositeTypeOrderIns(Context context, String viewType) {
@@ -253,14 +256,14 @@ public final class MainLoadingUtils {
      * check for the presence of certain View Types for a Movie.  Handles Strings that need to be
      * compared to ints and nulls.
      *
-     * @param otherTypeIn1 - A View Type Order, or Flag whose presence indicates Movie Type
+     * @param otherTypeIn - A View Type Order, or Flag whose presence indicates Movie Type
      * @return String - String for a Where clause to check for presence of this type in Movie
      */
     @NonNull
-    public static String getOtherOrderInWhereString(String otherTypeIn1) {
-        return otherTypeIn1 + (
-                (otherTypeIn1.equals(MovieEntry.POPULAR_ORDER_IN)
-                        || (otherTypeIn1.equals(MovieEntry.TOP_RATED_ORDER_IN)))
+    public static String getOtherOrderInWhereString(String otherTypeIn) {
+        return otherTypeIn + (
+                (otherTypeIn.equals(MovieEntry.POPULAR_ORDER_IN)
+                        || (otherTypeIn.equals(MovieEntry.TOP_RATED_ORDER_IN)))
                         ? " IS NOT NULL " : " == 1 ");
     }
 
@@ -335,6 +338,324 @@ public final class MainLoadingUtils {
             toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_purple));
 
         }
+    }
+
+    /**
+     * CURRENTDBIDS - Returns a set of the IDs that exist in the entirety of the Databasae.
+     * @param context - Needed for functions calls
+     * @return - Set of ID in the database
+     */
+    public static Set<Long> currentDBIDs(Context context) {
+        Set<Long> retVal = null;
+        final int ID_INDEX = 0;
+
+        String[] idRelevantColumns = {
+                MovieEntry._ID
+        };
+
+        Cursor idCursor = context.getContentResolver().query(
+                MovieEntry.CONTENT_URI,
+                idRelevantColumns,
+                null,
+                null,
+                null
+        );
+
+        if (idCursor != null) {
+            retVal = new HashSet<>();
+
+            if (idCursor.moveToFirst()) {
+
+//                int i = 0;
+                do {
+                    retVal.add(idCursor.getLong(ID_INDEX));
+                } while(idCursor.moveToNext()) ;
+
+            }
+
+            idCursor.close();
+        }
+
+        return retVal;
+    }
+
+
+    /**
+     * CURRENTDBIDSOFTYPE - Returns a set of the IDs that exist in the entirety of the Databasae.
+     * @param context - Needed for functions calls
+     * @param viewType - Should ONLY be either POPULAR or TOP_RATED
+     * @return - Set of ID in the database of this particular type passed in
+     */
+    public static Set<Long> currentDBIDsOfType(Context context, String viewType) {
+        Set<Long> retVal = new HashSet<>();
+        final int ID_INDEX = 0;
+        String typeOrderIn = getTypeOrderIn(context, viewType);
+
+        String[] idRelevantColumns = {
+                MovieEntry._ID
+        };
+
+        Cursor idCursor = context.getContentResolver().query(
+                MovieEntry.CONTENT_URI,
+                idRelevantColumns,
+                typeOrderIn + " IS NOT NULL ",
+                null,
+                null
+        );
+
+        if (idCursor != null) {
+
+            if (idCursor.moveToFirst()) {
+
+//                int i = 0;
+                do {
+                    retVal.add(idCursor.getLong(ID_INDEX));
+                } while(idCursor.moveToNext()) ;
+
+            }
+
+            idCursor.close();
+        }
+
+        return retVal;
+    }
+
+
+    /**
+     * INCOMINGIDS - Creates Set of IDs of the incoming movies
+     * @param movieContentValues - Incoming movies data
+     * @return - Set<Long> - Set of incoming Movie IDs
+     */
+    public static Set<Long> incomingIDs(ContentValues movieContentValues[]) {
+        Set<Long> incomingMovieIds = new HashSet<>();
+
+        for (int i = 0; i < movieContentValues.length; i++) {
+            incomingMovieIds.add(movieContentValues[i].getAsLong(MovieEntry._ID));
+        }
+
+        return incomingMovieIds;
+    }
+
+
+    /**
+     * CONNECTIONS - Tells whether the inputted ID has connections to types other than the one that
+     * is inputted.  So, if it a Top Rated movie is also a Favorite or Popular.
+     * @param context - Needed for function calls
+     * @param anId - ID of movie under review.  Assumed to be a valid ID
+     * @param aType - Type of the ID that we are looking for.  This is assumed to be correctly inputted
+     * @return - boolean[] - Returns NULL if no other connections because all titles should have at least one,
+     * and a 3-size array otherwise [POP] [TOP] [FAV]
+     */
+    public static boolean[] connections(Context context, Long anId, String aType) {
+        boolean[] popTopFavoritesArr = null;
+
+        String[] projection = new String[]{
+                MovieEntry._ID,
+                MovieEntry.ORIGINAL_TITLE,
+                MovieEntry.POPULAR_ORDER_IN,
+                MovieEntry.TOP_RATED_ORDER_IN,
+                MovieEntry.FAVORITE_FLAG
+        };
+
+        String[] selectionArgs = new String[] {""+ anId};
+
+        // Should return 1 value because of ID
+        Cursor cursor = context.getContentResolver().query(
+                MovieEntry.CONTENT_URI,
+                projection,
+                MovieEntry._ID + " = ? AND "
+                + findOppositeTypeOrderIns(context, aType),
+                selectionArgs,
+                null
+        );
+
+        if (cursor != null) {
+
+            if (cursor.moveToFirst()) {
+
+                // Want to know what views are associated with this Cursor
+                popTopFavoritesArr = typesForCursor(context, aType, cursor);
+            }
+
+            cursor.close();
+        }
+
+        return popTopFavoritesArr;
+    }
+
+
+    /**
+     * TYPESFORCURSOR - Tells what types are connected to the passed in Cursor
+     * @param context - Needed for function calls
+     * @param aType - The ViewType of this Cursor
+     * @param cursor - Will be searched for associated ViewTypes
+     */
+    private static boolean[] typesForCursor(Context context, String aType, Cursor cursor) {
+        boolean[] popTopFavoritesArr = new boolean[3];
+
+        int popIndex = cursor.getColumnIndex(MovieEntry.POPULAR_ORDER_IN);
+        int topIndex = cursor.getColumnIndex(MovieEntry.TOP_RATED_ORDER_IN);
+        int favIndex = cursor.getColumnIndex(MovieEntry.FAVORITE_FLAG);
+
+        final int popularPosition = 0;
+        final int topratedPosition = 1;
+        final int favoritePosition = 2;
+        // https://stackoverflow.com/questions/8063768/inserting-null-as-integer-value-into-a-database
+        // https://stackoverflow.com/questions/18054182/getting-null-ints-from-sqlite-in-android
+
+        // TODO: Need to avoid the TYPE THAT WE ARE
+        if (aType.equals(context.getString(R.string.pref_sort_popular))) {
+            popTopFavoritesArr[popularPosition] = true;
+            popTopFavoritesArr[topratedPosition] = (!(cursor.isNull(topIndex)));
+            popTopFavoritesArr[favoritePosition] = (cursor.getInt(favIndex) == FAVORITE_TRUE);
+        } else if (aType.equals(context.getString(R.string.pref_sort_top_rated))) {
+            popTopFavoritesArr[popularPosition] = (!(cursor.isNull(popIndex)));
+            popTopFavoritesArr[topratedPosition] = true;
+            popTopFavoritesArr[favoritePosition] = (cursor.getInt(favIndex) == FAVORITE_TRUE);
+        } else if (aType.equals(context.getString(R.string.pref_sort_favorite))) {
+            popTopFavoritesArr[popularPosition] = (!(cursor.isNull(popIndex)));
+            popTopFavoritesArr[topratedPosition] = (!(cursor.isNull(topIndex)));
+            popTopFavoritesArr[favoritePosition] = true;
+        }
+
+        return popTopFavoritesArr;
+    }
+
+
+    /**
+     * DELETEUPDATEIDSOFTYPE - Will delete or update IDs in the passed in Set in the Database as necessary
+     * @param context - Needed for function calls
+     * @param viewType - What type we are working on now
+     * @param deleteOfTypeSet - Set of IDs to be deleted or updated, if any
+     * @param incomingMovieContentValues - Incoming list of movies
+     */
+    public static void deleteUpdateIDsOfType(Context context, String viewType,
+                                             Set<Long> deleteOfTypeSet, ContentValues[] incomingMovieContentValues) {
+        final int threshold = 1;  // Each Movie is at least its own type
+
+        if ((deleteOfTypeSet != null) && (deleteOfTypeSet.size() > 0)) {
+
+                for (Long deleteThisId : deleteOfTypeSet) {
+                    boolean[] popTopFavArr = null;
+
+                    popTopFavArr = connections(context, deleteThisId, viewType);
+                    if (popTopFavArr != null) {  // Null condition should not occur
+
+                        // Counting the number of types this ID is associate with
+                        int cnt = getNumberOfTypesForID(popTopFavArr);
+
+                        if (cnt > threshold) {  // If we are more than just the current type, update
+                            ContentValues eraseValues = new ContentValues();
+                            eraseValues.putNull(getTypeOrderIn(context, viewType));
+                            String where = MovieEntry._ID + " = ? ";
+                            String[] whearArgs = new String[] {"" + deleteThisId};
+
+                            context.getContentResolver().update(
+                                    MovieEntry.CONTENT_URI,
+                                    eraseValues,
+                                    where,
+                                    whearArgs
+                            );
+
+                        } else {
+                            context.getContentResolver().delete(
+                                    MovieEntry.buildUriWithMovieId(deleteThisId),
+                                    null,
+                                    null
+                            );
+                        }
+
+                    }  // End of PopFavArr NULL check
+
+            }  // END OF FOR
+
+        }
+
+    }
+
+
+    /**
+     * UPDATEIDSAGAINSTWHOLEDB - Takes set of UpdateIDs and updates them in the DB, without respect to viewType.
+     * The ViewType updated will automatically match the incoming movies viewType, and should leave the orderIn
+     * information of the other viewTypes alone.  So, if Pop, only Pop orderIn will change.  Favorites is only
+     * ever changed through Hearting movies, not incoming movies.
+     * @param context - Needed for function calls
+     * @param updateSet - Set of IDs of movies whose data need to be updated over the whole DB
+     * @param movieContentValues - List of incoming movies of a certain type
+     */
+    public static void updateIDsAgainstWholeDB(Context context, Set<Long> updateSet,
+                                               ContentValues[] movieContentValues) {
+
+        if ((updateSet != null) && (updateSet.size() > 0)) {
+
+            for (int i = 0; i < movieContentValues.length; i++) {
+
+                Long thisID = movieContentValues[i].getAsLong(MovieEntry._ID);
+                if (updateSet.contains(thisID)) {
+
+                    context.getContentResolver().update(
+                            MovieEntry.CONTENT_URI,
+                            movieContentValues[i],
+                            MovieEntry._ID + " = ? ",
+                            new String[] {"" + thisID}
+                    );
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /**
+     * INSERTIDSOFTYPE - Inserts the IDs of a certain type into the Database.
+     * @param context - Needed for function calls
+     * @param needInsertSet - Set of IDs of Movies of a certain type that need insert
+     * @param movieContentValues - Array of incoming movies of a certain type
+     */
+    public static void insertIDsOfType(Context context, Set<Long> needInsertSet,
+                                       ContentValues[] movieContentValues) {
+
+        if ((needInsertSet != null) && (needInsertSet.size() > 0)) {
+
+            for (int i = 0; i < movieContentValues.length; i++) {
+
+                Long thisId = movieContentValues[i].getAsLong(MovieEntry._ID);
+                if (needInsertSet.contains(thisId)) {
+
+                    context.getContentResolver().insert(
+                            MovieEntry.CONTENT_URI,
+                            movieContentValues[i]
+                    );
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+
+    /**
+     * GETNUMBEROFTYPESFORID - Returns the number of true values in the array.
+     * @param popTopFavArr - Array of booleans in order of Popular | Top Rated | Favorites.
+     *                     True means that type is associated with this ID
+     * @return Number of types associated with this ID
+     */
+    private static int getNumberOfTypesForID(boolean[] popTopFavArr) {
+        int cnt = 0;
+
+        for (int j = 0; j < popTopFavArr.length; j++) {
+            if (popTopFavArr[j]) {
+                cnt++;
+            }
+        }
+
+        return cnt;
     }
 
 

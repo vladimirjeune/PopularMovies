@@ -141,7 +141,7 @@ public final class OpenTMDJsonUtils {
         // If this is Popular the order in popularity will be set.  Otherwise; Top-Rated
         if (isPopular) {
             contentValues.put(MovieEntry.POPULAR_ORDER_IN, index);
-        } else {
+        } else {  // TODO: Make else if Top_Rated
             contentValues.put(MovieEntry.TOP_RATED_ORDER_IN, index);
         }
     }
