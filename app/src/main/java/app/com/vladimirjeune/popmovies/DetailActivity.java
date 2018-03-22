@@ -73,6 +73,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final String TAG = DetailActivity.class.getSimpleName();
     private static final Integer HEART_FALSE = 0;
     private static final Integer HEART_TRUE = 1;
+    private static final java.lang.String HEART_DISABLED_KEY = "HEART_DISABLED_KEY";
 
     private Integer mHeartState0or1;
     private long mIDForMovie;
@@ -94,11 +95,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTitleTextView;
     private TextView mRuntimeTitleTextView;
 
-//    private final DetailUnFavoritedHandler mDetailUnfavoritedHandler ;
-//
-//    public interface DetailUnFavoritedHandler {
-//        void onUnFavorite(boolean isFavorite);
-//    }
+    private boolean HEART_DISABLED;
 
 
     private final Target mTarget = new Target() {
@@ -299,8 +296,49 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
         mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
 
+        // CheckBox state from SavedBundle
+        if ((savedInstanceState != null)
+                && (mViewType.equals(getString(R.string.pref_sort_favorite)))) {
+            HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
+            Log.i(TAG, "onCreate: HEART IS: " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
+            // TODO: This should only engage for Favorites!!!
+        }
 
-        getSupportLoaderManager().initLoader(DETAIL_LOADER_ID, null, this);
+        if ( ! HEART_DISABLED) {
+            getSupportLoaderManager().initLoader(DETAIL_LOADER_ID, null, this);
+            Log.i(TAG, "onCreate: CHECKBOX IS: [HD=F] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
+        } else {
+            mHeartCheckboxView.setEnabled(HEART_DISABLED);  // May be too late, here
+            // TODO: Get all the Text and numbers you should have saved
+            Log.i(TAG, "onCreate: CHECKBOX IS: [HD=T] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
+        }
+
+    }
+
+
+    /**
+     * ONSAVEINSTANCESTATE - MUST override the one with only one parameter and with a, 'protected',
+     * modifier.  The other ones are not the ones you are looking for and will cause hard to figure
+     * out errors.
+     * @param outState
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(HEART_DISABLED_KEY, HEART_DISABLED);
+        Log.d(TAG, "onSaveInstanceState() called with: HEART_DISABLED = [" + HEART_DISABLED + "]");
+    }
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
+            HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
+            mHeartCheckboxView.setEnabled(! HEART_DISABLED);
+
+        }
+        Log.d(TAG, "onRestoreInstanceState() called with: HEART_DISABLED = [" + HEART_DISABLED + "]");
 
     }
 
@@ -517,6 +555,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mHeartState0or1 = HEART_FALSE;           // Set the Heart state to OFF
         mHeartCheckboxView.setChecked(false);    // Set Checkbox to visibly OFF
         mHeartCheckboxView.setEnabled(false);    // Disable Heart 'cause in some cases film won't be available to be refavorited
+        HEART_DISABLED = true;
         sqlUpdateOrDelete();                     // Set DB state to reflect choice.  Sometimes movie will be removed from DB entirely
         dialogFragment.dismiss();
     }
@@ -525,9 +564,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     public void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment) {
         Log.d(TAG, "onDialogNegativeClick() called with: dialogFragment = [" + dialogFragment + "]");
-
-//        Bundle bundle = dialogFragment.getArguments();
-//        long id = bundle.getLong(RemoveFavoriteDialogFragment.THEMOVIEID);
 
         mHeartState0or1 = HEART_TRUE;  // Reset Heart state, since we are not removing this film
         dialogFragment.dismiss();
