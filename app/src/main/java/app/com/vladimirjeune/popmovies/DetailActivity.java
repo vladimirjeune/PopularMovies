@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.Serializable;
 import java.net.URL;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract;
@@ -96,6 +97,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRuntimeTitleTextView;
 
     private boolean HEART_DISABLED;
+    private String mPosterPath;
+
 
 
     private final Target mTarget = new Target() {
@@ -182,6 +185,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             mOneSheetImageView.setImageDrawable(placeHolderDrawable);
         }
     };
+
 
 
     /**
@@ -301,7 +305,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 && (mViewType.equals(getString(R.string.pref_sort_favorite)))) {
             HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
             Log.i(TAG, "onCreate: HEART IS: " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
-            // TODO: This should only engage for Favorites!!!
         }
 
         if ( ! HEART_DISABLED) {
@@ -309,7 +312,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=F] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         } else {
             mHeartCheckboxView.setEnabled(HEART_DISABLED);  // May be too late, here
-            // TODO: Get all the Text and numbers you should have saved
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=T] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         }
 
@@ -320,12 +322,29 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * ONSAVEINSTANCESTATE - MUST override the one with only one parameter and with a, 'protected',
      * modifier.  The other ones are not the ones you are looking for and will cause hard to figure
      * out errors.
-     * @param outState
+     * @param outState - Bundle
      */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(HEART_DISABLED_KEY, HEART_DISABLED);
+
+        if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
+            outState.putBoolean(HEART_DISABLED_KEY, HEART_DISABLED);
+
+            MovieState movieState = new MovieState(
+                    mTitle.getText().toString(),
+                    mPosterPath,
+                    mRatingTextView.getText().toString(),
+                    mRuntimeTextView.getText().toString(),
+                    mReleaseTextView.getText().toString(),
+                    mSynopsisTextView.getText().toString(),
+                    ContextCompat.getColor(this, R.color.logo_purple),  // Favorite color
+                    ContextCompat.getColor(this, R.color.header_favorite_background)  // Favorite color
+            );
+
+            outState.putSerializable(MovieState.MOVIESTATE, movieState);
+        }
+
         Log.d(TAG, "onSaveInstanceState() called with: HEART_DISABLED = [" + HEART_DISABLED + "]");
     }
 
@@ -333,13 +352,57 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+
         if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
+            MovieState ms = (MovieState) savedInstanceState.getSerializable(MovieState.MOVIESTATE);
+
+            if (ms != null) {
+
+                mTitle.setText(ms.getTitle());
+                mPosterPath = ms.getImagePath();
+                mRatingTextView.setText(ms.getRating());
+                mRuntimeTextView.setText(ms.getRuntime());
+                mReleaseTextView.setText(ms.getRelease());
+                mSynopsisTextView.setText(ms.getSynopsis());
+
+                // Text Colors for Favorites
+                mRatingTitleTextView.setTextColor(ms.getTextColor());
+                mRuntimeTitleTextView.setTextColor(ms.getTextColor());
+                mReleaseTitleTextView.setTextColor(ms.getTextColor());
+                mSynopsisTitleTextView.setTextColor(ms.getTextColor());
+
+                // Text Background Colors for Favorites
+                mRatingTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+                mRuntimeTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+                mReleaseTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+                mSynopsisTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+
+            }
+
+            loadMovieImage();
+
             HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
             mHeartCheckboxView.setEnabled(! HEART_DISABLED);
 
         }
+
         Log.d(TAG, "onRestoreInstanceState() called with: HEART_DISABLED = [" + HEART_DISABLED + "]");
 
+    }
+
+
+    /**
+     * LOADMOVIEIMAGE - Loads the movie image that is stored at the Poster Path
+     * from the internet.
+     */
+    private void loadMovieImage() {
+        URL imageURL = NetworkUtils.buildURLForImage(mPosterPath);
+
+        Picasso.with(this)
+                .load(String.valueOf(imageURL))
+                .placeholder(R.drawable.tmd_placeholder_poster)
+                .error(R.drawable.tmd_error_poster)
+                .into(mTarget);
     }
 
     /**
@@ -383,22 +446,19 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         if ((data != null) && data.moveToFirst()) {
             cursorHasValidData = true;  // Ready to go
+            Log.d(TAG, "onLoadFinished: Cursor HAS valid data!!!");
         }
 
         if ( ! cursorHasValidData) {  // Nothing to do here
+            Log.d(TAG, "onLoadFinished: Cursor DOES NOT have valid data!!!");
             return;
         }
 
 
         // Image
-        String posterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
-        URL imageURL = NetworkUtils.buildURLForImage(posterPath);
+        mPosterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
 
-        Picasso.with(this)
-                .load(String.valueOf(imageURL))
-                .placeholder(R.drawable.tmd_placeholder_poster)
-                .error(R.drawable.tmd_error_poster)
-                .into(mTarget);
+        loadMovieImage();
 
         // Foreground and Background color for Section Titles
         Pair<Integer, Integer> titleTextAndBackgroundColor = getTextAndBackgroundColorsBasedOnType();
@@ -568,4 +628,122 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mHeartState0or1 = HEART_TRUE;  // Reset Heart state, since we are not removing this film
         dialogFragment.dismiss();
     }
+
+    /**
+     * Holds state of the movie on this page in case Favorite is deleted and user still wants to
+     * rotate screen.
+     * https://stackoverflow.com/questions/10259776/how-to-save-state-with-onsaveinstancestate-and-onrestoreinstancestate-while-orie
+     */
+    private static  class MovieState implements Serializable {
+
+        private static final String  MOVIESTATE = "app.com.vladimirjeune.popmovies.MovieState";
+
+        private String title;
+        private String imagePath;
+        private String rating;
+        private String runtime;
+        private String release;
+        private String synopsis;
+        private int textColor;
+        private int textBackgroundColor;
+
+
+        public MovieState(
+                String aTitle,
+                String anImagePath,
+                String aRating,
+                String aRuntime,
+                String aRelease,
+                String aSynopsis,
+                int aTextColor,
+                int aTextBackgroundColor
+        ) {
+            title = aTitle;
+            imagePath = anImagePath;
+            rating = aRating;
+            runtime = aRuntime;
+            release = aRelease;
+            synopsis = aSynopsis;
+            textColor = aTextColor;
+            textBackgroundColor = aTextBackgroundColor;
+        }
+
+
+        public String getTitle() {
+            return title;
+        }
+
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+
+        public String getRating() {
+            return rating;
+        }
+
+
+        public void setRating(String rating) {
+            this.rating = rating;
+        }
+
+
+        public String getRuntime() {
+            return runtime;
+        }
+
+
+        public void setRuntime(String runtime) {
+            this.runtime = runtime;
+        }
+
+
+        public String getRelease() {
+            return release;
+        }
+
+
+        public void setRelease(String release) {
+            this.release = release;
+        }
+
+
+        public String getSynopsis() {
+            return synopsis;
+        }
+
+
+        public void setSynopsis(String synopsis) {
+            this.synopsis = synopsis;
+        }
+
+
+        public String getImagePath() {
+            return imagePath;
+        }
+
+
+        public void setImagePath(String imagePath) {
+            this.imagePath = imagePath;
+        }
+
+        public int getTextColor() {
+            return textColor;
+        }
+
+        public void setTextColor(int textColor) {
+            this.textColor = textColor;
+        }
+
+        public int getTextBackgroundColor() {
+            return textBackgroundColor;
+        }
+
+        public void setTextBackgroundColor(int textBackgroundColor) {
+            this.textBackgroundColor = textBackgroundColor;
+        }
+    }
+
+
 }
