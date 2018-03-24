@@ -66,22 +66,11 @@ public class RemoveFavoriteDialogFragment extends DialogFragment {
     }
 
 
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-//                             Bundle savedInstanceState) {
-//        Log.d(TAG, "onCreateView() called with: inflater = [" + inflater + "], container = [" + container + "], savedInstanceState = [" + savedInstanceState + "]");
-//        TextView textView = new TextView(getActivity());
-//        textView.setText(R.string.dialog_remove_favorite);
-//        return textView;
-//    }
-
-
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Help from example
         // https://stuff.mit.edu/afs/sipb/project/android/docs/guide/topics/ui/dialogs.html
-        //
         Log.d(TAG, "onCreateDialog() :BEGIN: called with: savedInstanceState = [" + savedInstanceState + "]");
 
         Context context = getActivity();
