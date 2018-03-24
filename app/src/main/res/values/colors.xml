@@ -18,6 +18,7 @@
     <color name="toast_background_orange">@color/orange_translucent</color>
     <color name="toast_background_blue">@color/blue_translucent</color>
     <color name="toast_background_purple">@color/purple_translucent</color>
+    <color name="dialog_favorite_background">@color/purple_darker_translucent</color>
 
     <!-- About Marquee -->
     <color name="divider_marquee_1">@color/orange_bright</color>
@@ -54,6 +55,7 @@
     <color name="purple_found">#FF8828FD</color>
     <color name="purple_bright">#FF9A28FD</color>
     <color name="purple_dark_translucent">#aa110127</color>
+    <color name="purple_darker_translucent">#aa090114</color>
     <color name="purple_translucent">#cc2a0066</color>
 
 

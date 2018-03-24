@@ -23,6 +23,8 @@
         <item name="colorAccent">@color/colorAccentFavoritesDialog</item>
         <item name="colorControlNormal">@color/colorAccentFavoritesDialog</item>
         <item name="android:textColorHighlight">@color/purple_translucent</item>
+        <item name="android:textColorPrimary">@color/white_translucent</item>
+        <item name="android:background">@color/dialog_favorite_background</item>
 
         <!--Window Properties-->
         <item name="android:windowNoTitle">true</item>
@@ -39,6 +41,7 @@
         <item name="colorAccent">@color/colorAccentFavoritesDialog</item>
         <item name="colorControlNormal">@color/colorAccentFavoritesDialog</item>
         <item name="android:textColorHighlight">@color/purple_translucent</item>
+
     </style>
 
 

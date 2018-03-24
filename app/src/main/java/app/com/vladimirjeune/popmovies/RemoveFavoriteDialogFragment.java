@@ -11,8 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.TextView;
 
 /**
@@ -83,24 +81,13 @@ public class RemoveFavoriteDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Help from example
         // https://stuff.mit.edu/afs/sipb/project/android/docs/guide/topics/ui/dialogs.html
+        //
         Log.d(TAG, "onCreateDialog() :BEGIN: called with: savedInstanceState = [" + savedInstanceState + "]");
 
         Context context = getActivity();
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AppDialogTheme);
 
-        // getLayoutInflater causes an infinite recursion
-        View view = LayoutInflater.from(context).inflate(R.layout.dialog_delete_favorites, null);
-        view.setTag(REMOVEFAVORITEDIALOG_TAG);
-
-        mFavoriteTextView = view.findViewById(R.id.tv_dialog_delete);
-        mFavoriteTextView.setText(R.string.dialog_remove_favorite);
-
-//        FrameLayout fl = .findViewById(android.R.id.custom);
-//        fl.addView(view);
-
-
-        builder.setView(view)
-//                .setMessage(R.string.dialog_remove_favorite)
+        builder.setMessage(R.string.dialog_remove_favorite)
                 .setPositiveButton(R.string.dialog_remove_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
