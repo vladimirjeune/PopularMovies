@@ -15,6 +15,8 @@ public final class MovieContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse(SCHEME + CONTENT_AUTHORITY);
     public static final String PATH_MOVIES = "movie";
 
+    public static final String PATH_REVIEWS = "review";
+
     private MovieContract() {}  // You should not create one
 
     public static class MovieEntry implements BaseColumns {
@@ -80,5 +82,38 @@ public final class MovieContract {
             return CONTENT_URI.buildUpon().appendPath("" + id).build();
         }
     }
+
+
+    public static class ReviewEntry implements BaseColumns {
+
+        // Base content uri + path
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()
+                .appendPath(PATH_REVIEWS).build();
+
+        public static final String TABLE_NAME = "review";
+
+        // We are using _ID from BaseColumns for the ID
+
+        public static final String AUTHOR = "author";
+
+        public static final String CONTENT = "content";
+
+        public static final String URL = "url";
+
+        // Foreign Key to the Movie Table
+        public static final String MOVIE_ID = "movie_id";
+
+        /**
+         * BUILDURIWITHREVIEWID - Will be used to query details about a single review.
+         * adds the id to the end of the review content Uri path.
+         * @param id - long - Review ID
+         * @return - Uri - [CONTENT_AUTHORITY] + ID
+         */
+        public static Uri buildUriWithReviewId(long id) {
+            return CONTENT_URI.buildUpon().appendPath("" + id).build();
+        }
+
+    }
+
 
 }

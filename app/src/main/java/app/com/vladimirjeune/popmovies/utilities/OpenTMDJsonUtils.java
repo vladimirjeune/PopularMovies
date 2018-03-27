@@ -44,6 +44,12 @@ public final class OpenTMDJsonUtils {
     private static final int TMD_ERROR_STATUS_NO_KEY = 7;
     private static final int TMD_ERROR_STATUS_RESOURCE_NOT_FOUND = 34;
 
+    private static final String TMD_REVIEW_RESULTS_LIST = "results";
+    private static final String TMD_REVIEW_ID = "id";
+    private static final String TMD_REVIEW_AUTHOR = "author";
+    private static final String TMD_REVIEW_CONTENT = "content";
+    private static final String TMD_REVIEW_URL = "url";
+
 
     /**
      * GETPOPULARORTOPJSON - Can be used to get data from JSON for, 'popular', or, 'top-rated'
@@ -196,5 +202,19 @@ public final class OpenTMDJsonUtils {
         return runtimeOfMovie;
     }
 
+
+//    /**
+//     * GETREVIEWCONTENTVALUES - Get ContentValues for the Reviews of the movies of this ValueType
+//     * @param context - Needed for function calls
+//     * @param tmdReviewJSONStr - JSON for Reviews
+//     * @return -
+//     * @throws JSONException
+//     */
+//    public static ContentValues[] getReviewContentValues(Context context,
+//                                                         String tmdReviewJSONStr ) throws JSONException {
+//
+//
+//
+//    }
 
 }
