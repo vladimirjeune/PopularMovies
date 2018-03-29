@@ -399,81 +399,9 @@ public class MainActivity extends AppCompatActivity implements
                                 movieContentValues = OpenTMDJsonUtils
                                         .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isCurrentTypePopular());
 
-
-
                                 try {
 
                                 processIncomingIntoDB();
-
-//                                    // Projection and following final ints need to always be in sync
-//                                    final String[] projection = new String[]{
-//                                            MovieEntry._ID,
-//                                            MovieEntry.ORIGINAL_TITLE,
-//                                            MovieEntry.POPULAR_ORDER_IN,
-//                                            MovieEntry.TOP_RATED_ORDER_IN,
-//                                            FAVORITE_FLAG  // TODO: LOOKED AT USAGE
-//                                    };
-//
-//                                    // Preceding Projection and these final ints always MUST be in sync
-//                                    final int idPos = 0;
-//                                    final int titlePos = 1;
-//                                    final int popOrderInPos = 2;
-//                                    final int topRatedOrderInPos = 3;
-//                                    final int favoriteInPos = 4;
-//
-//                                    String where = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType) + " IS NOT NULL ";
-//
-//                                    // Query of what already in DB
-//                                    Cursor idAndTitleOldCursor = getContentResolver().query(
-//                                            MovieEntry.CONTENT_URI,
-//                                            projection,
-//                                            where,
-//                                            null,
-//                                            null
-//                                    );  // Do not need order for Set
-//
-//
-//                                    String onlyExistsInFavorites
-//                                            =  " OR  + ( "
-//                                            + MovieEntry.POPULAR_ORDER_IN + " IS NULL AND "
-//                                            + MovieEntry.TOP_RATED_ORDER_IN + " IS NULL AND "
-//                                            + MovieEntry.FAVORITE_FLAG + " == 1 ) ";
-//
-//                                    final String oppositeWhere = MainLoadingUtils
-//                                            .findOppositeTypeOrderIns(getContext(), mCurrentViewType)
-//                                            + onlyExistsInFavorites ;  // TODO: Check to see if OK
-//
-//                                    Cursor idandTitleOppositeCursor = getContentResolver().query(
-//                                            MovieEntry.CONTENT_URI,
-//                                            projection,
-//                                            oppositeWhere,
-//                                            null,
-//                                            null
-//                                    );  // If not NULL, then this is the opposite type of idAndTtitleOldCursor
-//
-//
-//                                    // If already stuff in db, will need to update, as well as, insert and remove
-//                                    if ((idAndTitleOldCursor != null)
-//                                            && (idAndTitleOldCursor.getCount() > 0)) {  // So if there are already things in db
-//                                        // Make set of IDs currently in DB
-//                                        Set<Long> idOldSet = new HashSet<>();
-//                                        MainLoadingUtils.makeSetOfIdsFromCursor(idPos, idAndTitleOldCursor, idOldSet);
-//
-//                                        // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
-//                                        Set<Long> idNewSet = new HashSet<>();
-//                                        insertUpdateAndMakeNewIdSet(idAndTitleOldCursor, idandTitleOppositeCursor, idOldSet, idNewSet);
-//
-//                                        // Delete movies that moved off list
-//                                        idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-//                                        deleteChartDroppedMovies(idOldSet, idandTitleOppositeCursor);
-//
-//                                        idAndTitleOldCursor.close();  // Closing the Cursor
-//                                        if (idandTitleOppositeCursor != null) {
-//                                            idandTitleOppositeCursor.close();
-//                                        }
-//                                    } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates.
-//                                        getContentResolver().bulkInsert(MovieEntry.CONTENT_URI, movieContentValues);
-//                                    }
 
                                 } catch (SQLException sqe) {
                                     sqe.printStackTrace();

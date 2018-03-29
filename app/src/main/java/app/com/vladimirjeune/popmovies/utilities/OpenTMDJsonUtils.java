@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 
 
 /**
@@ -46,6 +47,7 @@ public final class OpenTMDJsonUtils {
 
     private static final String TMD_REVIEW_RESULTS_LIST = "results";
     private static final String TMD_REVIEW_ID = "id";
+    private static final String TMD_REVIEW_MOVIE_ID = "movie_id";
     private static final String TMD_REVIEW_AUTHOR = "author";
     private static final String TMD_REVIEW_CONTENT = "content";
     private static final String TMD_REVIEW_URL = "url";
@@ -203,18 +205,53 @@ public final class OpenTMDJsonUtils {
     }
 
 
-//    /**
-//     * GETREVIEWCONTENTVALUES - Get ContentValues for the Reviews of the movies of this ValueType
-//     * @param context - Needed for function calls
-//     * @param tmdReviewJSONStr - JSON for Reviews
-//     * @return -
-//     * @throws JSONException
-//     */
-//    public static ContentValues[] getReviewContentValues(Context context,
-//                                                         String tmdReviewJSONStr ) throws JSONException {
-//
-//
-//
-//    }
+    /**
+     * GETREVIEWCONTENTVALUES - Get ContentValues for the Reviews of the movies of this ValueType
+     * @param context - Needed for function calls
+     * @param tmdReviewJSONStr - JSON for Reviews
+     * @return - ContentValues[] of Reviews; may be 0 length, or null if there was an issue
+     * @throws JSONException
+     */
+    public static ContentValues[] getReviewContentValues(Context context, long tmdMovieId,
+                                                         String tmdReviewJSONStr ) throws JSONException {
+        ContentValues[] parsedContentValuesArray;
+
+        JSONObject reviewJSONObject = new JSONObject(tmdReviewJSONStr);
+
+        if (isThereDataError(context, reviewJSONObject)) {
+            return null;
+        }
+
+        JSONArray reviewJsonArray = reviewJSONObject.getJSONArray(TMD_REVIEW_RESULTS_LIST);
+
+        parsedContentValuesArray = new ContentValues[reviewJsonArray.length()];
+
+        for (int i = 0; i < reviewJsonArray.length(); i++) {
+
+            JSONObject reviewJson = reviewJsonArray.getJSONObject(i);
+
+            long reviewId = reviewJson.getInt(TMD_REVIEW_ID);
+
+            String reviewAuthor = reviewJson.getString(TMD_REVIEW_AUTHOR);
+
+            String reviewContent = reviewJson.getString(TMD_REVIEW_CONTENT);
+
+            String reviewURL = reviewJson.getString(TMD_REVIEW_URL);
+
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(ReviewEntry._ID, reviewId);
+            contentValues.put(ReviewEntry.MOVIE_ID, tmdMovieId);  // FK from movie database; passed in
+            contentValues.put(ReviewEntry.AUTHOR, reviewAuthor);
+            contentValues.put(ReviewEntry.CONTENT, reviewContent);
+            contentValues.put(ReviewEntry.URL, reviewURL);
+
+            parsedContentValuesArray[i] = contentValues;
+
+        }
+
+        return parsedContentValuesArray;
+
+    }
 
 }
