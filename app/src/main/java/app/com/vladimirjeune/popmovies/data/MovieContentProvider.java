@@ -7,9 +7,11 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
@@ -32,6 +34,8 @@ public class MovieContentProvider extends ContentProvider {
     public static final int MOVIES_WITH_ID = 101;
     public static final int REVIEWS = 200;
     public static final int REVIEWS_WITH_ID = 201;
+
+    public static final int JOIN_REVIEWS_MOVIES = 299;  // Join with REVIEWS
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -58,6 +62,8 @@ public class MovieContentProvider extends ContentProvider {
         uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_REVIEWS, REVIEWS);
         uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_REVIEWS + ANYNUMBER
                 , REVIEWS_WITH_ID);
+
+        uriMatcher.addURI(MovieContract.CONTENT_AUTHORITY, MovieContract.PATH_JOIN_REVIEWS_MOVIES, JOIN_REVIEWS_MOVIES);
 
         return uriMatcher;
     }
@@ -116,6 +122,9 @@ public class MovieContentProvider extends ContentProvider {
                                 , null
                                 , orderBy);
                 break;
+            case JOIN_REVIEWS_MOVIES:
+                retCursor = queryJoin(uri, projection, selection, selectionArgs, orderBy);
+                break;
             default:
                 throw new UnsupportedOperationException("Uri not recognized <" + uri + ">");
         }
@@ -123,6 +132,37 @@ public class MovieContentProvider extends ContentProvider {
         retCursor.setNotificationUri(getContext().getContentResolver(), uri);
 
         return retCursor;
+    }
+
+
+    /**
+     * GETQUERYJOIN - Used to make query against joined Review+Movie table
+     * @param uri - If there was a specific Id; we could extract it from the URI
+     * @param projection - What to return
+     * @param selection - Where
+     * @param selectionArgs - Where arguments, used to keep from SQL Injection
+     * @param orderBy - How to return results
+     * @return - Cursor - Of joined table query
+     */
+    private Cursor queryJoin(@NonNull Uri uri, @Nullable String[] projection,
+                             @Nullable String selection, @Nullable String[] selectionArgs,
+                             @Nullable String orderBy) {
+        SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
+
+        sqLiteQueryBuilder.setTables( MovieEntry.TABLE_NAME + " INNER JOIN " + ReviewEntry.TABLE_NAME
+                + " ON ("
+                + MovieEntry._ID + " = " + ReviewEntry.MOVIE_ID
+                + " ) ");
+
+        return sqLiteQueryBuilder.query(
+                mMovieDBHelper.getReadableDatabase(),
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                orderBy);
+
     }
 
     /**
@@ -241,6 +281,7 @@ public class MovieContentProvider extends ContentProvider {
                 return rowsInserted;
             case REVIEWS:
                 movieDb.beginTransaction();
+                Log.d(TAG, "bulkInsert() REVIEW: called with: uri = [" + uri + "], contentValues = [" + contentValues + "]");
                 try {
 
                     for (int i = 0; i < contentValues.length; i++) {
@@ -307,7 +348,7 @@ public class MovieContentProvider extends ContentProvider {
                                 , selectionArgs);  // Want to delete everything
                 break;
             case REVIEWS_WITH_ID:
-                long reviewId = Long.parseLong(uri.getLastPathSegment());
+                long reviewId = Long.parseLong(uri.getLastPathSegment());  // Autoincrement ID, not the same as Real ID from web
 
                 rowsDeleted = mMovieDBHelper.getWritableDatabase()
                         .delete(ReviewEntry.TABLE_NAME

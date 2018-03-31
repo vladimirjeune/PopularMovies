@@ -18,6 +18,7 @@ import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.R;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 
 /**
  * Class to hold some of the functions used to reorder movies when new data comes in.
@@ -275,23 +276,48 @@ public final class MainLoadingUtils {
      */
     private static int getSingleMovieRuntimeFromTMDB(String aMovieId, Context context) {
         int movieRuntime = 0;
-//        Log.d(TAG, "BEGIN::getSingleMovieRuntimeFromTMDB: ");
+
         try {
             String receivedSingleMovieJSON = NetworkUtils
                     .getResponseFromHttpUrl(NetworkUtils
                             .buildUrlForSingleMovie(context, aMovieId));
-//            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: >>>" + receivedSingleMovieJSON + "<<<");
 
             movieRuntime = OpenTMDJsonUtils
                     .getRuntimeOfSingleMovie(receivedSingleMovieJSON);
 
-//            Log.i(TAG, "getSingleMovieRuntimeFromTMDB: Runtime: " + movieRuntime + "\n");
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return movieRuntime;
+    }
+
+
+    /**
+     * GETSINGLEMOVIESREVIEWFROMTMDB - Get the Review Stats for the movie with the given movieId.
+     * Note: Makes network call.
+     * @param aMovieId - Movie Id for movie we are getting the Review Data for
+     * @return ContentValues[] - Review Data of movie.  Can be 0 - n, or possibly null
+     */
+    private static ContentValues[] getSingleMoviesReviewsFromTMDB(Context context, String aMovieId) {
+        ContentValues[] reviewContentValues = null;
+
+        try {
+
+            // Get JSON from Network call
+            String receivedSingleMoviesReviewJSON = NetworkUtils.getResponseFromHttpUrl(
+                    NetworkUtils.buildURLForReviews(context, aMovieId)
+            );
+
+            // Turn JSON into ContentValues[] for this movieID
+            reviewContentValues = OpenTMDJsonUtils.getReviewContentValues(context,
+                    Long.valueOf(aMovieId), receivedSingleMoviesReviewJSON);
 
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
-//        Log.d(TAG, "END::getSingleMovieRuntimeFromTMDB: ");
-        return movieRuntime;
+
+        return reviewContentValues;
     }
 
 
@@ -302,7 +328,6 @@ public final class MainLoadingUtils {
      * @param cursor - Holds data we need to look through
      */
     public static void getRuntimesForMoviesInList(Cursor cursor, Context context) {
-//        Log.d(TAG, "BEGIN::getRuntimesForMoviesInList: ");
         // Get runtime for found movies and place in correct Movies.
         if (cursor != null) {  // Cursor exists
             if (cursor.moveToFirst()) {  // Cursor is valid
@@ -325,7 +350,55 @@ public final class MainLoadingUtils {
                 }
             }
         }
-//        Log.d(TAG, "END::getRuntimesForMoviesInList: ");
+    }
+
+
+    /**
+     * GETREVIEWSFORMOVIESINLIST - Add the Reviews to the Review Tables on a per movie basis that
+     * were just created from JSON call that should precede this one.
+     * Update database with Reviews for each Movie; if available
+     * Note: Makes network call.  Calls DB
+     * @param movieCursor - Holds data for MovieIDs needed for Reviews
+     */
+    public static void getReviewsForMoviesInList(Cursor movieCursor, Context context) {
+
+        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
+
+            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
+
+            do {
+
+                long movieId = movieCursor.getLong(movieIdIndex);
+                ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
+
+                insertReviewsForMovie(context, reviewsForSingleMovie);
+
+            } while (movieCursor.moveToNext());  // Loop thru movies
+
+        }
+
+    }
+
+
+    /**
+     * INSERTREVIEWSFORMOVIE - Inserts reviews passed in, if any, into the Reviews Database
+     * @param context - Needed for function calls
+     * @param reviewsForSingleMovie - ContentValues holding the reviews for a movie, if any
+     */
+    private static void insertReviewsForMovie(Context context, ContentValues[] reviewsForSingleMovie) {
+        if ( (reviewsForSingleMovie != null) && (reviewsForSingleMovie.length > 0) ) {
+
+            // TODO: See if BulkInsert will work
+//            for (int i = 0; i < reviewsForSingleMovie.length; i++) {
+//                context.getContentResolver().insert(
+//                        ReviewEntry.CONTENT_URI,
+//                        reviewsForSingleMovie[i]
+//                );
+//            }
+
+            context.getContentResolver().bulkInsert(ReviewEntry.CONTENT_URI, reviewsForSingleMovie);
+
+        }
     }
 
 

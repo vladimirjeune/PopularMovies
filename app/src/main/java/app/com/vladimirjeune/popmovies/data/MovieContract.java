@@ -16,6 +16,7 @@ public final class MovieContract {
     public static final String PATH_MOVIES = "movie";
 
     public static final String PATH_REVIEWS = "review";
+    public static final String PATH_JOIN_REVIEWS_MOVIES = "review_movie_join";
 
     private MovieContract() {}  // You should not create one
 
@@ -92,7 +93,8 @@ public final class MovieContract {
 
         public static final String TABLE_NAME = "review";
 
-        // We are using _ID from BaseColumns for the ID
+        // We are using _ID from BaseColumns for the ID only for BaseColumns to still work(autoincrement).
+        public static final String REVIEW_ID = "r_id";  // Too big for INT, but is real ID from website.
 
         public static final String AUTHOR = "author";
 
@@ -106,6 +108,7 @@ public final class MovieContract {
         /**
          * BUILDURIWITHREVIEWID - Will be used to query details about a single review.
          * adds the id to the end of the review content Uri path.
+         * * The AutoIncrement ID is not the real ID from TMDb
          * @param id - long - Review ID
          * @return - Uri - [CONTENT_AUTHORITY] + ID
          */

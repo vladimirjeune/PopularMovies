@@ -16,7 +16,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
 
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 7;
 
     public MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,9 +43,11 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
                 ");";
 
+        // TODO: REVIEW
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " +
                 ReviewEntry.TABLE_NAME + " ( " +
-                ReviewEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +  // Will be ReviewID
+                ReviewEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +
+                ReviewEntry.REVIEW_ID + " TEXT NOT NULL UNIQUE, " +
                 ReviewEntry.AUTHOR + " TEXT NOT NULL, " +
                 ReviewEntry.CONTENT + " TEXT NOT NULL, " +
                 ReviewEntry.URL + " TEXT NOT NULL, " +

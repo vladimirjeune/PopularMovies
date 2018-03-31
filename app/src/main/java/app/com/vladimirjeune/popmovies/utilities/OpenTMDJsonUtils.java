@@ -230,7 +230,7 @@ public final class OpenTMDJsonUtils {
 
             JSONObject reviewJson = reviewJsonArray.getJSONObject(i);
 
-            long reviewId = reviewJson.getInt(TMD_REVIEW_ID);
+            String reviewId = reviewJson.getString(TMD_REVIEW_ID);
 
             String reviewAuthor = reviewJson.getString(TMD_REVIEW_AUTHOR);
 
@@ -240,7 +240,7 @@ public final class OpenTMDJsonUtils {
 
             ContentValues contentValues = new ContentValues();
 
-            contentValues.put(ReviewEntry._ID, reviewId);
+            contentValues.put(ReviewEntry.REVIEW_ID, reviewId);  // Actual TMDb ID, Our DB _id is autoincrement
             contentValues.put(ReviewEntry.MOVIE_ID, tmdMovieId);  // FK from movie database; passed in
             contentValues.put(ReviewEntry.AUTHOR, reviewAuthor);
             contentValues.put(ReviewEntry.CONTENT, reviewContent);
