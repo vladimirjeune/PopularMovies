@@ -51,7 +51,7 @@
         android:id="@+id/tv_review_paragrah"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="@string/tools_lorem_paragraph"
+        tools:text="@string/tools_lorem_paragraph_short"
         android:textColor="@color/white_translucent"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:layout_marginTop="8dp"
@@ -67,11 +67,12 @@
 
     <!-- May want rounded corners and smaller footprint to
      not steal all the limelight.  Like in collections -->
+    <!-- Have you thought about Hyperlinked Text? -->
     <Button
         android:id="@+id/bt_review_more"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="MORE"
+        tools:text="MORE…"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
         android:textStyle="bold"
         android:textAllCaps="true"
@@ -93,7 +94,7 @@
         app:layout_constraintTop_toBottomOf="@+id/bt_review_more"
         app:layout_constraintRight_toRightOf="@+id/tv_review_paragrah"
 
-        />
+        android:layout_marginTop="8dp" />
 
 
 </android.support.constraint.ConstraintLayout>
