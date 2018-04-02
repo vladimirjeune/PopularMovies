@@ -233,5 +233,41 @@
             />
 
 
+        <TextView
+            android:id="@+id/textViewReviewsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:paddingStart="2dp"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:paddingEnd="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/detail_reviews"
+            android:textAllCaps="true"
+            android:textColor="@color/logo_orange"
+            android:textStyle="bold|italic"
+            android:background="@color/header_popular_background"
+            android:letterSpacing="0.1"
+            app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+            app:layout_constraintTop_toBottomOf="@+id/textViewSynopsis"
+            app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+            />
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_horizontal_linear_reviews"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
+            app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+            app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+            />
+
+
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

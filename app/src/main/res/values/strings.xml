@@ -32,6 +32,7 @@
     <string name="detail_release">RELEASE</string>
     <string name="detail_runtime">RUNTIME</string>
     <string name="detail_synopsis">SYNOPSIS</string>
+    <string name="detail_reviews">REVIEWS</string>
     <string name="action_details">Details</string>
 
     <!-- About -->
