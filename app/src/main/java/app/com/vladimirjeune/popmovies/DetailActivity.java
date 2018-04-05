@@ -548,41 +548,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
-//        AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
-//            @Override
-//            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-////                super.onQueryComplete(token, cookie, cursor);
-//
-//                if ((cursor != null) && (cursor.moveToFirst())) {
-//                    mReviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
-//                    showRecyclerView(true);
-//                } else {
-//                    showRecyclerView(false);
-//                }
-//
-//            }
-//        };
-//
-//        reviewsForMovie(asyncQueryHandler);
-
+        // TODO: Query DB about Reviews for this MovieID.
         ReviewQueryHandler reviewQueryHandler = new ReviewQueryHandler(getContentResolver(), this);
-
         reviewsForMovie(reviewQueryHandler);
 
-
-        // TODO: Query DB about Reviews for this MovieID.
-//
-//        if ((reviewsForMovieCursor != null) && (reviewsForMovieCursor.moveToFirst())) {
-//            mReviewAdapter.swapCursor(reviewsForMovieCursor);  // May have 2 send ViewType in later if send BG for ImageView
-//            showRecyclerView(true);
-//        } else {
-//            showRecyclerView(false);
-//        }
-//        setRecyclerVIewToCorrectPosition();  // TODO: New, put in if makes sense
-
         data.close();  // TODO: Rememeber to close the Cursor
-
-
 
     }
 

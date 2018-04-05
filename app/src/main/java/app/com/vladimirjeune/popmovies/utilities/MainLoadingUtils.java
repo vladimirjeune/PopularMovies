@@ -84,32 +84,6 @@ public final class MainLoadingUtils {
     }
 
 
-//    /**
-//     * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
-//     * @param idsTitlesAndPosters - ArrayList<Pairs<Long, Pair<String, String>>> - Posters for MainActivity in order
-//     * @param cursorPosterPathsMovieIds - Cursor - Cursor from DB in order of Popularity or Rating
-//     */
-//    public static void createArrayListOfPairsForPosters(ArrayList<Pair<Long, Pair<String, String>>> idsTitlesAndPosters, Cursor cursorPosterPathsMovieIds) {
-//        // Create ArrayList of Pairs for posters
-//        if ((cursorPosterPathsMovieIds != null)
-//                && (cursorPosterPathsMovieIds.moveToFirst())) {
-//            int idIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry._ID);
-//            int titleIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
-//            int posterPathIndex = cursorPosterPathsMovieIds.getColumnIndex(MovieEntry.POSTER_PATH);
-//
-//            if ((-1 != idIndex) && (-1 != posterPathIndex) && (-1 != titleIndex)) {
-//                do {
-//                    long movieId = cursorPosterPathsMovieIds.getLong(idIndex);
-//                    String title = cursorPosterPathsMovieIds.getString(titleIndex);
-//                    String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
-//
-//                    Pair<String, String> payload = new Pair<>(title, posterPath);
-//                    idsTitlesAndPosters.add(new Pair<>(movieId, payload));
-//                } while (cursorPosterPathsMovieIds.moveToNext()) ;
-//            }
-//        }
-//    }
-
     /**
      * CREATEARRAYLISTOFPAIRSFORPOSTERS - Creates the ArrayList needed for Posters
      * @param idsAndData - ArrayList<ContentValues> In order
@@ -135,9 +109,6 @@ public final class MainLoadingUtils {
                     String posterPath = cursorPosterPathsMovieIds.getString(posterPathIndex);
                     String backdropPath = cursorPosterPathsMovieIds.getString(backdropPathIndex);
                     Integer favoriteOrderIn = cursorPosterPathsMovieIds.getInt(favoriteOrderInIndex);
-
-//                    Pair<String, String> payload = new Pair<>(title, posterPath);
-//                    idsTitlesAndPosters.add(new Pair<>(movieId, payload));
 
                     singleData.put(MovieEntry._ID, movieId);
                     singleData.put(MovieEntry.ORIGINAL_TITLE, title);
@@ -389,13 +360,6 @@ public final class MainLoadingUtils {
         if ( (reviewsForSingleMovie != null) && (reviewsForSingleMovie.length > 0) ) {
 
             // TODO: See if BulkInsert will work
-//            for (int i = 0; i < reviewsForSingleMovie.length; i++) {
-//                context.getContentResolver().insert(
-//                        ReviewEntry.CONTENT_URI,
-//                        reviewsForSingleMovie[i]
-//                );
-//            }
-
             context.getContentResolver().bulkInsert(ReviewEntry.CONTENT_URI, reviewsForSingleMovie);
 
         }
@@ -439,7 +403,6 @@ public final class MainLoadingUtils {
 
             if (idCursor.moveToFirst()) {
 
-//                int i = 0;
                 do {
                     retVal.add(idCursor.getLong(ID_INDEX));
                 } while(idCursor.moveToNext()) ;
@@ -480,7 +443,6 @@ public final class MainLoadingUtils {
 
             if (idCursor.moveToFirst()) {
 
-//                int i = 0;
                 do {
                     retVal.add(idCursor.getLong(ID_INDEX));
                 } while(idCursor.moveToNext()) ;
@@ -614,10 +576,6 @@ public final class MainLoadingUtils {
                     popTopFavArr = connections(context, deleteThisId, viewType);
                     if (popTopFavArr != null) {  // Null condition should not occur
 
-//                         Counting the number of types this ID is associate with
-//                        int cnt = getNumberOfTypesForID(popTopFavArr);
-//
-//                        if (cnt > threshold) {  // If we are more than just the current type, update
                             ContentValues eraseValues = new ContentValues();
                             eraseValues.putNull(getTypeOrderIn(context, viewType));
                             String where = MovieEntry._ID + " = ? ";

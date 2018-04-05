@@ -233,34 +233,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onPause();
 
         Log.d(TAG, "onPause() called");
-//
-//        ArrayList<ContentValues> adaptersData = mMovieAdapter.getData();
-//
-//        // Only do anything if data is populated and is not null
-//        if (!postersAreShowing() || (adaptersData == null)) {
-//            return;
-//        }
-//
-//        ContentValues heartsValues = new ContentValues();
-//
-//        // Loop to update DB for heart state
-//        for (ContentValues currentContentValues : adaptersData) {
-//
-//            Integer currentHeartState = currentContentValues.
-//                    getAsInteger(FAVORITE_FLAG);  // 0 || 1 // TODO: LOOKED AT USAGE
-//
-//            String where = MovieEntry._ID + " = ? ";
-//            Long currentId = currentContentValues.getAsLong(MovieEntry._ID);
-//            String[] whereArgs = {"" + currentId};
-//            heartsValues.put(FAVORITE_FLAG, currentHeartState);  // TODO: LOOKED AT USAGE
-//
-//            getContentResolver().update(
-//                    MovieEntry.CONTENT_URI,
-//                    heartsValues,
-//                    where,
-//                    whereArgs
-//            );
-//        }
     }
 
     /**
@@ -781,7 +753,6 @@ public class MainActivity extends AppCompatActivity implements
         Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
         movieDetailIntent.setData(movieDataUri);
         movieDetailIntent.putExtra(EXTRA_TYPE, mCurrentViewType);
-//        startActivity(movieDetailIntent);
         startActivityForResult(movieDetailIntent, DETAIL_CODE);
     }
 
