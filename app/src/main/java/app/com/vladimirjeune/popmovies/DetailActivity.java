@@ -1,6 +1,8 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.app.Activity;
+import android.content.AsyncQueryHandler;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -17,6 +19,8 @@ import android.support.v4.content.Loader;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,10 +34,12 @@ import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
@@ -76,6 +82,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final Integer HEART_TRUE = 1;
     private static final java.lang.String HEART_DISABLED_KEY = "HEART_DISABLED_KEY";
 
+    private static final int REVIEW_AQT_CALLBACK = -1;
     private Integer mHeartState0or1;
     private long mIDForMovie;
 
@@ -96,9 +103,15 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTitleTextView;
     private TextView mRuntimeTitleTextView;
 
+    private RecyclerView mReviewRecyclerView;
+    private RecyclerView.LayoutManager mReviewLayoutManager;
+    private ReviewAdapter mReviewAdapter;
+
     private boolean HEART_DISABLED;
     private String mPosterPath;
 
+    private int mPosition = RecyclerView.NO_POSITION;
+    private TextView mNoReviewTextView;
 
 
     private final Target mTarget = new Target() {
@@ -185,7 +198,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             mOneSheetImageView.setImageDrawable(placeHolderDrawable);
         }
     };
-
 
 
     /**
@@ -315,6 +327,19 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=T] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         }
 
+        // Text for when there are no reviews
+        mNoReviewTextView = findViewById(R.id.tv_review_empty);
+
+
+        mReviewRecyclerView = findViewById(R.id.rv_horizontal_linear_reviews);
+        mReviewRecyclerView.setHasFixedSize(true);
+        boolean reverseLayout = false;
+        mReviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseLayout);
+        mReviewRecyclerView.setLayoutManager(mReviewLayoutManager);
+
+        mReviewAdapter = new ReviewAdapter(this);
+        mReviewRecyclerView.setAdapter(mReviewAdapter);
+
     }
 
 
@@ -429,6 +454,13 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
     }
 
+    /**
+     * NOTE FOR RECYCLERVIEW CURSOR: There is one small bug in this code. If no data is present in the cursor do to an
+     * initial load being performed with no access to internet, the loading indicator will show
+     * indefinitely, until data is present from the ContentProvider.
+     * @param loader
+     * @param data
+     */
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
@@ -516,6 +548,158 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
+//        AsyncQueryHandler asyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
+//            @Override
+//            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+////                super.onQueryComplete(token, cookie, cursor);
+//
+//                if ((cursor != null) && (cursor.moveToFirst())) {
+//                    mReviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+//                    showRecyclerView(true);
+//                } else {
+//                    showRecyclerView(false);
+//                }
+//
+//            }
+//        };
+//
+//        reviewsForMovie(asyncQueryHandler);
+
+        ReviewQueryHandler reviewQueryHandler = new ReviewQueryHandler(getContentResolver(), this);
+
+        reviewsForMovie(reviewQueryHandler);
+
+
+        // TODO: Query DB about Reviews for this MovieID.
+//
+//        if ((reviewsForMovieCursor != null) && (reviewsForMovieCursor.moveToFirst())) {
+//            mReviewAdapter.swapCursor(reviewsForMovieCursor);  // May have 2 send ViewType in later if send BG for ImageView
+//            showRecyclerView(true);
+//        } else {
+//            showRecyclerView(false);
+//        }
+//        setRecyclerVIewToCorrectPosition();  // TODO: New, put in if makes sense
+
+        data.close();  // TODO: Rememeber to close the Cursor
+
+
+
+    }
+
+
+    /**
+     * REVIEWQUERYHANDLER - Static class needed to not leak memory while accessing the
+     * the database using AsyncQueryHandler task.
+     */
+    private static class ReviewQueryHandler extends AsyncQueryHandler {
+    // https://stackoverflow.com/questions/37188519/this-handler-class-should
+    // -be-static-or-leaks-might-occurasyncqueryhandler
+        private final WeakReference<DetailActivity> mActivity;
+
+        // DO NOT USE
+        public ReviewQueryHandler(ContentResolver cr) {
+            super(cr);
+            mActivity = null;
+        }
+
+        public ReviewQueryHandler(ContentResolver cr, DetailActivity da) {
+            super(cr);
+            mActivity = new WeakReference<DetailActivity>(da);
+        }
+
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+
+            if (mActivity != null) {
+                DetailActivity detailActivity = mActivity.get();  // Getting the Activity from the WeakReference
+                ReviewAdapter reviewAdapter = detailActivity.getReviewAdapter();
+
+                if (cursor == null) {
+                    detailActivity.showRecyclerView(false);
+                    return;
+                }
+
+                if ((cursor.moveToFirst())
+                        && (reviewAdapter != null)) {
+                    reviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                    detailActivity.showRecyclerView(true);
+
+                } else {
+                    detailActivity.showRecyclerView(false);
+                }
+
+            }
+        }
+    }
+
+
+    /**
+     * GETREVIEWADAPTER - Returns the ReviewAdapter
+     * @return - ReviewAdapter - Can be null
+     */
+    ReviewAdapter getReviewAdapter() {
+        return mReviewAdapter;
+    }
+
+
+    /**
+     * REVIEWSFORMOVIE - Getting reviews, if any, for this movie id
+     * Result sent to Callback for AsyncQueryTask
+     */
+    private void reviewsForMovie(ReviewQueryHandler queryHandler) {
+        Uri reviewUri = ReviewEntry.CONTENT_URI;
+        String[] projection = new String[] {
+                ReviewEntry.REVIEW_ID,
+                ReviewEntry.AUTHOR,
+                ReviewEntry.CONTENT
+        };
+        String selection = ReviewEntry.MOVIE_ID + " = ? ";
+        String[] selectionArgs = new String[] {""+mIDForMovie};
+        String orderBy = ReviewEntry.REVIEW_ID;
+
+        queryHandler.startQuery(
+                REVIEW_AQT_CALLBACK,
+                null,
+                reviewUri,
+                projection,
+                selection,
+                selectionArgs,
+                orderBy
+        );
+
+    }
+
+
+    /**
+     * SETRECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
+     * when the user switches from one type of list to another.  Otherwise, we would be
+     * in the same position as we were before the change, but in another list.
+     */
+    private void setRecyclerVIewToCorrectPosition() {
+        if (RecyclerView.NO_POSITION == mPosition) {
+            mPosition = 0;
+        }
+        mReviewRecyclerView.scrollToPosition(mPosition);
+    }
+
+
+    /**
+     * SHOWRECYCLERVIEW - RecyclerView starts out as VIEW.GONE because most movies won't have reviews.
+     * So a TextView is shown stating that this movie has no reviews.  If there is data for Reviews
+     * the TextView is made VIEW.GONE and the RecyclerView is shown.
+     * @param show - Show the RecyclerView or not
+     */
+    void showRecyclerView(boolean show) {
+
+        if (show) {
+            mReviewRecyclerView.setVisibility(View.VISIBLE);
+            mNoReviewTextView.setVisibility(View.GONE);
+        } else {
+            mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));
+            mNoReviewTextView.setVisibility(View.VISIBLE);
+            mReviewRecyclerView.setVisibility(View.GONE);
+        }
+
     }
 
 
@@ -550,12 +734,12 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * Called when a previously created loader is being reset, thus making its data unavailable.
      * The application should at this point remove any references it has to the Loader's data.
      * Since we don't store any of this cursor's data, there are no references we need to remove.
-     *
+     * The swap is for the RView Cursor
      * @param loader The Loader that is being reset.
      */
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-
+        mReviewAdapter.swapCursor(null);
     }
 
     @Override

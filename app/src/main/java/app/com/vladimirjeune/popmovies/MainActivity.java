@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
     public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a String
 
-    private static final boolean DEVELOPER_MODE = true;    /** EN/DIS-ABLE String Mode**/
+    private static final boolean DEVELOPER_MODE = false;    /** EN/DIS-ABLE String Mode**/
     public static final int DETAIL_CODE = 69;
 
     private RecyclerView mRecyclerView;

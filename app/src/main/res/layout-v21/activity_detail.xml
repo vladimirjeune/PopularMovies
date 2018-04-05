@@ -263,6 +263,21 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
+            app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+            app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+            />
+
+        <!-- RecyclerView will be gone if empty and this will be visible and vice versa -->
+        <TextView
+            android:id="@+id/tv_review_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:visibility="visible"
+            android:textColor="@color/white_translucent"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
             app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
             app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
