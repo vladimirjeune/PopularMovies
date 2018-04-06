@@ -332,6 +332,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
 
         mReviewRecyclerView = findViewById(R.id.rv_horizontal_linear_reviews);
+        mReviewRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
+
         mReviewRecyclerView.setHasFixedSize(true);
         boolean reverseLayout = false;
         mReviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseLayout);
@@ -339,6 +341,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         mReviewAdapter = new ReviewAdapter(this);
         mReviewRecyclerView.setAdapter(mReviewAdapter);
+
+        long tmpID = Long.parseLong(mUri.getLastPathSegment());
+        setReviewRecyclerViewForID(tmpID);
 
     }
 
@@ -548,12 +553,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
-        // TODO: Query DB about Reviews for this MovieID.
+        // Cannot set Title in onCreate since no Title has been created at that point
+        setNoReviewText();
+
+        data.close();  // TODO: Remember to close the Cursor
+
+    }
+
+    /**
+     * SRECYCLERVIEWFORID - Uses passed in ID to obtain Reviews for this title, if any.
+     * If there are reviews, they are shown in a RecyclerView.  Otherwise, a note saying
+     * that there are no reviews is shown instead.
+     * @param movieId - ID for Movie whose reviews we want to see
+     */
+    private void setReviewRecyclerViewForID(long movieId) {
         ReviewQueryHandler reviewQueryHandler = new ReviewQueryHandler(getContentResolver(), this);
-        reviewsForMovie(reviewQueryHandler);
-
-        data.close();  // TODO: Rememeber to close the Cursor
-
+        reviewsForMovie(reviewQueryHandler, movieId);
     }
 
 
@@ -616,7 +631,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * REVIEWSFORMOVIE - Getting reviews, if any, for this movie id
      * Result sent to Callback for AsyncQueryTask
      */
-    private void reviewsForMovie(ReviewQueryHandler queryHandler) {
+    private void reviewsForMovie(ReviewQueryHandler queryHandler, long movieID) {
         Uri reviewUri = ReviewEntry.CONTENT_URI;
         String[] projection = new String[] {
                 ReviewEntry.REVIEW_ID,
@@ -624,7 +639,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 ReviewEntry.CONTENT
         };
         String selection = ReviewEntry.MOVIE_ID + " = ? ";
-        String[] selectionArgs = new String[] {""+mIDForMovie};
+        String[] selectionArgs = new String[] {""+movieID};
         String orderBy = ReviewEntry.REVIEW_ID;
 
         queryHandler.startQuery(
@@ -665,11 +680,19 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             mReviewRecyclerView.setVisibility(View.VISIBLE);
             mNoReviewTextView.setVisibility(View.GONE);
         } else {
-            mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));
+//            setNoReviewText();
             mNoReviewTextView.setVisibility(View.VISIBLE);
             mReviewRecyclerView.setVisibility(View.GONE);
         }
 
+    }
+
+
+    /**
+     * SETNOREVIEWTEXT - SETS TITLE FOR THE TEXTVIEW SHOWN WHEN THERE ARE NO REVIEWS FOR A TITLE.
+     */
+    private void setNoReviewText() {
+        mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));
     }
 
 
