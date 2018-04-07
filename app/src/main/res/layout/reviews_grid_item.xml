@@ -43,6 +43,7 @@
 
 
     <!-- May need a programmatic limit to fit poster... -->
+    <!-- Try the H,16:9 thing here and see if it makes any difference -->
     <TextView
         android:id="@+id/tv_review_paragrah"
         android:layout_width="wrap_content"

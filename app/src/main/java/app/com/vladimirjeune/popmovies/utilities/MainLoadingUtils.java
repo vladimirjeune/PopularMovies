@@ -336,15 +336,32 @@ public final class MainLoadingUtils {
         if ((movieCursor != null) && (movieCursor.moveToFirst())) {
 
             int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
+            Cursor reviewIDsForThisMovieCursor;
 
             do {
 
                 long movieId = movieCursor.getLong(movieIdIndex);
                 ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
 
-                insertReviewsForMovie(context, reviewsForSingleMovie);
+                // Query for Review IDs we already have, if any.  Do here to give time for return b4 next function
+                String[] projection = new String[] {ReviewEntry.REVIEW_ID};
+                String selection = ReviewEntry.MOVIE_ID + " = ? ";
+                String[] selectionArgs = new String[] {""+ movieId};
+                reviewIDsForThisMovieCursor = context.getContentResolver()
+                        .query(ReviewEntry.CONTENT_URI, projection, selection, selectionArgs, null);
 
+                HashSet<String> alreadyInSet = cursorIdsToSet(reviewIDsForThisMovieCursor);
+
+                insertReviewsForMovie(context, alreadyInSet, reviewsForSingleMovie);
+
+                if ((reviewIDsForThisMovieCursor != null)
+                        && (! reviewIDsForThisMovieCursor.isClosed())) {
+                    reviewIDsForThisMovieCursor.close();
+                }
             } while (movieCursor.moveToNext());  // Loop thru movies
+
+
+
 
         }
 
@@ -354,15 +371,103 @@ public final class MainLoadingUtils {
     /**
      * INSERTREVIEWSFORMOVIE - Inserts reviews passed in, if any, into the Reviews Database
      * @param context - Needed for function calls
+     * @param alreadyInSet - Set of Reviews in DB for this Movie ID.  Can be null, or empty
      * @param reviewsForSingleMovie - ContentValues holding the reviews for a movie, if any
      */
-    private static void insertReviewsForMovie(Context context, ContentValues[] reviewsForSingleMovie) {
+    private static void insertReviewsForMovie(Context context, HashSet<String> alreadyInSet,
+                                              ContentValues[] reviewsForSingleMovie) {
+
         if ( (reviewsForSingleMovie != null) && (reviewsForSingleMovie.length > 0) ) {
 
-            // TODO: See if BulkInsert will work
-            context.getContentResolver().bulkInsert(ReviewEntry.CONTENT_URI, reviewsForSingleMovie);
+            if ((alreadyInSet != null) && (alreadyInSet.size() > 0)) {
+                // Create Set of incoming Reviews for Set Operations with AlreadyInDBSet
+                HashSet<String> incomingSet = makeIncomingSet(reviewsForSingleMovie);
+
+                // Already in DB - Incoming => To be dropped from DB
+                HashSet<String> deleteReviewSet = new HashSet<>(alreadyInSet);
+                deleteReviewSet.removeAll(incomingSet);
+
+                // Already in DB intersect Incoming => In need of update in DB
+                HashSet<String> updateReviewSet = new HashSet<>(alreadyInSet);
+                updateReviewSet.retainAll(incomingSet);
+
+                // Incoming from net - Already in DB => Just insert, since new
+                HashSet<String> insertReviewSet = new HashSet<>(incomingSet);
+                insertReviewSet.removeAll(alreadyInSet);
+
+                for (int i = 0; i < reviewsForSingleMovie.length; i++) {
+                    String currentId = reviewsForSingleMovie[i].getAsString(ReviewEntry.REVIEW_ID);
+
+                    String selection = ReviewEntry.REVIEW_ID + " = ?";
+                    String reviewId = reviewsForSingleMovie[i].getAsString(ReviewEntry.REVIEW_ID);
+                    String[] selectionArgs = new String[]{reviewId};
+
+                    // Remember; we are actually using the ReviewID:String for identity.  Which is NOT PK, or a Long
+                    if (deleteReviewSet.contains(currentId)) {
+
+                        context.getContentResolver().delete(ReviewEntry.CONTENT_URI, selection, selectionArgs);
+
+                    } else if (updateReviewSet.contains(currentId)) {
+
+                        context.getContentResolver().update(ReviewEntry.CONTENT_URI, reviewsForSingleMovie[i], selection, selectionArgs);
+
+                    } else if (insertReviewSet.contains(currentId)) {
+
+                        context.getContentResolver().insert(ReviewEntry.CONTENT_URI, reviewsForSingleMovie[i]);
+
+                    } else {
+                        throw new UnsupportedOperationException("Set operations failed!");
+                    }
+
+                }
+            } else {
+                // If DB is empty, just insert all from Net
+                context.getContentResolver().bulkInsert(ReviewEntry.CONTENT_URI, reviewsForSingleMovie);
+            }
+        }
+    }
+
+
+    /**
+     * CURSORIDSTOSET - Will take a Cursor with a ReviewEntry ReviewId column and return the IDs in a
+     * Set.
+     * @param cursorOfIds - Cursor with ReviewIds as one of the columns
+     * @return - Set<Long>, can be null
+     */
+    private static HashSet<String> cursorIdsToSet(Cursor cursorOfIds) {
+        HashSet<String> databaseSet = null;
+
+        if ((cursorOfIds != null) && (cursorOfIds.moveToFirst())) {
+            databaseSet = new HashSet<>();
+
+            do {
+                int idColumnIndex = cursorOfIds.getColumnIndex(ReviewEntry.REVIEW_ID);
+                databaseSet.add(cursorOfIds.getString(idColumnIndex));
+            } while (cursorOfIds.moveToNext());
 
         }
+        return databaseSet;
+    }
+
+
+    /**
+     * MAKEINCOMINGSET - Turns paramter of ContentValues[] with ReviewID into a Set of the same
+     * @param contentValues - Array of ContentValues with ID for Reviews, if not null, and full.
+     * @return - Set of IDs for the Reviews that were represented in the parameter
+     */
+    private static HashSet<String> makeIncomingSet(ContentValues[] contentValues) {
+        HashSet<String> incomingSet = null;
+
+        if ((contentValues != null) && (contentValues.length > 0)) {
+            incomingSet = new HashSet<>();
+
+            for (int i = 0; i < contentValues.length; i++) {
+                incomingSet.add(contentValues[i].getAsString(ReviewEntry.REVIEW_ID));
+            }
+
+        }
+
+        return incomingSet;
     }
 
 
