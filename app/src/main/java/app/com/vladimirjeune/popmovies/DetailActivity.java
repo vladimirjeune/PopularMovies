@@ -200,6 +200,34 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     };
 
 
+    private final Target mBackgroundTarget = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            mOneSheetImageView.setImageBitmap(bitmap);
+
+        }
+
+        /**
+         * ONBITMAPFAILED - Called when you call error
+         * @param errorDrawable - What to show in this case
+         */
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            mOneSheetImageView.setImageDrawable(errorDrawable);
+        }
+
+        /**
+         * ONPREPARELOAD - Shown if placeholder called and we are waiting for
+         * the image to arrive.  May be shown until image arrives or we error out.
+         * @param placeHolderDrawable - Image to show in this case
+         */
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            mOneSheetImageView.setImageDrawable(placeHolderDrawable);
+        }
+    };
+
+
     /**
      * ONPAUSE - Lifecycle callback triggered when activity becomes partially visible.
      * Changes to underlying data made during display are sent to the database now.
@@ -207,7 +235,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     protected void onPause() {
         super.onPause();
-
 
     }
 
@@ -257,7 +284,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             if (hasOtherTypesCursor != null) {
                 hasOtherTypesCursor.close();
             }
-
 
         }
     }
