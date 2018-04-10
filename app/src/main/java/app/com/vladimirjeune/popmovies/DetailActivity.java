@@ -96,6 +96,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private TextView mRatingTextView;
     private TextView mRuntimeTextView;
     private ImageView mOneSheetImageView;
+    private ImageView mBackdropImageView;
     private CheckBox mHeartCheckboxView;
 
     private TextView mSynopsisTitleTextView;
@@ -109,6 +110,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     private boolean HEART_DISABLED;
     private String mPosterPath;
+    private String mBackdropPath;
 
     private int mPosition = RecyclerView.NO_POSITION;
     private TextView mNoReviewTextView;
@@ -200,10 +202,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     };
 
 
+    // TODO: May not need.  And setting up wrong IV
     private final Target mBackgroundTarget = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            mOneSheetImageView.setImageBitmap(bitmap);
+            mBackdropImageView.setImageBitmap(bitmap);
 
         }
 
@@ -213,7 +216,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
          */
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            mOneSheetImageView.setImageDrawable(errorDrawable);
+            mBackdropImageView.setImageDrawable(errorDrawable);
         }
 
         /**
@@ -223,7 +226,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
          */
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            mOneSheetImageView.setImageDrawable(placeHolderDrawable);
+            mBackdropImageView.setImageDrawable(placeHolderDrawable);
         }
     };
 
@@ -461,6 +464,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 .into(mTarget);
     }
 
+
+    /**
+     * LOADBACKDROPIMAGE - Loads the background image that is stored at the backdrop Path
+     * from the internet.
+     */
+    private void loadBackdropImage() {
+        URL imageURL = NetworkUtils.buildURLForImageOfSize(mBackdropPath, NetworkUtils.TMDB_IMAGE_W500);
+
+        Picasso.with(this)
+                .load(String.valueOf(imageURL))
+                .placeholder(R.drawable.tmd_placeholder_poster)
+                .error(R.drawable.tmd_error_poster)
+                .into(mBackgroundTarget);
+    }
+
+
     /**
      * ONCREATELOADER - Makes and returns a CursorLoader that loads the data for our URI and stores it in a Cursor.
      * @param loaderId - Loader ID should be the ID for the loader we need to create
@@ -518,15 +537,24 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
 
-        // Image
-        mPosterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
 
-        loadMovieImage();
 
         // Foreground and Background color for Section Titles
         Pair<Integer, Integer> titleTextAndBackgroundColor = getTextAndBackgroundColorsBasedOnType();
         int textTypeColor = titleTextAndBackgroundColor.first;
         int backgroundColor = titleTextAndBackgroundColor.second;
+
+        // Image
+        mPosterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
+        loadMovieImage();
+
+        mBackdropPath = data.getString(DETAIL_INDEX_BACKDROP_PATH);
+        mReviewAdapter.setBackdropPath(mBackdropPath);
+//        loadBackdropImage(); TODO:
+        // Image Tint Color TODO:
+//        mBackdropImageView.setColorFilter(backgroundColor, PorterDuff.Mode.MULTIPLY);
+
+
 
         // Title, ID & set ImageView ContentDescription
         mIDForMovie = data.getLong(DETAIL_INDEX_ID);
