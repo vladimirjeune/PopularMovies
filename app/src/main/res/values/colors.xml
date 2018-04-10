@@ -44,12 +44,15 @@
     <color name="orange_translucent">#aa682700</color>
     <color name="orange_bright">#fd9229</color>
     <color name="orange_found">#FFFD5A28</color>
+    <color name="orange_dark_opaque">#FF682700</color>
 
     <!-- blue -->
     <color name="blue_dark_translucent">#aa001334</color>  <!-- #7700c20 -->
     <color name="blue_translucent">#cc002566</color>  <!-- #7700c20 -->
     <color name="blue_bright">#0b24fb</color>
     <color name="blue_found">#FF3028FD</color>
+    <color name="blue_dark_opaque">#FF002556</color>  <!-- #7700c20 -->
+
 
     <!-- purple -->
     <color name="purple_found">#FF8828FD</color>
@@ -57,6 +60,7 @@
     <color name="purple_dark_translucent">#aa110127</color>
     <color name="purple_darker_translucent">#aa090114</color>
     <color name="purple_translucent">#cc2a0066</color>
+    <color name="purple_dark_opaque">#FF260256</color>
 
 
 </resources>

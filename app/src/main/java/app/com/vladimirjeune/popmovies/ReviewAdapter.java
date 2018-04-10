@@ -3,6 +3,7 @@ package app.com.vladimirjeune.popmovies;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -122,7 +123,9 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 //            fillBackgroundImageView();
 
-            mBackDropImageView.setColorFilter(Integer.valueOf(0x682700), PorterDuff.Mode.MULTIPLY);
+//            mBackDropImageView.setColorFilter(Integer.valueOf(0x682700), PorterDuff.Mode.MULTIPLY);
+            mBackDropImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.orange_dark_opaque), PorterDuff.Mode.MULTIPLY);
+
 
         }
 

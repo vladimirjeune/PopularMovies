@@ -374,6 +374,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         long tmpID = Long.parseLong(mUri.getLastPathSegment());
         setReviewRecyclerViewForID(tmpID);
 
+//        mBackdropImageView = findViewById(R.id.iv_temporary);
+//        mBackdropImageView.setColorFilter(ContextCompat.getColor(this, R.color.orange_dark_opaque), PorterDuff.Mode.MULTIPLY);
     }
 
 
@@ -470,7 +472,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * from the internet.
      */
     private void loadBackdropImage() {
-        URL imageURL = NetworkUtils.buildURLForImageOfSize(mBackdropPath, NetworkUtils.TMDB_IMAGE_W500);
+        URL imageURL = NetworkUtils.buildURLForImageOfSize(mBackdropPath, NetworkUtils.TMDB_IMAGE_W780);
 
         Picasso.with(this)
                 .load(String.valueOf(imageURL))
@@ -549,6 +551,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         loadMovieImage();
 
         mBackdropPath = data.getString(DETAIL_INDEX_BACKDROP_PATH);
+
         mReviewAdapter.setBackdropPath(mBackdropPath);
 //        loadBackdropImage(); TODO:
         // Image Tint Color TODO:
