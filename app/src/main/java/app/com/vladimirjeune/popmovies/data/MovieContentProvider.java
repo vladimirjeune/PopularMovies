@@ -148,10 +148,22 @@ public class MovieContentProvider extends ContentProvider {
                              @Nullable String selection, @Nullable String[] selectionArgs,
                              @Nullable String orderBy) {
         SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
+        String movieAlias = "movie_entry";  // No spaces in case of need of '.'
+        String reviewAlias = "review_entry";
 
-        sqLiteQueryBuilder.setTables( MovieEntry.TABLE_NAME + " INNER JOIN " + ReviewEntry.TABLE_NAME
-                + " ON ("
-                + MovieEntry._ID + " = " + ReviewEntry.MOVIE_ID
+        sqLiteQueryBuilder.setTables(
+                MovieEntry.TABLE_NAME + " AS " +
+                movieAlias +
+                " INNER JOIN " + ReviewEntry.TABLE_NAME
+                + " AS " +
+                reviewAlias +
+                " ON ( " +
+                movieAlias +
+                "."
+                + MovieEntry._ID + " = " +
+                reviewAlias +
+                "."
+                + ReviewEntry.MOVIE_ID
                 + " ) ");
 
         return sqLiteQueryBuilder.query(

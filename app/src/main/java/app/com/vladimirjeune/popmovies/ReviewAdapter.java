@@ -18,6 +18,7 @@ import com.squareup.picasso.Picasso;
 
 import java.net.URL;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
@@ -171,10 +172,12 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 int reviewIdIndex = mCursor.getColumnIndex(ReviewEntry.REVIEW_ID);
                 int authorIndex = mCursor.getColumnIndex(ReviewEntry.AUTHOR);
                 int contentIndex = mCursor.getColumnIndex(ReviewEntry.CONTENT);
+                int backdropIndex = mCursor.getColumnIndex(MovieContract.MovieEntry.BACKDROP_PATH);
 
                 mReviewId = mCursor.getLong(reviewIdIndex);
                 mAuthorTextView.setText(mCursor.getString(authorIndex));
                 mContentTextView.setText(mCursor.getString(contentIndex));
+                String backdropPath = mCursor.getString(backdropIndex);
 //                loadBackdrop();
 
                 if (aBackdropPath != null) {

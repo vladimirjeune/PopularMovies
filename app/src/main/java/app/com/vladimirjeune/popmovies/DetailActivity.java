@@ -689,11 +689,12 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * Result sent to Callback for AsyncQueryTask
      */
     private void reviewsForMovie(ReviewQueryHandler queryHandler, long movieID) {
-        Uri reviewUri = ReviewEntry.CONTENT_URI;
+        Uri joinEntryUri = MovieContract.JoinEntry.CONTENT_URI;
         String[] projection = new String[] {
                 ReviewEntry.REVIEW_ID,
                 ReviewEntry.AUTHOR,
-                ReviewEntry.CONTENT
+                ReviewEntry.CONTENT,
+                MovieEntry.BACKDROP_PATH
         };
         String selection = ReviewEntry.MOVIE_ID + " = ? ";
         String[] selectionArgs = new String[] {""+movieID};
@@ -702,7 +703,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         queryHandler.startQuery(
                 REVIEW_AQT_CALLBACK,
                 null,
-                reviewUri,
+                joinEntryUri,
                 projection,
                 selection,
                 selectionArgs,
