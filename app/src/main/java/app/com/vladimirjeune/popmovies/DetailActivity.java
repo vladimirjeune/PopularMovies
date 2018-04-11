@@ -100,6 +100,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private CheckBox mHeartCheckboxView;
 
     private TextView mSynopsisTitleTextView;
+    private TextView mReviewsTitleTextView;
     private TextView mReleaseTitleTextView;
     private TextView mRatingTitleTextView;
     private TextView mRuntimeTitleTextView;
@@ -310,6 +311,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReleaseTitleTextView = findViewById(R.id.textViewReleaseTitle);
         mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
         mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
+        mReviewsTitleTextView = findViewById(R.id.textViewReviewsTitle);
 
         // CheckBox state from SavedBundle
         if ((savedInstanceState != null)
@@ -343,9 +345,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         long tmpID = Long.parseLong(mUri.getLastPathSegment());
         setReviewRecyclerViewForID(tmpID);
+//        setRecyclerViewBackgroundByType();
 
-//        mBackdropImageView = findViewById(R.id.iv_temporary);
-//        mBackdropImageView.setColorFilter(ContextCompat.getColor(this, R.color.orange_dark_opaque), PorterDuff.Mode.MULTIPLY);
     }
 
 
@@ -401,12 +402,14 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mRuntimeTitleTextView.setTextColor(ms.getTextColor());
                 mReleaseTitleTextView.setTextColor(ms.getTextColor());
                 mSynopsisTitleTextView.setTextColor(ms.getTextColor());
+                mReviewsTitleTextView.setTextColor(ms.getTextColor());
 
                 // Text Background Colors for Favorites
                 mRatingTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
                 mRuntimeTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
                 mReleaseTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
                 mSynopsisTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+                mReviewsTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
 
             }
 
@@ -534,6 +537,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
         mSynopsisTitleTextView.setTextColor(textTypeColor);
         mSynopsisTitleTextView.setBackgroundColor(backgroundColor);
+
+        // Reviews
+        mReviewsTitleTextView.setTextColor(textTypeColor);
+        mReviewsTitleTextView.setBackgroundColor(backgroundColor);
 
         // Stuff with Checkbox
         mHeartState0or1 = data.getInt(DETAIL_INDEX_FAVORITE_FLAG);
