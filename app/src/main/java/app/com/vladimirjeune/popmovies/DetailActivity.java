@@ -345,8 +345,23 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         long tmpID = Long.parseLong(mUri.getLastPathSegment());
         setReviewRecyclerViewForID(tmpID);
-//        setRecyclerViewBackgroundByType();
+        setRecyclerViewBackgroundByType();
 
+    }
+
+
+    private void setRecyclerViewBackgroundByType() {
+
+        if (mViewType.equals(getString(R.string.pref_sort_popular))) {
+            mReviewRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_orange_background_gradient));
+        } else if (mViewType.equals(getString(R.string.pref_sort_top_rated))) {
+            mReviewRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_blue_background_gradient));
+        } else if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
+            mReviewRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_purple_background_gradient));
+        }
     }
 
 
