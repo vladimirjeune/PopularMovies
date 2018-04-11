@@ -31,12 +31,14 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final String TAG = getClass().getSimpleName();
 
     private final Context mContext;
+    private final String mViewType;
     private Cursor mCursor;
     private String mBackdropPath;
 
 
-    public ReviewAdapter(Context context) {
+    public ReviewAdapter(Context context, String aViewType) {
         mContext = context;
+        mViewType = aViewType;
     }
 
 
@@ -56,7 +58,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
         if (mCursor != null) {
-            ((ReviewViewHolder) holder).bindTo(position, mBackdropPath);
+            ((ReviewViewHolder) holder).bindTo(position);
         }
 
     }
@@ -87,22 +89,8 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     void swapCursor(Cursor newCursor) {
 
         mCursor = newCursor;
-
-
-
         notifyDataSetChanged();
 
-    }
-
-
-    /**
-     * SETBACKDROPPATH - Sets backdrop for the individual reviews.  Since it's the same for each one.
-     * @param aBackdropPath - Path to image online
-     */
-    void setBackdropPath(String aBackdropPath) {
-        if (aBackdropPath != null) {
-            mBackdropPath = aBackdropPath;
-        }
     }
 
 
@@ -111,7 +99,8 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Long mReviewId;
         TextView mAuthorTextView;
         TextView mContentTextView;
-        ImageView mBackDropImageView;
+        ImageView mBackdropImageView;
+        int mBackdropTintColor;
         Button mButton;
 
         public ReviewViewHolder(View itemView) {
@@ -119,33 +108,43 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             mAuthorTextView = itemView.findViewById(R.id.tv_review_author);
             mContentTextView = itemView.findViewById(R.id.tv_review_paragrah);
-            mBackDropImageView = itemView.findViewById(R.id.iv_review_backdrop);
+            mBackdropImageView = itemView.findViewById(R.id.iv_review_backdrop);
             mButton = itemView.findViewById(R.id.bt_review_more);
 
-//            fillBackgroundImageView();
-
-//            mBackDropImageView.setColorFilter(Integer.valueOf(0x682700), PorterDuff.Mode.MULTIPLY);
-            mBackDropImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.orange_dark_opaque), PorterDuff.Mode.MULTIPLY);
-
+            backdropColorForType();
 
         }
 
 
         /**
-         * FILLBACKGROUNDIMAGEVIEW - Fill the background of review
-         * @param aBackdropPath - Path to image backdrop
+         * BACKDROPCOLORFORTYPE - Sets tint for movie backdrop
          */
-        private void fillBackgroundImageView(String aBackdropPath) {
+        private void backdropColorForType() {
 
-            if (aBackdropPath != null) {
-                URL imageURL = NetworkUtils.buildURLForImageOfSize(aBackdropPath, NetworkUtils.TMDB_IMAGE_W500);
+            if (mViewType.equals(mContext.getString(R.string.pref_sort_popular))) {
+                mBackdropImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.orange_dark_opaque), PorterDuff.Mode.MULTIPLY);
+            } else if (mViewType.equals(mContext.getString(R.string.pref_sort_top_rated))) {
+                mBackdropImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.blue_dark_opaque), PorterDuff.Mode.MULTIPLY);
+            } else if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
+                mBackdropImageView.setColorFilter(ContextCompat.getColor(mContext, R.color.purple_dark_opaque), PorterDuff.Mode.MULTIPLY);
+            }
+
+        }
+
+        /**
+         * FILLBACKGROUNDIMAGEVIEW - Fill the background of review
+         */
+        private void fillBackgroundImageView() {
+
+            if (mBackdropPath != null) {
+                URL imageURL = NetworkUtils.buildURLForImageOfSize(mBackdropPath, NetworkUtils.TMDB_IMAGE_W500);
 
                 // TODO: Remove
                 Picasso.with(mContext)
                         .load(String.valueOf(imageURL))
                         .placeholder(R.drawable.tmd_placeholder_poster)
                         .error(R.drawable.tmd_error_poster)
-                        .into(mBackDropImageView, new Callback() {
+                        .into(mBackdropImageView, new Callback() {
                             @Override
                             public void onSuccess() {
                                 Log.d(TAG, "onSuccess() called");
@@ -157,7 +156,6 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             }
                         });
 
-
             }
         }
 
@@ -166,7 +164,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          * BINDTO - A convenience method that will attach inputted data to child views.
          * @param position - Position in cursor of Review Data we are looking for
          */
-        public void bindTo(int position, String aBackdropPath) {
+        public void bindTo(int position) {
 
             if (mCursor.moveToPosition(position)) {
                 int reviewIdIndex = mCursor.getColumnIndex(ReviewEntry.REVIEW_ID);
@@ -177,12 +175,9 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 mReviewId = mCursor.getLong(reviewIdIndex);
                 mAuthorTextView.setText(mCursor.getString(authorIndex));
                 mContentTextView.setText(mCursor.getString(contentIndex));
-                String backdropPath = mCursor.getString(backdropIndex);
-//                loadBackdrop();
+                mBackdropPath = mCursor.getString(backdropIndex);
 
-                if (aBackdropPath != null) {
-                    fillBackgroundImageView(aBackdropPath);
-                }
+                fillBackgroundImageView();
 
                 mButton.setTag(mReviewId);  // So, can find Review to expand, if necessary
             }

@@ -110,7 +110,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     private boolean HEART_DISABLED;
     private String mPosterPath;
-    private String mBackdropPath;
 
     private int mPosition = RecyclerView.NO_POSITION;
     private TextView mNoReviewTextView;
@@ -198,35 +197,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
             mOneSheetImageView.setImageDrawable(placeHolderDrawable);
-        }
-    };
-
-
-    // TODO: May not need.  And setting up wrong IV
-    private final Target mBackgroundTarget = new Target() {
-        @Override
-        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            mBackdropImageView.setImageBitmap(bitmap);
-
-        }
-
-        /**
-         * ONBITMAPFAILED - Called when you call error
-         * @param errorDrawable - What to show in this case
-         */
-        @Override
-        public void onBitmapFailed(Drawable errorDrawable) {
-            mBackdropImageView.setImageDrawable(errorDrawable);
-        }
-
-        /**
-         * ONPREPARELOAD - Shown if placeholder called and we are waiting for
-         * the image to arrive.  May be shown until image arrives or we error out.
-         * @param placeHolderDrawable - Image to show in this case
-         */
-        @Override
-        public void onPrepareLoad(Drawable placeHolderDrawable) {
-            mBackdropImageView.setImageDrawable(placeHolderDrawable);
         }
     };
 
@@ -368,7 +338,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseLayout);
         mReviewRecyclerView.setLayoutManager(mReviewLayoutManager);
 
-        mReviewAdapter = new ReviewAdapter(this);
+        mReviewAdapter = new ReviewAdapter(this, mViewType);
         mReviewRecyclerView.setAdapter(mReviewAdapter);
 
         long tmpID = Long.parseLong(mUri.getLastPathSegment());
@@ -468,21 +438,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
 
     /**
-     * LOADBACKDROPIMAGE - Loads the background image that is stored at the backdrop Path
-     * from the internet.
-     */
-    private void loadBackdropImage() {
-        URL imageURL = NetworkUtils.buildURLForImageOfSize(mBackdropPath, NetworkUtils.TMDB_IMAGE_W780);
-
-        Picasso.with(this)
-                .load(String.valueOf(imageURL))
-                .placeholder(R.drawable.tmd_placeholder_poster)
-                .error(R.drawable.tmd_error_poster)
-                .into(mBackgroundTarget);
-    }
-
-
-    /**
      * ONCREATELOADER - Makes and returns a CursorLoader that loads the data for our URI and stores it in a Cursor.
      * @param loaderId - Loader ID should be the ID for the loader we need to create
      * @param loaderArgs - Arguments supplied by the caller
@@ -550,15 +505,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mPosterPath = data.getString(DETAIL_INDEX_POSTER_PATH);
         loadMovieImage();
 
-        mBackdropPath = data.getString(DETAIL_INDEX_BACKDROP_PATH);
-
-        mReviewAdapter.setBackdropPath(mBackdropPath);
-//        loadBackdropImage(); TODO:
-        // Image Tint Color TODO:
-//        mBackdropImageView.setColorFilter(backgroundColor, PorterDuff.Mode.MULTIPLY);
-
-
-
         // Title, ID & set ImageView ContentDescription
         mIDForMovie = data.getLong(DETAIL_INDEX_ID);
         String originalTitle = data.getString(DETAIL_INDEX_ORIGINAL_TITLE);
@@ -610,10 +556,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
+        // TODO: Choose background gradient for RecyclerView
         // Cannot set Title in onCreate since no Title has been created at that point
         setNoReviewText();
 
-        data.close();  // TODO: Remember to close the Cursor
+        data.close();  // Remember to close the Cursor
 
     }
 
