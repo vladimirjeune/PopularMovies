@@ -386,7 +386,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     mReleaseTextView.getText().toString(),
                     mSynopsisTextView.getText().toString(),
                     ContextCompat.getColor(this, R.color.logo_purple),  // Favorite color
-                    ContextCompat.getColor(this, R.color.header_favorite_background)  // Favorite color
+                    ContextCompat.getColor(this, R.color.header_favorite_background),  // Favorite color
+                    R.drawable.rv_purple_background_gradient
             );
 
             outState.putSerializable(MovieState.MOVIESTATE, movieState);
@@ -425,6 +426,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mReleaseTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
                 mSynopsisTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
                 mReviewsTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+
+                // Background Drawables for Favorites
+                mReviewRecyclerView.setBackground(ContextCompat
+                        .getDrawable(this, ms.getDrawableID()));  // TODO: Check that rotation works in Favorites
 
             }
 
@@ -850,6 +855,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         private String synopsis;
         private int textColor;
         private int textBackgroundColor;
+        private int drawableID;
 
 
         public MovieState(
@@ -860,7 +866,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 String aRelease,
                 String aSynopsis,
                 int aTextColor,
-                int aTextBackgroundColor
+                int aTextBackgroundColor,
+                int aDrawableID
         ) {
             title = aTitle;
             imagePath = anImagePath;
@@ -870,6 +877,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             synopsis = aSynopsis;
             textColor = aTextColor;
             textBackgroundColor = aTextBackgroundColor;
+            drawableID = aDrawableID;
         }
 
 
@@ -947,6 +955,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         public void setTextBackgroundColor(int textBackgroundColor) {
             this.textBackgroundColor = textBackgroundColor;
         }
+
+        public int getDrawableID() { return drawableID; }
+
+        public void setDrawableID(int drawableID) { this.drawableID = drawableID; }
     }
 
 
