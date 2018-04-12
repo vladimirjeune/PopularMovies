@@ -293,6 +293,35 @@ public final class MainLoadingUtils {
 
 
     /**
+     * GETSINGLEMOVIESYOUTUBESFROMTMDB - Get the Youtube Stats for the movie with the given movieId.
+     * Note: Makes network call.
+     * @param aMovieId - Movie Id for movie we are getting the Review Data for
+     * @return ContentValues[] - Review Data of movie.  Can be 0 - n, or possibly null
+     */
+    private static ContentValues[] getSingleMoviesYoutubesFromTMDB(Context context, String aMovieId) {
+        ContentValues[] youtubeContentValues = null;
+
+        try {
+
+            // Get JSON from Network call
+            String receivedSingleMoviesYoutubeJSON = NetworkUtils.getResponseFromHttpUrl(
+                    NetworkUtils.buildURLforVideos(context, aMovieId)
+            );
+
+            // Turn JSON into ContentValues[] for this movieID
+            youtubeContentValues = OpenTMDJsonUtils.getYoutubeContentValues(context,
+                    Long.valueOf(aMovieId), receivedSingleMoviesYoutubeJSON);
+
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return youtubeContentValues;
+    }
+
+
+
+    /**
      * GETRUNTIMESFORMOVIESINLIST - Add the runtimes to the Movies that were just created from
      * JSON call that should precede this one.  Update database with runtimes
      * Note: Makes network call.  Calls DB
@@ -360,8 +389,48 @@ public final class MainLoadingUtils {
                 }
             } while (movieCursor.moveToNext());  // Loop thru movies
 
+        }
+
+    }
 
 
+
+    /**
+     * GETYOUTUBESFORMOVIESINLIST - Add the Youtubes to the Youtube Tables on a per movie basis that
+     * were just created from JSON call that should precede this one.
+     * Update database with Youtubes for each Movie; if available
+     * Note: Makes network call.  Calls DB
+     * @param movieCursor - Holds data for MovieIDs needed for Reviews
+     */
+    public static void getYoutubesForMoviesInList(Cursor movieCursor, Context context) {
+
+        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
+
+            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
+            Cursor youtubeIdsForThisMovieCursor;
+
+            do {
+
+                long movieId = movieCursor.getLong(movieIdIndex);
+                ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
+
+//                // Query for Youtube IDs we already have, if any.  Do here to give time for return b4 next function
+//                String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
+//                String selection = YoutubeEntry.MOVIE_ID + " = ? ";
+//                String[] selectionArgs = new String[] {""+ movieId};
+//                youtubeIdsForThisMovieCursor = context.getContentResolver()
+//                        .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+//
+//                HashSet<String> alreadyInSet = cursorIdsToSet(youtubeIdsForThisMovieCursor);
+//
+//                // TODO: See if can be modified to work for both, else just make 1 for Youtube
+////                insertReviewsForMovie(context, alreadyInSet, youtubesForSingleMovie);
+//
+//                if ((youtubeIdsForThisMovieCursor != null)
+//                        && (! youtubeIdsForThisMovieCursor.isClosed())) {
+//                    youtubeIdsForThisMovieCursor.close();
+//                }
+            } while (movieCursor.moveToNext());  // Loop thru movies
 
         }
 

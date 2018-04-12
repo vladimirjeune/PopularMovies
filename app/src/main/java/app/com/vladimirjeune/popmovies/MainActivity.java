@@ -384,6 +384,8 @@ public class MainActivity extends AppCompatActivity implements
                                     // Add Reviews to DB for Movies
                                     MainLoadingUtils.getReviewsForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
 
+                                    MainLoadingUtils.getYoutubesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+
                                     // TODO: Engage
                                     MainLoadingUtils.createArrayListOfContentValuesForPosters(
                                             dataOutput,
