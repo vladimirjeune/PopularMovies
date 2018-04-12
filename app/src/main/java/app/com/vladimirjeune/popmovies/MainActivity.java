@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -42,7 +41,6 @@ import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
 import static app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry.FAVORITE_FLAG;
-import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getTypeOrderIn;
 
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
@@ -66,9 +64,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private ContentValues[] movieContentValues;
     private String mCurrentViewType;
-//    public static final String VIEW_TYPE_POPULAR;
-//    public static String VIEW_TYPE_TOP_RATED;
-//    public static String VIEW_TYPE_FAVORITE;
 
     private ProgressBar mProgressBar;
 
@@ -108,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements
     private static final int INDEX_TOP_RATED_ORDER_IN = 13;
     private static final int INDEX_FAVORITE_ORDER_IN = 14;
 
-    private boolean snackBarTriggered = false;
     private View mNoFavoritesLayout;
 
 
@@ -500,169 +494,6 @@ public class MainActivity extends AppCompatActivity implements
 
 
                 /**
-                 * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
-                 * @param idDeleteSet - Modified set of old Movie IDs consists of Old IDs - New Ids
-                 *                 and the Intersection of Old & New
-                 * @param oppositeTitlesCursor - In case we have to delete something that is many types.  Just update
-                 */
-                private void deleteChartDroppedMovies(Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
-
-                    Set<Long> idOppositeSet = new HashSet<>();
-                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
-
-                    for (Long deleteOldId : idDeleteSet) {  // TODO: Make work with multiple types
-
-                        // Situation: ID is in many types.  Want this one updated to exists only in the others
-                        if (idOppositeSet.contains(deleteOldId)) {
-                            ContentValues nullOutTypeCV = new ContentValues();
-                            // Nulling out this usage, since ID is currently used for other type.
-
-                            // ****** TODO: use putNULL(String) instead, not sure what this is doing
-//                            nullOutTypeCV.put(MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType), (String) null);
-                            nullOutTypeCV.putNull(MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType));
-
-                            String where = MovieEntry._ID + " = ? ";
-                            String[] whereArgs = {"" + deleteOldId};
-
-                            // Updating the ID that is in many, types to no longer be in this one.
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    nullOutTypeCV,
-                                    where,
-                                    whereArgs);
-                        } else {  // Situation: Normal, delete ID
-                            getContentResolver().delete(  // TODO: Test against OppositeSet, to see if need update instead
-                                    MovieEntry.buildUriWithMovieId(deleteOldId),
-                                    null,
-                                    null);
-                        }
-                    }
-                }
-
-
-                /**
-                 * INSERTUPDATEANDMAKENEWIDSET - Inserts new movies into DB, Updates chart movers in DB, and makes a
-                 * new ID set of incoming movies to compare against what is already in the database
-                 * @param idAndTitleOldCursor - Cursor of titles that are previously in DB
-                 * @param oppositeTitlesCursor - Cursor of the opposite type to this one, in case this ID multiple types.
-                 * @param idOldSet - Set of IDs of movies previously in our DB
-                 * @param idNewSet - Set of IDs that are coming in from TMDb.
-                 */
-                private void insertUpdateAndMakeNewIdSet(Cursor idAndTitleOldCursor,
-                                                         Cursor oppositeTitlesCursor,
-                                                         Set<Long> idOldSet,
-                                                         Set<Long> idNewSet) {
-                    // Makes Set from the movies of the opposite type, in case same movie is many types,
-                    // but can only take 1 id.
-                    Set<Long> idOppositeSet = new HashSet<>();
-                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
-
-                    for (int i = 0; i < movieContentValues.length; i++) {
-
-                        Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
-                        idNewSet.add(newId);    // Create new Set for difference op later
-
-                        // TODO: If NewId is in OppositeSet, Update
-                        // If this ID exists in the opposite type, need special processing so always
-                        // 1 entry.  Update instead so is Pop&Top.
-                        // So finding in db the movie with the specific ID and a known position in
-                        // another type than current.  Once found, do an update to it so there is a
-                        // OrderIn for this type as well.  Make sure only THIS OrderIn is updated; not
-                        // the one that you found.  You only need to find one other OrderIn, even if
-                        // there exists more than one.  We are just trying to find movies that are in
-                        // multiple locations so they are only updated instead of getting duplicates.
-                        // TODO: Look for ID with other types using query (get 1st match) and do this
-                        // TODO: Make sure that by this point one should match.  There is a function that
-                        // TODO: returns the other types.  Use that.
-                        if (idOppositeSet.contains(newId)) {
-
-
-                            /////////////
-                            Pair<String, String> otherTypes = MainLoadingUtils.findOtherTypeIns(getContext(), mCurrentViewType);
-                            String otherTypeIn1 = otherTypes.first;
-                            String otherTypeIn2 = otherTypes.second;
-
-                            // Now query one, and if nothing, then the other.  There should be one at this point.
-                            // Use that other in the function calls below
-
-                            String[] projection = new String[] {
-                                    MovieEntry._ID,
-                                    MovieEntry.ORIGINAL_TITLE,
-                                    MovieEntry.POPULAR_ORDER_IN,
-                                    MovieEntry.TOP_RATED_ORDER_IN,
-                                    FAVORITE_FLAG  // TODO: LOOKED AT USAGE
-                            };
-
-                            String whereIDTypeAndOtherType_1 =
-                                    MovieEntry._ID + " = ? AND "
-                                            + getTypeOrderIn(getContext(), mCurrentViewType)
-                                            + " IS NOT NULL AND "
-                                            + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn1);
-
-                            String[] whereArgs = new String[] {"" + newId};
-
-                            Cursor typeAndFirstCursor = getContentResolver().query(
-                                    MovieEntry.CONTENT_URI,
-                                    projection,
-                                    whereIDTypeAndOtherType_1,
-                                    whereArgs,
-                                    null
-                            );
-
-                            // If we already have a movie with the current viewType and others
-                            if (typeAndFirstCursor != null) {
-                                if (typeAndFirstCursor.moveToFirst()) {
-
-                                    getContentResolver().update(
-                                            MovieEntry.CONTENT_URI,
-                                            movieContentValues[i],
-                                            whereIDTypeAndOtherType_1,
-                                            whereArgs
-                                    );
-
-                                } else {  // So must have been the other type
-
-                                    String whereIDTypeAndOtherType_2 =
-                                            MovieEntry._ID + " = ? AND "
-                                                    + getTypeOrderIn(getContext(), mCurrentViewType)
-                                                    + " IS NOT NULL AND "
-                                                    + MainLoadingUtils.getOtherOrderInWhereString(otherTypeIn2);
-
-                                    getContentResolver().update(
-                                            MovieEntry.CONTENT_URI,
-                                            movieContentValues[i],
-                                            whereIDTypeAndOtherType_2,
-                                            whereArgs
-                                    );
-                                }
-                                typeAndFirstCursor.close();
-                            }
-                            /////////////
-
-                        } else if (idOldSet.contains(newId)) {
-                            // Update
-                            String orderInForType = MainLoadingUtils.getTypeOrderIn(getContext(), mCurrentViewType);
-                            String[] whereArgs
-                                    = new String[] {"" + newId
-                                    , MainLoadingUtils.getOldPositionOfNewId(getContext(),
-                                            mCurrentViewType, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
-
-                            String where = MovieEntry._ID + " = ? AND " + orderInForType + " = ? ";
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i],
-                                    where,
-                                    whereArgs);
-                        } else {
-                            getContentResolver().insert(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i]);
-                        }
-                    }
-                }
-
-
-                /**
                  * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
                  * @param data - ArrayList<Pair<Long, Pair<String, String>>>
                  */
@@ -671,7 +502,6 @@ public class MainActivity extends AppCompatActivity implements
                     mIdsAndPosters = data;  // Assignment for caching
                     super.deliverResult(data);  // Then deliver results
                 }
-
 
             };
         }
@@ -697,6 +527,7 @@ public class MainActivity extends AppCompatActivity implements
         }
 
     }
+
 
     /**
      * ISCURRENTTYPEPOPULAR - Whether the current View Type is Popular.  Does not differentiate between
@@ -756,6 +587,7 @@ public class MainActivity extends AppCompatActivity implements
         startActivityForResult(movieDetailIntent, DETAIL_CODE);
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -772,6 +604,7 @@ public class MainActivity extends AppCompatActivity implements
 
         }
     }
+
 
     /**
      * SHOWLOADING - Shows the loading indicator and hides the posters.  This shoule be
@@ -795,18 +628,6 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * POSTERSARESHOWING - Tells whether we are showing posters and the load has finished.
-     * Important, so we know that the data for hearts is valid.
-     * @return - boolean - Tells whether posters are showing.
-     */
-    private boolean postersAreShowing() {
-        return (
-                (mProgressBar.getVisibility() == View.INVISIBLE)
-                && (mNoFavoritesLayout.getVisibility() == View.INVISIBLE)
-                && (mRecyclerView.getVisibility() == View.VISIBLE)
-                );
-    }
 
     /**
      * SHOWNOFAVORITES - Shows the empty Favorites page.  This should be triggered when Favorites
@@ -819,16 +640,6 @@ public class MainActivity extends AppCompatActivity implements
         mNoFavoritesLayout.setVisibility(View.VISIBLE);
     }
 
-
-    /**
-     * SHOWREMOVEFAVORITEDIALOG - Will create an instance of the dialog fragment and then
-     * show it.
-     */
-    public void showRemoveFavoriteDialog() {
-        DialogFragment dialogFragment = new RemoveFavoriteDialogFragment();
-        dialogFragment.show(getSupportFragmentManager()
-                , RemoveFavoriteDialogFragment.REMOVEFAVORITEDIALOG_TAG);
-    }
 
     @Override
     public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment) {
