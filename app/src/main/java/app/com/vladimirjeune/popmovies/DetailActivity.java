@@ -587,7 +587,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         // Cannot set Title in onCreate since no Title has been created at that point
         setNoReviewText();
 
-        data.close();  // Remember to close the Cursor
+//        data.close();  // Closing cursor here caused crash on rotation
 
     }
 
