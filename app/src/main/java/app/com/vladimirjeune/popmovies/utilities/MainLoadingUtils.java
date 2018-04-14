@@ -3,6 +3,7 @@ package app.com.vladimirjeune.popmovies.utilities;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +20,7 @@ import java.util.Set;
 import app.com.vladimirjeune.popmovies.R;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 
 /**
  * Class to hold some of the functions used to reorder movies when new data comes in.
@@ -414,22 +416,22 @@ public final class MainLoadingUtils {
                 long movieId = movieCursor.getLong(movieIdIndex);
                 ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
 
-//                // Query for Youtube IDs we already have, if any.  Do here to give time for return b4 next function
-//                String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
-//                String selection = YoutubeEntry.MOVIE_ID + " = ? ";
-//                String[] selectionArgs = new String[] {""+ movieId};
-//                youtubeIdsForThisMovieCursor = context.getContentResolver()
-//                        .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
-//
-//                HashSet<String> alreadyInSet = cursorIdsToSet(youtubeIdsForThisMovieCursor);
-//
-//                // TODO: See if can be modified to work for both, else just make 1 for Youtube
-////                insertReviewsForMovie(context, alreadyInSet, youtubesForSingleMovie);
-//
-//                if ((youtubeIdsForThisMovieCursor != null)
-//                        && (! youtubeIdsForThisMovieCursor.isClosed())) {
-//                    youtubeIdsForThisMovieCursor.close();
-//                }
+                // Query for Youtube IDs we already have, if any.  Do here to give time for return b4 next function
+                String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
+                String selection = YoutubeEntry.MOVIE_ID + " = ? ";
+                String[] selectionArgs = new String[] {""+ movieId};
+                youtubeIdsForThisMovieCursor = context.getContentResolver()
+                        .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+
+                HashSet<String> alreadyInSet = cursorYoutubeIdsToSet(youtubeIdsForThisMovieCursor);
+
+                // TODO: See if can be modified to work for both, else just make 1 for Youtube
+                insertYoutubesForMovie(context, alreadyInSet, youtubesForSingleMovie);
+
+                if ((youtubeIdsForThisMovieCursor != null)
+                        && (! youtubeIdsForThisMovieCursor.isClosed())) {
+                    youtubeIdsForThisMovieCursor.close();
+                }
             } while (movieCursor.moveToNext());  // Loop thru movies
 
         }
@@ -498,6 +500,68 @@ public final class MainLoadingUtils {
 
 
     /**
+     * INSERTYOUTUBESFORMOVIE - Inserts youtubes passed in, if any, into the Youtubes Database
+     * @param context - Needed for function calls
+     * @param alreadyInSet - Set of Reviews in DB for this Movie ID.  Can be null, or empty
+     * @param youtubesForSingleMovie - ContentValues holding the youtubes for a movie, if any
+     */
+    private static void insertYoutubesForMovie(Context context, HashSet<String> alreadyInSet,
+                                              ContentValues[] youtubesForSingleMovie) {
+
+        if ( (youtubesForSingleMovie != null) && (youtubesForSingleMovie.length > 0) ) {
+                String Y_ID = YoutubeEntry.YOUTUBE_ID;
+                Uri Y_URI = YoutubeEntry.CONTENT_URI;
+
+            if ((alreadyInSet != null) && (alreadyInSet.size() > 0)) {
+                // Create Set of incoming Reviews for Set Operations with AlreadyInDBSet
+                HashSet<String> incomingSet = makeYoutubeIncomingSet(youtubesForSingleMovie);
+
+                // Already in DB - Incoming => To be dropped from DB
+                HashSet<String> deleteYoutubeSet = new HashSet<>(alreadyInSet);
+                deleteYoutubeSet.removeAll(incomingSet);
+
+                // Already in DB intersect Incoming => In need of update in DB
+                HashSet<String> updateYoutubeSet = new HashSet<>(alreadyInSet);
+                updateYoutubeSet.retainAll(incomingSet);
+
+                // Incoming from net - Already in DB => Just insert, since new
+                HashSet<String> insertYoutubeSet = new HashSet<>(incomingSet);
+                insertYoutubeSet.removeAll(alreadyInSet);
+
+                for (int i = 0; i < youtubesForSingleMovie.length; i++) {
+                    String currentId = youtubesForSingleMovie[i].getAsString(Y_ID);
+
+                    String selection = Y_ID + " = ?";
+                    String youtubeId = youtubesForSingleMovie[i].getAsString(Y_ID);
+                    String[] selectionArgs = new String[]{youtubeId};
+
+                    // Remember; we are actually using the YoutubeID:String for identity.  Which is NOT PK, or a Long
+                    if (deleteYoutubeSet.contains(currentId)) {
+
+                        context.getContentResolver().delete(Y_URI, selection, selectionArgs);
+
+                    } else if (updateYoutubeSet.contains(currentId)) {
+
+                        context.getContentResolver().update(Y_URI, youtubesForSingleMovie[i], selection, selectionArgs);
+
+                    } else if (insertYoutubeSet.contains(currentId)) {
+
+                        context.getContentResolver().insert(Y_URI, youtubesForSingleMovie[i]);
+
+                    } else {
+                        throw new UnsupportedOperationException("Set operations failed!");
+                    }
+
+                }
+            } else {
+                // If DB is empty, just insert all from Net
+                context.getContentResolver().bulkInsert(Y_URI, youtubesForSingleMovie);
+            }
+        }
+    }
+
+
+    /**
      * CURSORIDSTOSET - Will take a Cursor with a ReviewEntry ReviewId column and return the IDs in a
      * Set.
      * @param cursorOfIds - Cursor with ReviewIds as one of the columns
@@ -520,6 +584,28 @@ public final class MainLoadingUtils {
 
 
     /**
+     * CURSORYOUTUBEIDSTOSET - Will take a Cursor with a ReviewEntry ReviewId column and return the IDs in a
+     * Set.
+     * @param cursorOfIds - Cursor with ReviewIds as one of the columns
+     * @return - Set<Long>, can be null
+     */
+    private static HashSet<String> cursorYoutubeIdsToSet(Cursor cursorOfIds) {
+        HashSet<String> databaseSet = null;
+
+        if ((cursorOfIds != null) && (cursorOfIds.moveToFirst())) {
+            databaseSet = new HashSet<>();
+
+            do {
+                int idColumnIndex = cursorOfIds.getColumnIndex(YoutubeEntry.YOUTUBE_ID);
+                databaseSet.add(cursorOfIds.getString(idColumnIndex));
+            } while (cursorOfIds.moveToNext());
+
+        }
+        return databaseSet;
+    }
+
+
+    /**
      * MAKEINCOMINGSET - Turns paramter of ContentValues[] with ReviewID into a Set of the same
      * @param contentValues - Array of ContentValues with ID for Reviews, if not null, and full.
      * @return - Set of IDs for the Reviews that were represented in the parameter
@@ -532,6 +618,27 @@ public final class MainLoadingUtils {
 
             for (int i = 0; i < contentValues.length; i++) {
                 incomingSet.add(contentValues[i].getAsString(ReviewEntry.REVIEW_ID));
+            }
+
+        }
+
+        return incomingSet;
+    }
+
+
+    /**
+     * MAKEYOUTUBEINCOMINGSET - Turns paramater of ContentValues[] with YoutubeID into a Set of the same
+     * @param contentValues - Array of ContentValues with ID for Youtubes, if not null, and full.
+     * @return - Set of IDs for the Youtubes that were represented in the parameter
+     */
+    private static HashSet<String> makeYoutubeIncomingSet(ContentValues[] contentValues) {
+        HashSet<String> incomingSet = null;
+
+        if ((contentValues != null) && (contentValues.length > 0)) {
+            incomingSet = new HashSet<>();
+
+            for (int i = 0; i < contentValues.length; i++) {
+                incomingSet.add(contentValues[i].getAsString(YoutubeEntry.YOUTUBE_ID));
             }
 
         }

@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 
 /**
  * Helps to create the database for the 1st time and upgrading it.
@@ -16,7 +17,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
 
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
 
     public MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -43,7 +44,6 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
                 ");";
 
-        // TODO: REVIEW
         final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " +
                 ReviewEntry.TABLE_NAME + " ( " +
                 ReviewEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +
@@ -57,8 +57,24 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 " ON DELETE CASCADE " + // Foreign Key to Movie Table.  Delete of Movie items auto-delete Review Children
                 " ); ";
 
+        final String SQL_CREATE_YOUTUBE_TABLE = " CREATE TABLE " +
+                YoutubeEntry.TABLE_NAME + " ( " +
+                YoutubeEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +
+                YoutubeEntry.YOUTUBE_ID + " TEXT NOT NULL UNIQUE, " +
+                YoutubeEntry.KEY + " TEXT NOT NULL UNIQUE, " +
+                YoutubeEntry.NAME + " TEXT, " +
+                YoutubeEntry.TUBE + " TEXT NOT NULL, " +
+                YoutubeEntry.SIZE + " INTEGER, " +
+                YoutubeEntry.TYPE + " TEXT, " +
+                YoutubeEntry.MOVIE_ID + " INTEGER NOT NULL, " +
+                " FOREIGN KEY ( " + YoutubeEntry.MOVIE_ID + " ) " +
+                " REFERENCES " + MovieEntry.TABLE_NAME + " ( " + MovieEntry._ID + " ) " +
+                " ON DELETE CASCADE " + // Foreign Key to Movie Table.  Delete of Movie items auto-delete Review Children
+                " ); ";
+
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);  // Parent Table
         sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE); // Review Table
+        sqLiteDatabase.execSQL(SQL_CREATE_YOUTUBE_TABLE); // Youtube Table
 
     }
 
@@ -76,12 +92,17 @@ public class MovieDBHelper extends SQLiteOpenHelper {
         // wild: https://thebhwgroup.com/blog/how-android-sqlite-onupgrade
 
         // Child table must be deleted before parent.  Review has FK relationship to Movie
+        final String SQL_DROP_YOUTUBE_TABLE = " DROP TABLE IF EXISTS " +
+                YoutubeEntry.TABLE_NAME;
+
         final String SQL_DROP_REVIEW_TABLE = " DROP TABLE IF EXISTS " +
                 ReviewEntry.TABLE_NAME;
 
         final String SQL_DROP_MOVIE_TABLE = " DROP TABLE IF EXISTS " +
                 MovieEntry.TABLE_NAME;
 
+
+        sqLiteDatabase.execSQL(SQL_DROP_YOUTUBE_TABLE);  // Child tables must be deleted 1st so no constraint problems
         sqLiteDatabase.execSQL(SQL_DROP_REVIEW_TABLE);  // Child tables must be deleted 1st so no constraint problems
         sqLiteDatabase.execSQL(SQL_DROP_MOVIE_TABLE);
 
