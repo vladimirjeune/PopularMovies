@@ -33,8 +33,10 @@
     <string name="detail_runtime">RUNTIME</string>
     <string name="detail_synopsis">SYNOPSIS</string>
     <string name="detail_reviews">REVIEWS</string>
+    <string name="detail_media">MEDIA</string>
     <string name="action_details">Details</string>
     <string name="detail_review_no_review">Currently, no reviews for; <xliff:g id="noReviews">%1$s</xliff:g>.</string>
+    <string name="detail_media_no_media">Currently, no media for; <xliff:g id="noMedia">%1$s</xliff:g>.</string>
     <string name="detail_review_grid_button">MORE…</string>
 
     <!-- About -->
