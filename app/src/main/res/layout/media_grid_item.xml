@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintLayout_media_grid_item"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#77000000"
+
+    >
+
+    <com.google.android.youtube.player.YouTubeThumbnailView
+        android:id="@+id/ytv_media_thumbnail"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:layout_marginLeft="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginRight="0dp"
+        android:layout_marginEnd="0dp"
+        app:layout_constraintDimensionRatio="H,16:9"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/tv_media_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:paddingRight="8dp"
+        android:paddingEnd="8dp"
+        tools:text="A Quiet Place (2018) - Final Trailer"
+        android:textColor="@color/white_translucent"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textStyle="bold|italic"
+        app:layout_constraintTop_toBottomOf="@+id/ytv_media_thumbnail"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/tv_media_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        tools:text="Featurette"
+        android:textColor="@color/white_more_translucent"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintTop_toBottomOf="@+id/tv_media_name"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>

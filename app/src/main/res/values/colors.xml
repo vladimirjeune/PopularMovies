@@ -42,6 +42,7 @@
 
     <!--whites -->
     <color name="white_translucent">#CCFFFFFF</color>
+    <color name="white_more_translucent">#B3FFFFFF</color>
 
     <!-- orange -->
     <color name="orange_dark_translucent">#99200c00</color>
