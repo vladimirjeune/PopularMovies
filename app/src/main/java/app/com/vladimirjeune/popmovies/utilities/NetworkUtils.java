@@ -27,6 +27,9 @@ import app.com.vladimirjeune.popmovies.R;
 
 public final class NetworkUtils {
     private final static String TAG = NetworkUtils.class.getSimpleName();
+    public static final String THEMOVIEDATABASE_KEY = "tmdb_key";
+    public static final String YOUTUBE_DATA_V3_KEY = "youtube_v3_key";
+
     public final static String TMDB_BASE_URL = "https://api.themoviedb.org/3/movie";
     public final static String TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 
@@ -87,7 +90,7 @@ public final class NetworkUtils {
 
         Uri popularTopRatedUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(whichEndpoint)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
@@ -115,7 +118,7 @@ public final class NetworkUtils {
         Uri singleMovieUri = Uri.parse(TMDB_BASE_URL)
                 .buildUpon()
                 .appendPath(movieId)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .build();
         try {
@@ -142,7 +145,7 @@ public final class NetworkUtils {
                 .buildUpon()
                 .appendPath(anId)
                 .appendPath(TMDB_VIDEOS)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
@@ -169,7 +172,7 @@ public final class NetworkUtils {
                 .buildUpon()
                 .appendPath(anId)
                 .appendPath(TMDB_REVIEWS)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
@@ -271,15 +274,23 @@ public final class NetworkUtils {
      * access: <a href="https://www.themoviedb.org/">https://www.themoviedb.org/</a> with
      * the assigned key.  Keys can be acquired at the site.  Then the string can be placed in
      * a file with the appropriate file name.
+     * @param context - Needed for function calls
+     * @param key - Type of key needed
      * @return - String: The TheMovieDb API Key needed to access the database.
      */
-    private static String obtainTMDKey(Context context) {
+    private static String obtainKeyOfType(Context context, String key) {
         // In order for the movie requests to work we must obtain key from file in assets
         try {
 
             AssetManager assetManager = context.getAssets();  // File is kept in the asset folder
+            Scanner scanner;
 
-            Scanner scanner = new Scanner(assetManager.open("apiTmd.key"));
+
+            if (key.equals(NetworkUtils.THEMOVIEDATABASE_KEY)) {
+                scanner = new Scanner(assetManager.open("apiTmd.key"));
+            } else {
+                scanner = new Scanner(assetManager.open("youtubeDataAPI.key"));
+            }
 
             return scanner.next();
 
