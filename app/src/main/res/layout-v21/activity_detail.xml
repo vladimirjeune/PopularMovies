@@ -290,7 +290,7 @@
             android:id="@+id/textViewMediaTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_goneMarginTop="48dp"
+            app:layout_goneMarginTop="64dp"
             android:layout_marginTop="16dp"
             android:paddingTop="2dp"
             android:paddingBottom="2dp"

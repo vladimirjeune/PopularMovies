@@ -38,8 +38,10 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract;
+import app.com.vladimirjeune.popmovies.data.MovieContract.JoinYoutubeEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
@@ -83,6 +85,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final java.lang.String HEART_DISABLED_KEY = "HEART_DISABLED_KEY";
 
     private static final int REVIEW_AQT_CALLBACK = -1;
+    private static final int MEDIA_AQT_CALLBACK = -17;
     private Integer mHeartState0or1;
     private long mIDForMovie;
 
@@ -109,11 +112,18 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private RecyclerView.LayoutManager mReviewLayoutManager;
     private ReviewAdapter mReviewAdapter;
 
+    private RecyclerView mMediaRecyclerView;
+    private RecyclerView.LayoutManager mMediaLayoutManager;
+    private MediaAdapter mMediaAdapter;
+
     private boolean HEART_DISABLED;
     private String mPosterPath;
 
-    private int mPosition = RecyclerView.NO_POSITION;
+    private int mReviewPosition = RecyclerView.NO_POSITION;
     private TextView mNoReviewTextView;
+
+    private int mMediaPosition = RecyclerView.NO_POSITION;
+    private TextView mNoMediaTextView;
 
 
     private final Target mTarget = new Target() {
@@ -328,14 +338,16 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=T] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         }
 
+
+        long tmpID = Long.parseLong(mUri.getLastPathSegment());  // General
+
         // Text for when there are no reviews
         mNoReviewTextView = findViewById(R.id.tv_review_empty);
 
-
         mReviewRecyclerView = findViewById(R.id.rv_horizontal_linear_reviews);
         mReviewRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
-
         mReviewRecyclerView.setHasFixedSize(true);
+
         boolean reverseLayout = false;
         mReviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseLayout);
         mReviewRecyclerView.setLayoutManager(mReviewLayoutManager);
@@ -343,23 +355,52 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewAdapter = new ReviewAdapter(this, mViewType);
         mReviewRecyclerView.setAdapter(mReviewAdapter);
 
-        long tmpID = Long.parseLong(mUri.getLastPathSegment());
         setReviewRecyclerViewForID(tmpID);
-        setRecyclerViewBackgroundByType();
+
+        // Media RecyclerView
+        mNoMediaTextView = findViewById(R.id.tv_media_empty);
+
+        mMediaRecyclerView = findViewById(R.id.rv_horizontal_linear_media);  // Get view from XML
+        mMediaRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use instead of padding
+        mMediaRecyclerView.setHasFixedSize(true);
+
+        // Set LayoutManager
+        boolean reverseMediaLayout = false;
+        mMediaLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseMediaLayout);
+        mMediaRecyclerView.setLayoutManager(mMediaLayoutManager);
+
+        // Set Adapter
+        mMediaAdapter = new MediaAdapter(this);
+        mMediaRecyclerView.setAdapter(mMediaAdapter);
+
+        setMediaRecyclerViewForID(tmpID);
+
+
+        setRecyclerViewBackgroundByType();  // General
 
     }
 
 
+    /**
+     * SETRECYCLERVIEWBACKGROUNDBYTYPE - Sets the backgrounds for the Review and Media RecyclerViews
+     * so they have the correct background for this particular Movies current viewType
+     */
     private void setRecyclerViewBackgroundByType() {
 
         if (mViewType.equals(getString(R.string.pref_sort_popular))) {
             mReviewRecyclerView
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_orange_background_gradient));
+            mMediaRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_orange_background_gradient));
         } else if (mViewType.equals(getString(R.string.pref_sort_top_rated))) {
             mReviewRecyclerView
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_blue_background_gradient));
+            mMediaRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_blue_background_gradient));
         } else if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
             mReviewRecyclerView
+                    .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_purple_background_gradient));
+            mMediaRecyclerView
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_purple_background_gradient));
         }
     }
@@ -516,9 +557,6 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return;
         }
 
-
-
-
         // Foreground and Background color for Section Titles
         Pair<Integer, Integer> titleTextAndBackgroundColor = getTextAndBackgroundColorsBasedOnType();
         int textTypeColor = titleTextAndBackgroundColor.first;
@@ -583,16 +621,16 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
-        // TODO: Choose background gradient for RecyclerView
-        // Cannot set Title in onCreate since no Title has been created at that point
+        // Cannot set This text in onCreate since no Title has been created at that point
         setNoReviewText();
+        setNoMediaText();
 
 //        data.close();  // Closing cursor here caused crash on rotation
 
     }
 
     /**
-     * SRECYCLERVIEWFORID - Uses passed in ID to obtain Reviews for this title, if any.
+     * SETRECYCLERVIEWFORID - Uses passed in ID to obtain Reviews for this title, if any.
      * If there are reviews, they are shown in a RecyclerView.  Otherwise, a note saying
      * that there are no reviews is shown instead.
      * @param movieId - ID for Movie whose reviews we want to see
@@ -600,6 +638,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private void setReviewRecyclerViewForID(long movieId) {
         ReviewQueryHandler reviewQueryHandler = new ReviewQueryHandler(getContentResolver(), this);
         reviewsForMovie(reviewQueryHandler, movieId);
+    }
+
+    /**
+     * SETMEDIARECYCLERVIEWFORID - Uses passed in ID to obtain Media for this title, if any.
+     * If there are media, they are shown in a RecyclerView.  Otherwise, a note saying
+     * that there are no media is shown instead.
+     * @param movieId - ID for Movie whose media we want to see
+     */
+    private void setMediaRecyclerViewForID(long movieId) {
+        MediaQueryHandler mediaQueryHandler = new MediaQueryHandler(getContentResolver(), this);
+        mediaForMovie(mediaQueryHandler, movieId);
     }
 
 
@@ -648,6 +697,51 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
     }
 
+    /**
+     * MEDIAQUERYHANDLER - Static class needed to not leak memory while accessing the
+     * the database using AsyncQueryHandler task.
+     */
+    private static class MediaQueryHandler extends AsyncQueryHandler {
+    // https://stackoverflow.com/questions/37188519/this-handler-class-should
+    // -be-static-or-leaks-might-occurasyncqueryhandler
+        private final WeakReference<DetailActivity> mActivity;
+
+        // DO NOT USE
+        public MediaQueryHandler(ContentResolver cr) {
+            super(cr);
+            mActivity = null;
+        }
+
+        public MediaQueryHandler(ContentResolver cr, DetailActivity da) {
+            super(cr);
+            mActivity = new WeakReference<DetailActivity>(da);
+        }
+
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+
+            if (mActivity != null) {
+                DetailActivity detailActivity = mActivity.get();  // Getting the Activity from the WeakReference
+                MediaAdapter mediaAdapter = detailActivity.getMediaAdapter();
+
+                if (cursor == null) {
+                    detailActivity.showMediaRecyclerView(false);
+                    return;
+                }
+
+                if ((cursor.moveToFirst())
+                        && (mediaAdapter != null)) {
+                    mediaAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                    detailActivity.showMediaRecyclerView(true);
+
+                } else {
+                    detailActivity.showMediaRecyclerView(false);
+                }
+
+            }
+        }
+    }
+
 
     /**
      * GETREVIEWADAPTER - Returns the ReviewAdapter
@@ -655,6 +749,14 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      */
     ReviewAdapter getReviewAdapter() {
         return mReviewAdapter;
+    }
+
+    /**
+     * GETMEDIAADAPTER - Returns the MediaAdapter
+     * @return - MediaAdapter - Can be null
+     */
+    MediaAdapter getMediaAdapter() {
+        return mMediaAdapter;
     }
 
 
@@ -686,17 +788,59 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
     }
 
+    /**
+     * MEDIAFORMOVIE - Getting media, if any, for this movie id
+     * Result sent to Callback for AsyncQueryTask
+     */
+    private void mediaForMovie(MediaQueryHandler queryHandler, long movieID) {
+        Uri joinMediaEntryUri = JoinYoutubeEntry.CONTENT_URI;  // Not typo
+        String[] projection = new String[] {
+                YoutubeEntry.YOUTUBE_ID,
+                YoutubeEntry.KEY,
+                YoutubeEntry.NAME,
+                YoutubeEntry.TYPE,
+                MovieEntry.ORIGINAL_TITLE  // For debugging
+        };
+        String selection = YoutubeEntry.MOVIE_ID + " = ? ";
+        String[] selectionArgs = new String[] {""+movieID};
+        String orderBy = YoutubeEntry.YOUTUBE_ID;
+
+        queryHandler.startQuery(
+                MEDIA_AQT_CALLBACK,
+                null,
+                joinMediaEntryUri,
+                projection,
+                selection,
+                selectionArgs,
+                orderBy
+        );
+
+    }
+
 
     /**
-     * SETRECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
+     * SETREVIEWRECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
      * when the user switches from one type of list to another.  Otherwise, we would be
      * in the same position as we were before the change, but in another list.
      */
-    private void setRecyclerVIewToCorrectPosition() {
-        if (RecyclerView.NO_POSITION == mPosition) {
-            mPosition = 0;
+    private void setReviewRecyclerViewToCorrectPosition() {
+        if (RecyclerView.NO_POSITION == mReviewPosition) {
+            mReviewPosition = 0;
         }
-        mReviewRecyclerView.scrollToPosition(mPosition);
+        mReviewRecyclerView.scrollToPosition(mReviewPosition);
+    }
+
+
+    /**
+     * SETMEDIARECYCLERVIEWTOCORRECTPOSITION - Makes sure that the RecyclerView is at the start
+     * when the user switches from one type of list to another.  Otherwise, we would be
+     * in the same position as we were before the change, but in another list.
+     */
+    private void setMediaRecyclerViewToCorrectPosition() {
+        if (RecyclerView.NO_POSITION == mMediaPosition) {
+            mMediaPosition = 0;
+        }
+        mMediaRecyclerView.scrollToPosition(mMediaPosition);
     }
 
 
@@ -716,7 +860,23 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             mNoReviewTextView.setVisibility(View.VISIBLE);
             mReviewRecyclerView.setVisibility(View.GONE);
         }
+    }
 
+    /**
+     * SHOWMEDIARECYCLERVIEW - RecyclerView starts out as VIEW.GONE because most movies won't have media.
+     * So a TextView is shown stating that this movie has no media.  If there is data for Media
+     * the TextView is made VIEW.GONE and the RecyclerView is shown.
+     * @param show - Show the Media RecyclerView or not
+     */
+    void showMediaRecyclerView(boolean show) {
+
+        if (show) {
+            mMediaRecyclerView.setVisibility(View.VISIBLE);
+            mNoMediaTextView.setVisibility(View.GONE);
+        } else {
+            mNoMediaTextView.setVisibility(View.VISIBLE);
+            mMediaRecyclerView.setVisibility(View.GONE);
+        }
     }
 
 
@@ -725,6 +885,13 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      */
     private void setNoReviewText() {
         mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));
+    }
+
+    /**
+     * SETNOMEDIATEXT - SETS TITLE FOR THE TEXTVIEW SHOWN WHEN THERE ARE NO MEDIA FOR A TITLE.
+     */
+    private void setNoMediaText() {
+        mNoMediaTextView.setText(getString(R.string.detail_media_no_media, mTitle.getText()));
     }
 
 

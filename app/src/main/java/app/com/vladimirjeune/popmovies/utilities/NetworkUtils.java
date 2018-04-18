@@ -278,7 +278,7 @@ public final class NetworkUtils {
      * @param key - Type of key needed
      * @return - String: The TheMovieDb API Key needed to access the database.
      */
-    private static String obtainKeyOfType(Context context, String key) {
+    public static String obtainKeyOfType(Context context, String key) {
         // In order for the movie requests to work we must obtain key from file in assets
         try {
 
