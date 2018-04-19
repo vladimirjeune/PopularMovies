@@ -1,12 +1,14 @@
 package app.com.vladimirjeune.popmovies;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -78,7 +80,7 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
 
-    class MediaViewHolder extends RecyclerView.ViewHolder {
+    class MediaViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         String mYoutubeId;
         String mSiteKey;
@@ -92,6 +94,8 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             mThumbnailImageView = itemView.findViewById(R.id.ytv_media_thumbnail);
             mNameTextView = itemView.findViewById(R.id.tv_media_name);
             mTypeTextView = itemView.findViewById(R.id.tv_media_type);
+
+            itemView.setOnClickListener(this);
 
         }
 
@@ -118,6 +122,8 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 mNameTextView.setText(mCursor.getString(nameIndex));
                 mTypeTextView.setText(mCursor.getString(typeIndex));
 
+                mThumbnailImageView.setTag(mSiteKey);  // So can find video from Thumbnail
+
                 // You have to initialize a Thumbnail, not set it
                 mThumbnailImageView.initialize(youtubeAccessKey, new YouTubeThumbnailView.OnInitializedListener() {
                     @Override
@@ -140,8 +146,6 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 Log.e(TAG, "onThumbnailError: There was an error loading the Thumbnail for " + mSiteKey);
                             }
                         });
-
-
                     }
 
                     @Override
@@ -158,6 +162,22 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
 
 
+        /**
+         * ONCLICK - Called when one of the Thumbnails is clicked
+         * @param view - View containing the Thumbnail that was clicked
+         */
+        @Override
+        public void onClick(View view) {
+
+            ImageView thumbnailView = view.findViewById(R.id.ytv_media_thumbnail);  // U set a tag on it when made
+
+            if (thumbnailView.getTag() != null) {
+                String videoKey = (String) thumbnailView.getTag();  // You set thumbnail with key for that position
+
+                mContext.startActivity(new Intent(mContext, YoutubePlayerActivity.class)
+                        .putExtra(YoutubeEntry.KEY, videoKey));
+            }
+        }
     }
 
 

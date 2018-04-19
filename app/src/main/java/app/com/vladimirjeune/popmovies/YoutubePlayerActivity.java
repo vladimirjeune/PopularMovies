@@ -18,7 +18,7 @@ import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
     private static final String TAG = YoutubePlayerActivity.class.getSimpleName();
     private static final int RECOVERY_DIALOG_REQUEST = 1;
-    private String mMediaId;
+    private String mMediaKey;
     private YouTubePlayerView mYouTubePlayerView;
     private String mKey ;
 
@@ -28,7 +28,7 @@ public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTub
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_youtube_player);
 
-        mMediaId = getIntent().getStringExtra(YoutubeEntry.YOUTUBE_ID);
+        mMediaKey = getIntent().getStringExtra(YoutubeEntry.KEY);
 
         mYouTubePlayerView = findViewById(R.id.youtube_player_view_player);
 
@@ -46,7 +46,7 @@ public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTub
 //        youTubePlayer.setFullscreenControlFlags(YouTubePlayer.FULLSCREEN_FLAG_CONTROL_ORIENTATION);
 //        youTubePlayer.setFullscreenControlFlags(YouTubePlayer.FULLSCREEN_FLAG_CONTROL_SYSTEM_UI);
 
-        if (mMediaId != null) {
+        if (mMediaKey != null) {
 
             youTubePlayer.setFullscreen(true);   // TODO: See if OK here.
             if (!wasRestored) {  // Indicates initialization success
@@ -54,7 +54,7 @@ public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTub
                 // Setting Default Player Style, for now
                 youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
 
-                youTubePlayer.loadVideo(mMediaId);
+                youTubePlayer.loadVideo(mMediaKey);
             } else {
 
                 // Play automatically
@@ -69,7 +69,7 @@ public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTub
         if (youTubeInitializationResult.isUserRecoverableError()) {
             youTubeInitializationResult.getErrorDialog(this, RECOVERY_DIALOG_REQUEST).show();
         } else {
-            Log.e(TAG, "onInitializationFailure: Failed initialization for ID: " + mMediaId);
+            Log.e(TAG, "onInitializationFailure: Failed initialization for ID: " + mMediaKey);
         }
     }
 }
