@@ -48,16 +48,16 @@ public class YoutubePlayerActivity extends YouTubeBaseActivity implements YouTub
 
         if (mMediaKey != null) {
 
-            youTubePlayer.setFullscreen(true);   // TODO: See if OK here.
+            youTubePlayer.setFullscreen(true);
             if (!wasRestored) {  // Indicates initialization success
 
                 // Setting Default Player Style, for now
-                youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.MINIMAL);
 
                 youTubePlayer.loadVideo(mMediaKey);
             } else {
 
-                // Play automatically
+                // Play automatically when rotated.  Otherwise user has to press play
                 youTubePlayer.play();
             }
         }
