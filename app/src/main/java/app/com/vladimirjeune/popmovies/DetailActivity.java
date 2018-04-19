@@ -103,6 +103,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private CheckBox mHeartCheckboxView;
 
     private TextView mSynopsisTitleTextView;
+    private TextView mMediaTitleTextView;
     private TextView mReviewsTitleTextView;
     private TextView mReleaseTitleTextView;
     private TextView mRatingTitleTextView;
@@ -322,6 +323,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
         mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
         mReviewsTitleTextView = findViewById(R.id.textViewReviewsTitle);
+        mMediaTitleTextView = findViewById(R.id.textViewMediaTitle);
 
         // CheckBox state from SavedBundle
         if ((savedInstanceState != null)
@@ -599,6 +601,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         // Reviews
         mReviewsTitleTextView.setTextColor(textTypeColor);
         mReviewsTitleTextView.setBackgroundColor(backgroundColor);
+
+        // Media
+        mMediaTitleTextView.setTextColor(textTypeColor);
+        mMediaTitleTextView.setBackgroundColor(backgroundColor);
 
         // Stuff with Checkbox
         mHeartState0or1 = data.getInt(DETAIL_INDEX_FAVORITE_FLAG);
