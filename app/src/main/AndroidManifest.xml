@@ -26,9 +26,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
-            android:parentActivityName=".MainActivity"
-
-            >
+            android:parentActivityName=".MainActivity">
 
             <!--  -->
             <meta-data
@@ -41,8 +39,7 @@
         <activity
             android:name=".DetailActivity"
             android:label="@string/action_details"
-            android:parentActivityName=".MainActivity"
-            >
+            android:parentActivityName=".MainActivity">
 
             <!--  -->
             <meta-data
@@ -50,14 +47,16 @@
                 android:value=".MainActivity" />
             >
         </activity>
+        <activity
+            android:name=".AboutActivity"
+            android:label="@string/action_about" />
 
-        <activity android:name=".AboutActivity"
-            android:label="@string/action_about"/>
         <provider
             android:name=".data.MovieContentProvider"
             android:authorities="@string/package_name"
             android:exported="false" />
 
+        <activity android:name=".YoutubePlayerActivity"></activity>
     </application>
 
 </manifest>
