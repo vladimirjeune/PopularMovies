@@ -93,7 +93,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     }
 
-
+    // TODO: Figure out what you need to do to the the XML to work.  Then see what looks like.
     class ReviewViewHolder extends RecyclerView.ViewHolder {
 
         Long mReviewId;
@@ -107,7 +107,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
 
             mAuthorTextView = itemView.findViewById(R.id.tv_review_author);
-            mContentTextView = itemView.findViewById(R.id.tv_review_paragrah);
+            mContentTextView = itemView.findViewById(R.id.tv_review_paragrah_2);
             mBackdropImageView = itemView.findViewById(R.id.iv_review_backdrop);
             mButton = itemView.findViewById(R.id.bt_review_more);
 
