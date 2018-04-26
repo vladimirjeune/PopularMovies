@@ -696,6 +696,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     detailActivity.showRecyclerView(true);
 
                 } else {
+                    if (! cursor.isClosed()) {
+                        cursor.close();
+                    }
                     detailActivity.showRecyclerView(false);
                 }
 
@@ -741,6 +744,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     detailActivity.showMediaRecyclerView(true);
 
                 } else {
+                    if (! cursor.isClosed()) {
+                        cursor.close();  // We know it exists
+                    }
                     detailActivity.showMediaRecyclerView(false);
                 }
 

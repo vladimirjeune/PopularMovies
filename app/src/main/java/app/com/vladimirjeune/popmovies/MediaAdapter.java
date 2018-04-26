@@ -74,6 +74,10 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
      */
     void swapCursor(Cursor newCursor) {
 
+        if ((mCursor != null) && (! mCursor.isClosed())) {
+            mCursor.close();
+        }
+
         mCursor = newCursor;
         notifyDataSetChanged();
 
