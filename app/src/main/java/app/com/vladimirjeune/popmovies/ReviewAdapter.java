@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -104,8 +103,6 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         TextView mAuthorTextView;
         TextView mContentTextView;
         ImageView mBackdropImageView;
-        int mBackdropTintColor;
-        Button mButton;
 
         public ReviewViewHolder(View itemView) {
             super(itemView);
@@ -113,7 +110,6 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             mAuthorTextView = itemView.findViewById(R.id.tv_review_author);
             mContentTextView = itemView.findViewById(R.id.tv_review_paragrah_2);
             mBackdropImageView = itemView.findViewById(R.id.iv_review_backdrop);
-            mButton = itemView.findViewById(R.id.bt_review_more);
 
             backdropColorForType();
 
@@ -183,7 +179,6 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                 fillBackgroundImageView();
 
-                mButton.setTag(mReviewId);  // So, can find Review to expand, if necessary
             }
 
         }
