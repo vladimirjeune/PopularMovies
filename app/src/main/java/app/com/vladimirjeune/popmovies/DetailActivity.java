@@ -87,6 +87,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private static final int REVIEW_AQT_CALLBACK = -1;
     private static final int MEDIA_AQT_CALLBACK = -17;
     private Integer mHeartState0or1;
+    private Integer mInitialHeartState;
     private long mIDForMovie;
 
     private String mViewType;
@@ -608,6 +609,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         // Stuff with Checkbox
         mHeartState0or1 = data.getInt(DETAIL_INDEX_FAVORITE_FLAG);
+        if (mInitialHeartState == null) {  // Only 1st time thru
+            mInitialHeartState = mHeartState0or1.intValue();  // State when initially loaded.  Needed nonreference
+        }
         mHeartCheckboxView.setChecked(mHeartState0or1.equals(HEART_TRUE));
         ((CheckBox) mHeartCheckboxView).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -976,10 +980,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     public void onBackPressed() {
         Intent detailResultIntent = new Intent();
-        detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, mHeartState0or1});
+
+        detailResultIntent.putExtra(DETAIL_ACTIVITY_RETURN, new long[] {mIDForMovie, didHeartChange()});
         setResult(Activity.RESULT_OK, detailResultIntent);
 
         super.onBackPressed();
+    }
+
+
+    /**
+     * DIDHEARTCHANGE - Whether the State of the Heart Icon was visibly changed since Activity started.
+     * @return - Long - 1 True / 0 False
+     */
+    private long didHeartChange() {
+        final long changedTrue = 1L;
+        final long changedFalse = 0L;
+        return (mHeartState0or1.equals(mInitialHeartState)) ? changedFalse : changedTrue;
     }
 
 

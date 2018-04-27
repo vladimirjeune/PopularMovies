@@ -598,8 +598,16 @@ public class MainActivity extends AppCompatActivity implements
 
             if (resultCode == Activity.RESULT_OK) {
                 long[] detailResults = data.getLongArrayExtra(DetailActivity.DETAIL_ACTIVITY_RETURN);
-                showLoading();
-                loadPreferredMovieList();
+                long heartStateChanged = detailResults[1];
+
+                // If changed then need to update everything
+                final long heartChangedTrue = 1L;
+                if (heartStateChanged == heartChangedTrue) {
+                    showLoading();
+                    loadPreferredMovieList();
+                }
+                // Else visually all is the same
+
                 Log.d(TAG, "onActivityResult() called with: requestCode = [" + requestCode + "], resultCode = [" + resultCode + "], data = [" + data + "], ["
                 + detailResults[0] +" ], [" + detailResults[1] + "]");
             }
