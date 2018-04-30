@@ -77,7 +77,7 @@
 
         <TextView
             android:id="@+id/textViewRatingTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             android:layout_marginLeft="24dp"
             android:layout_marginStart="24dp"
             android:paddingStart="2dp"
@@ -105,11 +105,8 @@
 
         <TextView
             android:id="@+id/textViewOutOfTen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/TextDetailsNormalStatsTheme"
             android:text="@string/detail_out_of_10"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
             android:paddingTop="8dp"
             app:layout_constraintLeft_toRightOf="@+id/textViewRating"
             app:layout_constraintTop_toTopOf="@+id/textViewRating"
@@ -118,7 +115,7 @@
 
         <TextView
             android:id="@+id/textViewRuntimeTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             android:layout_marginTop="16dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
@@ -135,17 +132,14 @@
 
         <TextView
             android:id="@+id/textViewRuntime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/TextDetailsNormalStatsTheme"
             tools:text="141 min"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewRuntimeTitle"
             app:layout_constraintTop_toBottomOf="@+id/textViewRuntimeTitle" />
 
         <TextView
             android:id="@+id/textViewReleaseTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             android:layout_marginTop="16dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
@@ -162,18 +156,15 @@
 
         <TextView
             android:id="@+id/textViewRelease"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/TextDetailsNormalStatsTheme"
             tools:text="2017"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
             app:layout_constraintLeft_toLeftOf="@+id/textViewReleaseTitle"
             app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle"
             />
 
         <TextView
             android:id="@+id/textViewSynopsisTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             android:layout_marginTop="16dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
@@ -212,7 +203,7 @@
 
         <TextView
             android:id="@+id/textViewReviewsTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             android:layout_marginTop="16dp"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
@@ -244,12 +235,8 @@
         <!-- RecyclerView will be gone if empty and this will be visible and vice versa -->
         <TextView
             android:id="@+id/tv_review_empty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
+            style="@style/TextDetailsEmptyTheme"
             android:visibility="visible"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
             app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
             app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
@@ -258,7 +245,7 @@
 
         <TextView
             android:id="@+id/textViewMediaTitle"
-            style="@style/SectionTitleTheme"
+            style="@style/TextDetailSectionTitleTheme"
             app:layout_goneMarginTop="64dp"
             android:layout_marginTop="16dp"
             android:paddingStart="2dp"
@@ -290,12 +277,8 @@
 
         <TextView
             android:id="@+id/tv_media_empty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
+            style="@style/TextDetailsEmptyTheme"
             android:visibility="visible"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@+id/textViewMediaTitle"
             app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
             app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"

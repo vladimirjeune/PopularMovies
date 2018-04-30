@@ -26,8 +26,8 @@
 
     <TextView
         android:id="@+id/tv_media_name"
+        style="@style/TextDetailsMediaTheme"
         android:layout_width="342dp"
-        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
@@ -35,9 +35,6 @@
         android:paddingEnd="8dp"
         tools:text="A Quiet Place (2018) - Final Trailer"
         android:textColor="@color/white_translucent"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:maxLines="1"
-        android:ellipsize="end"
         android:textStyle="bold|italic"
         app:layout_constraintTop_toBottomOf="@+id/ytv_media_thumbnail"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -46,8 +43,8 @@
 
     <TextView
         android:id="@+id/tv_media_type"
+        style="@style/TextDetailsMediaTheme"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginRight="8dp"
@@ -56,9 +53,6 @@
         android:paddingBottom="8dp"
         tools:text="Featurette"
         android:textColor="@color/white_more_translucent"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        android:maxLines="1"
-        android:ellipsize="end"
         app:layout_constraintTop_toBottomOf="@+id/tv_media_name"
         app:layout_constraintLeft_toLeftOf="parent"
         />

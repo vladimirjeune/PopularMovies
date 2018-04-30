@@ -41,10 +41,9 @@
         <item name="colorAccent">@color/colorAccentFavoritesDialog</item>
         <item name="colorControlNormal">@color/colorAccentFavoritesDialog</item>
         <item name="android:textColorHighlight">@color/purple_translucent</item>
-
     </style>
 
-    <style name="SectionTitleTheme" parent="@style/TextAppearance.AppCompat.Small">
+    <style name="TextDetailSectionTitleTheme" parent="@style/TextAppearance.AppCompat.Small">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingTop">2dp</item>
@@ -55,6 +54,23 @@
         <item name="android:textAllCaps">true</item>
     </style>
 
+    <style name="TextDetailsMediaTheme" parent="@style/TextAppearance.AppCompat.Medium">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:maxLines">1</item>
+         <item name="android:ellipsize">end</item> 
+    </style>
 
-    
+    <style name="TextDetailsEmptyTheme" parent="@style/TextAppearance.AppCompat.Medium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textColor">@color/white_translucent</item>
+    </style>
+
+    <style name="TextDetailsNormalStatsTheme" parent="@style/Base.TextAppearance.AppCompat.Display1">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/white_translucent</item>
+    </style>
+
 </resources>
