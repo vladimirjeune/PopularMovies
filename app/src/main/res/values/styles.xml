@@ -54,5 +54,7 @@
         <item name="android:textStyle">bold|italic</item>
         <item name="android:textAllCaps">true</item>
     </style>
+
+
     
 </resources>
