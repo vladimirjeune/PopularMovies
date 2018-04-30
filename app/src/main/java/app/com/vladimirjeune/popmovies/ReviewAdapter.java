@@ -108,7 +108,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
 
             mAuthorTextView = itemView.findViewById(R.id.tv_review_author);
-            mContentTextView = itemView.findViewById(R.id.tv_review_paragrah_2);
+            mContentTextView = itemView.findViewById(R.id.tv_review_paragrah);
             mBackdropImageView = itemView.findViewById(R.id.iv_review_backdrop);
 
             backdropColorForType();

@@ -54,7 +54,7 @@
         >
 
         <TextView
-            android:id="@+id/tv_review_paragrah_2"
+            android:id="@+id/tv_review_paragrah"
             android:layout_width="342dp"
             android:layout_height="0dp"
             tools:text="@string/tools_lorem_paragraph_short"
