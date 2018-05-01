@@ -54,7 +54,7 @@
         <item name="android:textAllCaps">true</item>
     </style>
 
-    <style name="TextDetailsMediaTheme" parent="@style/TextAppearance.AppCompat.Medium">
+    <style name="TextMediaTheme" parent="@style/TextAppearance.AppCompat.Medium">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:maxLines">1</item>
          <item name="android:ellipsize">end</item> 
