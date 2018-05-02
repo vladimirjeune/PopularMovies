@@ -15,6 +15,7 @@ import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeThumbnailLoader;
 import com.google.android.youtube.player.YouTubeThumbnailView;
 
+import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
@@ -119,13 +120,20 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                 int keyIndex = mCursor.getColumnIndex(YoutubeEntry.KEY);
                 int nameIndex = mCursor.getColumnIndex(YoutubeEntry.NAME);
                 int typeIndex = mCursor.getColumnIndex(YoutubeEntry.TYPE);
+                int titleIndex = mCursor.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
 
                 mYoutubeId = mCursor.getString(youtubeIdIndex);
                 mSiteKey = mCursor.getString(keyIndex);
 
+                String name = mCursor.getString(nameIndex);
+                String title = mCursor.getString(titleIndex);
+                String type = mCursor.getString(typeIndex);
+
                 mNameTextView.setText(mCursor.getString(nameIndex));
                 mTypeTextView.setText(mCursor.getString(typeIndex));
 
+                String a11yVideo = mContext.getString(R.string.a11y_video, type, title, name);  // a11yText describes Thumbnail
+                mThumbnailImageView.setContentDescription(a11yVideo);
                 mThumbnailImageView.setTag(mSiteKey);  // So can find video from Thumbnail
 
                 // You have to initialize a Thumbnail, not set it

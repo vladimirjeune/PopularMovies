@@ -50,11 +50,14 @@
 
     <!-- Dialogs -->
     <string name="dialog_remove_favorite">Remove movie from favorites?</string>
+    <string name="dialog_remove_button">REMOVE</string>
+    <string name="dialog_cancel_button">CANCEL</string>
 
     <!-- a11y -->
     <string name="a11y_poster">Poster for <xliff:g id="poster">%1$s</xliff:g></string>
     <string name="a11y_tmdb_logo">The Movie Database Logo</string>
-    <string name="dialog_remove_button">REMOVE</string>
-    <string name="dialog_cancel_button">CANCEL</string>
+    <string name="a11y_video">
+        <xliff:g id="type" example="Featurette">%1$s</xliff:g> for <xliff:g id="movie" example="Baby Driver">%2$s</xliff:g>: <xliff:g id="name" example="Is he slow?">%3$s</xliff:g>
+    </string>
 
 </resources>
