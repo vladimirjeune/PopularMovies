@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -42,10 +43,13 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.JoinYoutubeEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
+import app.com.vladimirjeune.popmovies.databinding.ActivityDetailBinding;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         RemoveFavoriteDialogFragment.RemoveFavoriteListener {
+
+    ActivityDetailBinding mActivityDetailBinding;
 
     public static final String DETAIL_ACTIVITY_RETURN =  "app.com.vladimirjeune.popmovies.DETAILACTIVITYRETURN" ;
 
@@ -97,7 +101,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private View mTitleBackgroundView;
     private TextView mSynopsisTextView;
     private TextView mReleaseTextView;
-    private TextView mRatingTextView;
+//    private TextView mRatingTextView;
     private TextView mRuntimeTextView;
     private ImageView mOneSheetImageView;
     private ImageView mBackdropImageView;
@@ -131,7 +135,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private final Target mTarget = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            mOneSheetImageView.setImageBitmap(bitmap);
+//            mOneSheetImageView.setImageBitmap(bitmap);
+            mActivityDetailBinding.imageViewOnesheet.setImageBitmap(bitmap);
 
             Palette.Builder paletteBuilder = getBuilderWithWhiteTextBGFilter(bitmap);
             setTitleTextBackgroundColor(paletteBuilder);
@@ -153,17 +158,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     final int lightMutedColor = palette.getLightMutedColor(blackColor);
 
                     if (vibrantColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(vibrantColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(vibrantColor);
                     } else if (darkVibrantColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(darkVibrantColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(darkVibrantColor);
                     } else if (lightVibrantColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(lightVibrantColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(lightVibrantColor);
                     } else if (darkMutedColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(darkMutedColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(darkMutedColor);
                     } else if (lightMutedColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(lightMutedColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(lightMutedColor);
                     } else if (mutedColor != blackColor) {
-                        mTitleBackgroundView.setBackgroundColor(mutedColor);
+                        mActivityDetailBinding.textViewTitleBackground.setBackgroundColor(mutedColor);
                     }
                 }
             });
@@ -199,7 +204,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
          */
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            mOneSheetImageView.setImageDrawable(errorDrawable);
+//            mOneSheetImageView.setImageDrawable(errorDrawable);
+            mActivityDetailBinding.imageViewOnesheet.setImageDrawable(errorDrawable);
         }
 
         /**
@@ -209,7 +215,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
          */
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            mOneSheetImageView.setImageDrawable(placeHolderDrawable);
+//            mOneSheetImageView.setImageDrawable(placeHolderDrawable);
+            mActivityDetailBinding.imageViewOnesheet.setImageDrawable(placeHolderDrawable);
         }
     };
 
@@ -292,7 +299,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+
+        mActivityDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+//        setContentView(R.layout.activity_detail);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);  // May be needed for Result
 
@@ -306,25 +315,25 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
         mViewType =  movieIntent.getStringExtra(MainActivity.EXTRA_TYPE);
 
-        mTitle = findViewById(R.id.textViewTitle);
+//        mTitle = findViewById(R.id.textViewTitle);
         mHeartState0or1 = HEART_FALSE;
-        mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
+//        mTitleBackgroundView = findViewById(R.id.textViewTitleBackground);
 
         // Data
-        mSynopsisTextView = findViewById(R.id.textViewSynopsis);
-        mReleaseTextView = findViewById(R.id.textViewRelease);
-        mRatingTextView = findViewById(R.id.textViewRating);
-        mRuntimeTextView = findViewById(R.id.textViewRuntime);
-        mOneSheetImageView = findViewById(R.id.imageViewOnesheet);
-        mHeartCheckboxView = findViewById(R.id.checkbox_favorite);
+//        mSynopsisTextView = findViewById(R.id.textViewSynopsis);
+//        mReleaseTextView = findViewById(R.id.textViewRelease);
+//        mRatingTextView = findViewById(R.id.textViewRating);
+//        mRuntimeTextView = findViewById(R.id.textViewRuntime);
+//        mOneSheetImageView = findViewById(R.id.imageViewOnesheet);
+//        mHeartCheckboxView = findViewById(R.id.checkbox_favorite);
 
         // Titles
-        mSynopsisTitleTextView = findViewById(R.id.textViewSynopsisTitle);
-        mReleaseTitleTextView = findViewById(R.id.textViewReleaseTitle);
-        mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
-        mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
-        mReviewsTitleTextView = findViewById(R.id.textViewReviewsTitle);
-        mMediaTitleTextView = findViewById(R.id.textViewMediaTitle);
+//        mSynopsisTitleTextView = findViewById(R.id.textViewSynopsisTitle);
+//        mReleaseTitleTextView = findViewById(R.id.textViewReleaseTitle);
+//        mRatingTitleTextView = findViewById(R.id.textViewRatingTitle);
+//        mRuntimeTitleTextView = findViewById(R.id.textViewRuntimeTitle);
+//        mReviewsTitleTextView = findViewById(R.id.textViewReviewsTitle);
+//        mMediaTitleTextView = findViewById(R.id.textViewMediaTitle);
 
         // CheckBox state from SavedBundle
         if ((savedInstanceState != null)
@@ -337,7 +346,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             getSupportLoaderManager().initLoader(DETAIL_LOADER_ID, null, this);
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=F] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         } else {
-            mHeartCheckboxView.setEnabled(HEART_DISABLED);  // May be too late, here
+//            mHeartCheckboxView.setEnabled(HEART_DISABLED);  // May be too late, here
+            mActivityDetailBinding.checkboxFavorite.setEnabled(HEART_DISABLED);  // May be too late, here
             Log.i(TAG, "onCreate: CHECKBOX IS: [HD=T] " + ((HEART_DISABLED) ? "DISABLED" : "ENABLED" ));
         }
 
@@ -345,36 +355,36 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         long tmpID = Long.parseLong(mUri.getLastPathSegment());  // General
 
         // Text for when there are no reviews
-        mNoReviewTextView = findViewById(R.id.tv_review_empty);
+//        mNoReviewTextView = findViewById(R.id.tv_review_empty);
 
-        mReviewRecyclerView = findViewById(R.id.rv_horizontal_linear_reviews);
-        mReviewRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
-        mReviewRecyclerView.setHasFixedSize(true);
+//        mReviewRecyclerView = findViewById(R.id.rv_horizontal_linear_reviews);
+        mActivityDetailBinding.rvHorizontalLinearReviews.addItemDecoration(new SpaceDecoration(this));  // Use this instead of padding.
+        mActivityDetailBinding.rvHorizontalLinearReviews.setHasFixedSize(true);
 
         boolean reverseLayout = false;
         mReviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseLayout);
-        mReviewRecyclerView.setLayoutManager(mReviewLayoutManager);
+        mActivityDetailBinding.rvHorizontalLinearReviews.setLayoutManager(mReviewLayoutManager);
 
         mReviewAdapter = new ReviewAdapter(this, mViewType);
-        mReviewRecyclerView.setAdapter(mReviewAdapter);
+        mActivityDetailBinding.rvHorizontalLinearReviews.setAdapter(mReviewAdapter);
 
         setReviewRecyclerViewForID(tmpID);
 
         // Media RecyclerView
-        mNoMediaTextView = findViewById(R.id.tv_media_empty);
+//        mNoMediaTextView = findViewById(R.id.tv_media_empty);
 
-        mMediaRecyclerView = findViewById(R.id.rv_horizontal_linear_media);  // Get view from XML
-        mMediaRecyclerView.addItemDecoration(new SpaceDecoration(this));  // Use instead of padding
-        mMediaRecyclerView.setHasFixedSize(true);
+//        mMediaRecyclerView = findViewById(R.id.rv_horizontal_linear_media);  // Get view from XML
+        mActivityDetailBinding.rvHorizontalLinearMedia.addItemDecoration(new SpaceDecoration(this));  // Use instead of padding
+        mActivityDetailBinding.rvHorizontalLinearMedia.setHasFixedSize(true);
 
         // Set LayoutManager
         boolean reverseMediaLayout = false;
         mMediaLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, reverseMediaLayout);
-        mMediaRecyclerView.setLayoutManager(mMediaLayoutManager);
+        mActivityDetailBinding.rvHorizontalLinearMedia.setLayoutManager(mMediaLayoutManager);
 
         // Set Adapter
         mMediaAdapter = new MediaAdapter(this);
-        mMediaRecyclerView.setAdapter(mMediaAdapter);
+        mActivityDetailBinding.rvHorizontalLinearMedia.setAdapter(mMediaAdapter);
 
         setMediaRecyclerViewForID(tmpID);
 
@@ -391,19 +401,19 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private void setRecyclerViewBackgroundByType() {
 
         if (mViewType.equals(getString(R.string.pref_sort_popular))) {
-            mReviewRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearReviews
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_orange_background_gradient));
-            mMediaRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearMedia
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_orange_background_gradient));
         } else if (mViewType.equals(getString(R.string.pref_sort_top_rated))) {
-            mReviewRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearReviews
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_blue_background_gradient));
-            mMediaRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearMedia
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_blue_background_gradient));
         } else if (mViewType.equals(getString(R.string.pref_sort_favorite))) {
-            mReviewRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearReviews
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_purple_background_gradient));
-            mMediaRecyclerView
+            mActivityDetailBinding.rvHorizontalLinearMedia
                     .setBackground(ContextCompat.getDrawable(this, R.drawable.rv_purple_background_gradient));
         }
     }
@@ -423,12 +433,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             outState.putBoolean(HEART_DISABLED_KEY, HEART_DISABLED);
 
             MovieState movieState = new MovieState(
-                    mTitle.getText().toString(),
+//                    mTitle.getText().toString(),
+                    mActivityDetailBinding.textViewTitle.getText().toString(),
                     mPosterPath,
-                    mRatingTextView.getText().toString(),
-                    mRuntimeTextView.getText().toString(),
-                    mReleaseTextView.getText().toString(),
-                    mSynopsisTextView.getText().toString(),
+//                    mRatingTextView.getText().toString(),
+                    mActivityDetailBinding.textViewRating.getText().toString(),
+//                    mRuntimeTextView.getText().toString(),
+                    mActivityDetailBinding.textViewRuntime.getText().toString(),
+//                    mReleaseTextView.getText().toString(),
+                    mActivityDetailBinding.textViewRelease.getText().toString(),
+//                    mSynopsisTextView.getText().toString(),
+                    mActivityDetailBinding.textViewSynopsis.getText().toString(),
                     ContextCompat.getColor(this, R.color.logo_purple),  // Favorite color
                     ContextCompat.getColor(this, R.color.header_favorite_background),  // Favorite color
                     R.drawable.rv_purple_background_gradient
@@ -450,29 +465,34 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 
             if (ms != null) {
 
-                mTitle.setText(ms.getTitle());
+//                mTitle.setText(ms.getTitle());
+                mActivityDetailBinding.textViewTitle.setText(ms.getTitle());
                 mPosterPath = ms.getImagePath();
-                mRatingTextView.setText(ms.getRating());
-                mRuntimeTextView.setText(ms.getRuntime());
-                mReleaseTextView.setText(ms.getRelease());
-                mSynopsisTextView.setText(ms.getSynopsis());
+//                mRatingTextView.setText(ms.getRating());
+                mActivityDetailBinding.textViewRating.setText(ms.getRating());
+//                mRuntimeTextView.setText(ms.getRuntime());
+                mActivityDetailBinding.textViewRuntime.setText(ms.getRuntime());
+//                mReleaseTextView.setText(ms.getRelease());
+                mActivityDetailBinding.textViewRelease.setText(ms.getRelease());
+//                mSynopsisTextView.setText(ms.getSynopsis());
+                mActivityDetailBinding.textViewSynopsis.setText(ms.getSynopsis());
 
                 // Text Colors for Favorites
-                mRatingTitleTextView.setTextColor(ms.getTextColor());
-                mRuntimeTitleTextView.setTextColor(ms.getTextColor());
-                mReleaseTitleTextView.setTextColor(ms.getTextColor());
-                mSynopsisTitleTextView.setTextColor(ms.getTextColor());
-                mReviewsTitleTextView.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewRatingTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewRuntimeTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewReleaseTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewSynopsisTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewReviewsTitle.setTextColor(ms.getTextColor());
 
                 // Text Background Colors for Favorites
-                mRatingTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
-                mRuntimeTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
-                mReleaseTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
-                mSynopsisTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
-                mReviewsTitleTextView.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewRatingTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewRuntimeTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewReleaseTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewSynopsisTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewReviewsTitle.setBackgroundColor(ms.getTextBackgroundColor());
 
                 // Background Drawables for Favorites
-                mReviewRecyclerView.setBackground(ContextCompat
+                mActivityDetailBinding.rvHorizontalLinearReviews.setBackground(ContextCompat
                         .getDrawable(this, ms.getDrawableID()));  // TODO: Check that rotation works in Favorites
 
             }
@@ -480,7 +500,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             loadMovieImage();
 
             HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
-            mHeartCheckboxView.setEnabled(! HEART_DISABLED);
+//            mHeartCheckboxView.setEnabled(! HEART_DISABLED);  //
+            mActivityDetailBinding.checkboxFavorite.setEnabled(! HEART_DISABLED);
 
         }
 
@@ -573,50 +594,58 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mIDForMovie = data.getLong(DETAIL_INDEX_ID);
         String originalTitle = data.getString(DETAIL_INDEX_ORIGINAL_TITLE);
         String a11yPosterText = getString(R.string.a11y_poster, originalTitle);
-        mTitle.setText(originalTitle);
-        mOneSheetImageView.setContentDescription(a11yPosterText);
+//        mTitle.setText(originalTitle);
+        mActivityDetailBinding.textViewTitle.setText(originalTitle);
+//        mOneSheetImageView.setContentDescription(a11yPosterText);
+        mActivityDetailBinding.imageViewOnesheet.setContentDescription(a11yPosterText);
 
         // Rating
-        mRatingTextView.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));
-        mRatingTitleTextView.setTextColor(textTypeColor);
-        mRatingTitleTextView.setBackgroundColor(backgroundColor);
+//        mRatingTextView.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));
+        mActivityDetailBinding.textViewRating.setText(data.getString(DETAIL_INDEX_VOTER_AVERAGE));
+        mActivityDetailBinding.textViewRatingTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewRatingTitle.setBackgroundColor(backgroundColor);
 
         // Preparing Runtime
         String fullRuntime = String.format("%s min", data.getString(DETAIL_INDEX_RUNTIME));  // 141 min
-        mRuntimeTextView.setText(fullRuntime);
-        mRuntimeTitleTextView.setTextColor(textTypeColor);
-        mRuntimeTitleTextView.setBackgroundColor(backgroundColor);
+//        mRuntimeTextView.setText(fullRuntime);
+        mActivityDetailBinding.textViewRuntime.setText(fullRuntime);
+        mActivityDetailBinding.textViewRuntimeTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewRuntimeTitle.setBackgroundColor(backgroundColor);
 
         // Preparing Release Year
         String releaseDate = data.getString(DETAIL_INDEX_RELEASE_DATE);  // 2017-12-13
         String[] releaseDataParts = releaseDate.split("-");  // 0:[2017] 1:[12] 2:[13]
         String releaseYear = releaseDataParts[0];  // 2017
-        mReleaseTextView.setText(releaseYear);
-        mReleaseTitleTextView.setTextColor(textTypeColor);
-        mReleaseTitleTextView.setBackgroundColor(backgroundColor);
+//        mReleaseTextView.setText(releaseYear);
+        mActivityDetailBinding.textViewRelease.setText(releaseYear);
 
-        mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
-        mSynopsisTitleTextView.setTextColor(textTypeColor);
-        mSynopsisTitleTextView.setBackgroundColor(backgroundColor);
+        mActivityDetailBinding.textViewReleaseTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewReleaseTitle.setBackgroundColor(backgroundColor);
+
+//        mSynopsisTextView.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
+        mActivityDetailBinding.textViewSynopsis.setText(data.getString(DETAIL_INDEX_SYNOPSIS));
+        mActivityDetailBinding.textViewSynopsisTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewSynopsisTitle.setBackgroundColor(backgroundColor);
 
         // Reviews
-        mReviewsTitleTextView.setTextColor(textTypeColor);
-        mReviewsTitleTextView.setBackgroundColor(backgroundColor);
+        mActivityDetailBinding.textViewReviewsTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewReviewsTitle.setBackgroundColor(backgroundColor);
 
         // Media
-        mMediaTitleTextView.setTextColor(textTypeColor);
-        mMediaTitleTextView.setBackgroundColor(backgroundColor);
+        mActivityDetailBinding.textViewMediaTitle.setTextColor(textTypeColor);
+        mActivityDetailBinding.textViewMediaTitle.setBackgroundColor(backgroundColor);
 
         // Stuff with Checkbox
         mHeartState0or1 = data.getInt(DETAIL_INDEX_FAVORITE_FLAG);
         if (mInitialHeartState == null) {  // Only 1st time thru
             mInitialHeartState = mHeartState0or1.intValue();  // State when initially loaded.  Needed nonreference
         }
-        mHeartCheckboxView.setChecked(mHeartState0or1.equals(HEART_TRUE));
-        ((CheckBox) mHeartCheckboxView).setOnClickListener(new View.OnClickListener() {
+//        mHeartCheckboxView.setChecked(mHeartState0or1.equals(HEART_TRUE));
+        mActivityDetailBinding.checkboxFavorite.setChecked(mHeartState0or1.equals(HEART_TRUE));
+        ((CheckBox) mActivityDetailBinding.checkboxFavorite).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mHeartCheckboxView.isChecked()) {
+                if (mActivityDetailBinding.checkboxFavorite.isChecked()) {
                     mHeartState0or1 = HEART_TRUE;
                     sqlUpdateOrDelete();
                 } else {
@@ -624,7 +653,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                         mHeartState0or1 = HEART_FALSE;
                         sqlUpdateOrDelete();
                     } else {
-                        mHeartCheckboxView.setChecked(true);  // Will have to set to false later, if necessary
+                        mActivityDetailBinding.checkboxFavorite.setChecked(true);  // Will have to set to false later, if necessary
                         showRemoveFavoriteDialog();
                     }
                 }
@@ -843,7 +872,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         if (RecyclerView.NO_POSITION == mReviewPosition) {
             mReviewPosition = 0;
         }
-        mReviewRecyclerView.scrollToPosition(mReviewPosition);
+        mActivityDetailBinding.rvHorizontalLinearReviews.scrollToPosition(mReviewPosition);
     }
 
 
@@ -856,7 +885,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         if (RecyclerView.NO_POSITION == mMediaPosition) {
             mMediaPosition = 0;
         }
-        mMediaRecyclerView.scrollToPosition(mMediaPosition);
+        mActivityDetailBinding.rvHorizontalLinearMedia.scrollToPosition(mMediaPosition);
     }
 
 
@@ -869,12 +898,12 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     void showRecyclerView(boolean show) {
 
         if (show) {
-            mReviewRecyclerView.setVisibility(View.VISIBLE);
-            mNoReviewTextView.setVisibility(View.GONE);
+            mActivityDetailBinding.rvHorizontalLinearReviews.setVisibility(View.VISIBLE);
+            mActivityDetailBinding.tvReviewEmpty.setVisibility(View.GONE);
         } else {
 //            setNoReviewText();
-            mNoReviewTextView.setVisibility(View.VISIBLE);
-            mReviewRecyclerView.setVisibility(View.GONE);
+            mActivityDetailBinding.tvReviewEmpty.setVisibility(View.VISIBLE);
+            mActivityDetailBinding.rvHorizontalLinearReviews.setVisibility(View.GONE);
         }
     }
 
@@ -887,11 +916,11 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     void showMediaRecyclerView(boolean show) {
 
         if (show) {
-            mMediaRecyclerView.setVisibility(View.VISIBLE);
-            mNoMediaTextView.setVisibility(View.GONE);
+            mActivityDetailBinding.rvHorizontalLinearMedia.setVisibility(View.VISIBLE);
+            mActivityDetailBinding.tvMediaEmpty.setVisibility(View.GONE);
         } else {
-            mNoMediaTextView.setVisibility(View.VISIBLE);
-            mMediaRecyclerView.setVisibility(View.GONE);
+            mActivityDetailBinding.tvMediaEmpty.setVisibility(View.VISIBLE);
+            mActivityDetailBinding.rvHorizontalLinearMedia.setVisibility(View.GONE);
         }
     }
 
@@ -900,14 +929,17 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * SETNOREVIEWTEXT - SETS TITLE FOR THE TEXTVIEW SHOWN WHEN THERE ARE NO REVIEWS FOR A TITLE.
      */
     private void setNoReviewText() {
-        mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));
+//        mNoReviewTextView.setText(getString(R.string.detail_review_no_review, mTitle.getText()));  //
+        mActivityDetailBinding.tvReviewEmpty.setText(getString(R.string.detail_review_no_review, mActivityDetailBinding.textViewTitle.getText()));
+
     }
 
     /**
      * SETNOMEDIATEXT - SETS TITLE FOR THE TEXTVIEW SHOWN WHEN THERE ARE NO MEDIA FOR A TITLE.
      */
     private void setNoMediaText() {
-        mNoMediaTextView.setText(getString(R.string.detail_media_no_media, mTitle.getText()));
+//        mNoMediaTextView.setText(getString(R.string.detail_media_no_media, mTitle.getText()));
+        mActivityDetailBinding.tvMediaEmpty.setText(getString(R.string.detail_media_no_media, mActivityDetailBinding.textViewTitle.getText()));
     }
 
 
@@ -1017,8 +1049,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment) {
         Log.d(TAG, "onDialogAffirmativeClick() called with: dialogFragment = [" + dialogFragment + "]");
         mHeartState0or1 = HEART_FALSE;           // Set the Heart state to OFF
-        mHeartCheckboxView.setChecked(false);    // Set Checkbox to visibly OFF
-        mHeartCheckboxView.setEnabled(false);    // Disable Heart 'cause in some cases film won't be available to be refavorited
+        mActivityDetailBinding.checkboxFavorite.setChecked(false);    // Set Checkbox to visibly OFF
+        mActivityDetailBinding.checkboxFavorite.setEnabled(false);    // Disable Heart 'cause in some cases film won't be available to be refavorited
         HEART_DISABLED = true;
         sqlUpdateOrDelete();                     // Set DB state to reflect choice.  Sometimes movie will be removed from DB entirely
         dialogFragment.dismiss();
