@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -998,6 +999,23 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             Intent startAboutIntent = new Intent(this, AboutActivity.class);
             startActivity(startAboutIntent);
             return true;                     // We found it, stop looking
+        } else if (itemId == R.id.action_share) {
+
+            // TODO: Do sharing stuff here
+            ShareCompat.IntentBuilder intentBuilder = ShareCompat.IntentBuilder.from(this);
+            Intent intent = intentBuilder
+                    .setType("text/html")
+                    .setText("text")
+                    .setChooserTitle("Choose")
+                    .createChooserIntent();
+
+            // Need to make sure what we wan exists
+            if ((intent.resolveActivity(getPackageManager())) != null) {
+                startActivity(intent);
+            }
+
+
+            return true;
         } else if (itemId == android.R.id.home) {
 
             onBackPressed();
