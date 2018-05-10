@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -84,6 +85,38 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     }
 
+
+    /**
+     * GETFIRSTMEDIA - Returns the data for the media in the 1st position of the Cursor.
+     * @return - ContentValues holding Key, Name, and Type data for 1st Media in Cursor.
+     * Returns null if there is a problem with the Cursor, or it is empty.
+     */
+    ContentValues getFirstMedia() {
+        ContentValues retVal = null;
+
+
+        // If there is a problem with Cursor or there are no Media
+        if ((mCursor != null) &&
+            mCursor.moveToFirst()) {
+
+            retVal = new ContentValues();
+
+            int keyIndex = mCursor.getColumnIndex(YoutubeEntry.KEY);
+            int nameIndex = mCursor.getColumnIndex(YoutubeEntry.NAME);
+            int typeIndex = mCursor.getColumnIndex(YoutubeEntry.TYPE);
+
+            String keyString = mCursor.getString(keyIndex);
+            String nameString = mCursor.getString(nameIndex);
+            String typeString = mCursor.getString(typeIndex);
+
+            retVal.put(YoutubeEntry.KEY, keyString);
+            retVal.put(YoutubeEntry.NAME, nameString);
+            retVal.put(YoutubeEntry.TYPE, typeString);
+
+        }
+
+        return retVal;
+    }
 
     class MediaViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 

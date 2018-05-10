@@ -1001,19 +1001,25 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             return true;                     // We found it, stop looking
         } else if (itemId == R.id.action_share) {
 
-            // TODO: Do sharing stuff here
-            ShareCompat.IntentBuilder intentBuilder = ShareCompat.IntentBuilder.from(this);
-            Intent intent = intentBuilder
-                    .setType("text/html")
-                    .setText("text")
-                    .setChooserTitle("Choose")
-                    .createChooserIntent();
+            // Do nothing if there is a problem with the Cursor, like not yet set.
+            ContentValues firstMediaContentValue = getMediaAdapter().getFirstMedia();
+            if (firstMediaContentValue != null) {
 
-            // Need to make sure what we wan exists
-            if ((intent.resolveActivity(getPackageManager())) != null) {
-                startActivity(intent);
+                String shareMessage = getShareMessage(firstMediaContentValue);
+
+                ShareCompat.IntentBuilder intentBuilder = ShareCompat.IntentBuilder.from(this);
+                Intent intent = intentBuilder
+                        .setType("text/html")
+                        .setSubject("A movie clip has been shared with you")
+                        .setText(shareMessage)
+                        .setChooserTitle("Choose Email Client")
+                        .createChooserIntent();
+
+                // Need to make sure what we wan exists
+                if ((intent.resolveActivity(getPackageManager())) != null) {
+                    startActivity(intent);
+                }
             }
-
 
             return true;
         } else if (itemId == android.R.id.home) {
@@ -1024,6 +1030,25 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         return super.onOptionsItemSelected(item);  // Keep looking
+    }
+
+    /**
+     * GETSHAREMESSAGE - Makes the String that will be used for the body of the share message.
+     * @param firstMediaContentValue - ContentValue holding data for 1st Media
+     * @return - String for message body.
+     */
+    @NonNull
+    private String getShareMessage(ContentValues firstMediaContentValue) {
+        String type = firstMediaContentValue.getAsString(YoutubeEntry.TYPE);
+        String movie = mActivityDetailBinding.textViewTitle.getText().toString();
+        String url = NetworkUtils.buildURLforYoutube(firstMediaContentValue
+                .getAsString(YoutubeEntry.KEY)).toString();
+
+        return getString(
+                R.string.detail_share_message,
+                type,
+                movie,
+                url);
     }
 
 

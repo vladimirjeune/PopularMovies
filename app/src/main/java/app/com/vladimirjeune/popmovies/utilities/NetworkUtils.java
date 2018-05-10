@@ -32,9 +32,13 @@ public final class NetworkUtils {
 
     public final static String TMDB_BASE_URL = "https://api.themoviedb.org/3/movie";
     public final static String TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+    public final static String YOUTUBE_BASE_URL = "https://www.youtube.com/";
 
     public final static String TMDB_POPULAR = "popular";
     public final static String TMDB_TOP_RATED = "top_rated";
+    public final static String YOUTUBE_WATCH = "watch";
+
+    public final static String YOUTUBE_VIDEO_PARAM = "v";
 
     // These are the values you want to use for our results.
     public final static String language = "en-US";
@@ -155,6 +159,31 @@ public final class NetworkUtils {
             Log.d(TAG, "buildURLforVideos() called with: context = [" + context + "], anId = [" + anId + "]"
             + "  returned: [" + videosURL + "]");
             return videosURL;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    /**
+     * BUILDURLFORYOUTUBE - Builds a URL for a Youtube video using the Key parameter.
+     * @param key - ID for the Youtube video we want an URL for
+     * @return - URL - For specific Youtube video
+     */
+    public static URL buildURLforYoutube(String key) {
+        Uri youtubeUri = Uri.parse(YOUTUBE_BASE_URL)
+                .buildUpon()
+                .appendPath(YOUTUBE_WATCH)
+                .appendQueryParameter(YOUTUBE_VIDEO_PARAM, key)
+                .build();
+
+        try {
+            URL youtubeURL = new URL(youtubeUri.toString());
+            Log.d(TAG, "buildURLforYoutube() called with result: " + youtubeURL);
+
+            return youtubeURL;
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
