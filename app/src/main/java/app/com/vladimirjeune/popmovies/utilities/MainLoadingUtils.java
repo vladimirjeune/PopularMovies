@@ -440,6 +440,67 @@ public final class MainLoadingUtils {
 
 
     /**
+     * SETYOUTUBESFORMOVIEOFID - Add the Youtubes to the Youtube Tables for movie with passed in ID
+     * Update database with Youtubes for Movie; if available
+     * Note: Makes network call.  Calls DB
+     * @param movieId - Movie ID for the movie we want Youtubes for
+     */
+    public static void setYoutubesForMovieOfId(long movieId, Context context) {
+
+        Cursor youtubeIdsForThisMovieCursor;
+        ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
+
+        // Query for Youtube IDs we already have, if any.
+        String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
+        String selection = YoutubeEntry.MOVIE_ID + " = ? ";
+        String[] selectionArgs = new String[] {""+ movieId};
+        youtubeIdsForThisMovieCursor = context.getContentResolver()
+                .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+
+        HashSet<String> alreadyInSet = cursorYoutubeIdsToSet(youtubeIdsForThisMovieCursor);
+
+        insertYoutubesForMovie(context, alreadyInSet, youtubesForSingleMovie);
+
+        if ((youtubeIdsForThisMovieCursor != null)
+                && (! youtubeIdsForThisMovieCursor.isClosed())) {
+            youtubeIdsForThisMovieCursor.close();
+        }
+
+    }
+
+
+    /**
+     * SETREVIEWSFORMOVIEOFID - Add the Reviews to the Review Tables for movie
+     * Update database with Reviews for Movie; if available
+     * Note: Makes network call.  Calls DB
+     * @param movieId - Movie ID for the movie we want Youtubes for
+     */
+    public static void setReviewsForMovieOfId(long movieId, Context context) {
+
+        Cursor reviewIDsForThisMovieCursor;
+
+        ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
+
+        // Query for Review IDs we already have, if any.  Do here to give time for return b4 next function
+        String[] projection = new String[] {ReviewEntry.REVIEW_ID};
+        String selection = ReviewEntry.MOVIE_ID + " = ? ";
+        String[] selectionArgs = new String[] {""+ movieId};
+        reviewIDsForThisMovieCursor = context.getContentResolver()
+                .query(ReviewEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+
+        HashSet<String> alreadyInSet = cursorIdsToSet(reviewIDsForThisMovieCursor);
+
+        insertReviewsForMovie(context, alreadyInSet, reviewsForSingleMovie);
+
+        if ((reviewIDsForThisMovieCursor != null)
+                && (! reviewIDsForThisMovieCursor.isClosed())) {
+            reviewIDsForThisMovieCursor.close();
+        }
+
+    }
+
+
+    /**
      * INSERTREVIEWSFORMOVIE - Inserts reviews passed in, if any, into the Reviews Database
      * @param context - Needed for function calls
      * @param alreadyInSet - Set of Reviews in DB for this Movie ID.  Can be null, or empty

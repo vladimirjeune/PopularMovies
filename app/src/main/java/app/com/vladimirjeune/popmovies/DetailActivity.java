@@ -369,7 +369,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewAdapter = new ReviewAdapter(this, mViewType);
         mActivityDetailBinding.rvHorizontalLinearReviews.setAdapter(mReviewAdapter);
 
-        setReviewRecyclerViewForID(tmpID);
+        setReviewRecyclerViewForID(tmpID);  // TODO: Make call to net here and have this f() in that Loader onLoadFinished
 
         // Media RecyclerView
 //        mNoMediaTextView = findViewById(R.id.tv_media_empty);
@@ -664,6 +664,10 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         // Cannot set This text in onCreate since no Title has been created at that point
         setNoReviewText();
         setNoMediaText();
+
+
+
+
 
 //        data.close();  // Closing cursor here caused crash on rotation
 
