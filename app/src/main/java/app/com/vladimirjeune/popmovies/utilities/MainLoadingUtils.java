@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.com.vladimirjeune.popmovies.R;
+import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
@@ -272,7 +273,7 @@ public final class MainLoadingUtils {
      * @param aMovieId - Movie Id for movie we are getting the Review Data for
      * @return ContentValues[] - Review Data of movie.  Can be 0 - n, or possibly null
      */
-    private static ContentValues[] getSingleMoviesReviewsFromTMDB(Context context, String aMovieId) {
+    public static ContentValues[] getSingleMoviesReviewsFromTMDB(Context context, String aMovieId) {
         ContentValues[] reviewContentValues = null;
 
         try {
@@ -443,12 +444,14 @@ public final class MainLoadingUtils {
      * SETYOUTUBESFORMOVIEOFID - Add the Youtubes to the Youtube Tables for movie with passed in ID
      * Update database with Youtubes for Movie; if available
      * Note: Makes network call.  Calls DB
+     * @param youtubesForSingleMovie - Array of Reviews for this move
      * @param movieId - Movie ID for the movie we want Youtubes for
+     * @param context - Needed for some function calls
      */
-    public static void setYoutubesForMovieOfId(long movieId, Context context) {
+    public static void setYoutubesForMovieOfId(ContentValues[] youtubesForSingleMovie, long movieId, Context context) {
 
         Cursor youtubeIdsForThisMovieCursor;
-        ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
+//        ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);  // TODO: Make call outside
 
         // Query for Youtube IDs we already have, if any.
         String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
@@ -470,16 +473,18 @@ public final class MainLoadingUtils {
 
 
     /**
-     * SETREVIEWSFORMOVIEOFID - Add the Reviews to the Review Tables for movie
+     * SETREVIEWSFORMOVIEOFID - Add the Reviews from net to the Review Tables in DB for movie
      * Update database with Reviews for Movie; if available
      * Note: Makes network call.  Calls DB
+     * @param reviewsForSingleMovie - Array of Reviews for this move
      * @param movieId - Movie ID for the movie we want Youtubes for
+     * @param context - Needed for some function calls
      */
-    public static void setReviewsForMovieOfId(long movieId, Context context) {
+    public static void setReviewsForMovieOfId(ContentValues[] reviewsForSingleMovie, long movieId, Context context) {
 
         Cursor reviewIDsForThisMovieCursor;
 
-        ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
+//        ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);  // TODO: Split
 
         // Query for Review IDs we already have, if any.  Do here to give time for return b4 next function
         String[] projection = new String[] {ReviewEntry.REVIEW_ID};
@@ -1011,6 +1016,67 @@ public final class MainLoadingUtils {
 
     }
 
+
+    /**
+     * USESTOREDREVIEWDATAINDB - Will use what is stored in the database to populate the Review list
+     * @param currentMovieId - ID of the movie that we are supposed to have the reviews for
+     * @param data - ContentValues ArrayList to be filled with the Reviews in the SQL DB, if any.  In order of Review ID.
+     * @param context - Needed for function calls
+     */
+    public static void useStoredReviewDataInDB(ArrayList<ContentValues> data, long currentMovieId, Context context) {
+
+        String[] projection = {
+                ReviewEntry.REVIEW_ID,
+                ReviewEntry.AUTHOR,
+                ReviewEntry.CONTENT,
+                MovieEntry.BACKDROP_PATH
+        };
+        String selection = ReviewEntry.REVIEW_ID + " = ? ";
+        String[] selectionArgs = new String[] {"" + currentMovieId};
+
+        Cursor sqlTransferCursor = null;
+        try {
+            sqlTransferCursor = context.getContentResolver()
+                    .query(MovieContract.JoinEntry.CONTENT_URI,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            ReviewEntry.REVIEW_ID);
+
+            if ((sqlTransferCursor != null)
+                    && (sqlTransferCursor.moveToFirst()) ) {
+
+                int rIdIndex = sqlTransferCursor.getColumnIndex(ReviewEntry.REVIEW_ID);
+                int authorIndex = sqlTransferCursor.getColumnIndex(ReviewEntry.AUTHOR);
+                int contentIndex = sqlTransferCursor.getColumnIndex(ReviewEntry.CONTENT);
+                int backdropPathIndex = sqlTransferCursor.getColumnIndex(MovieEntry.BACKDROP_PATH);
+
+                do {
+
+                    String r_id = sqlTransferCursor.getString(rIdIndex);
+                    String author = sqlTransferCursor.getString(authorIndex);
+                    String content = sqlTransferCursor.getString((contentIndex));
+                    String backdropPath = sqlTransferCursor.getString(backdropPathIndex);
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(ReviewEntry.REVIEW_ID, r_id);
+                    contentValues.put(ReviewEntry.AUTHOR, author);
+                    contentValues.put(ReviewEntry.CONTENT, content);
+                    contentValues.put(MovieEntry.BACKDROP_PATH, backdropPath);
+
+                    data.add(contentValues);
+
+                } while(sqlTransferCursor.moveToNext());
+
+            }
+
+        } finally {  // Always close the Cursor
+            if ((sqlTransferCursor != null) && (! sqlTransferCursor.isClosed())) {
+                sqlTransferCursor.close();
+            }
+        }
+
+    }
 
 
     /**
