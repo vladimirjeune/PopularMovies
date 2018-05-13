@@ -15,16 +15,28 @@
         android:layout_height="wrap_content"
         tools:src="@drawable/tmd_error_poster"
         android:foreground="?attr/selectableItemBackground"
-        tools:ignore="ContentDescription" />
+        tools:ignore="ContentDescription"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <CheckBox
+        android:id="@+id/checkbox_favorite"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:button="@drawable/btn_heart_selector"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="16dp"
+        />
 
     <View
         android:id="@+id/v_title_background"
         android:layout_width="0dp"
         android:layout_height="30dp"
         android:background="@color/poster_scrim_background"
-        app:layout_constraintLeft_toLeftOf="@id/iv_movie_poster_item"
-        app:layout_constraintRight_toRightOf="@id/iv_movie_poster_item"
-        app:layout_constraintBottom_toBottomOf="@id/iv_movie_poster_item"
+        app:layout_constraintLeft_toLeftOf="@+id/iv_movie_poster_item"
+        app:layout_constraintRight_toRightOf="@+id/iv_movie_poster_item"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_movie_poster_item"
         />
 
     <TextView
@@ -40,10 +52,10 @@
         android:paddingStart="8dp"
         android:paddingRight="0dp"
         android:paddingEnd="0dp"
-        app:layout_constraintBottom_toTopOf="@id/v_title_background"
-        app:layout_constraintLeft_toLeftOf="@id/v_title_background"
-        app:layout_constraintRight_toRightOf="@id/v_title_background"
-        app:layout_constraintTop_toBottomOf="@id/v_title_background"
+        app:layout_constraintBottom_toTopOf="@+id/v_title_background"
+        app:layout_constraintLeft_toLeftOf="@+id/v_title_background"
+        app:layout_constraintRight_toRightOf="@+id/v_title_background"
+        app:layout_constraintTop_toBottomOf="@+id/v_title_background"
         />
 
 

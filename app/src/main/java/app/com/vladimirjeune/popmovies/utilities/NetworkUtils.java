@@ -5,6 +5,8 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.util.Log;
 
+import com.facebook.stetho.urlconnection.StethoURLConnectionManager;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,11 +27,18 @@ import app.com.vladimirjeune.popmovies.R;
 
 public final class NetworkUtils {
     private final static String TAG = NetworkUtils.class.getSimpleName();
+    public static final String THEMOVIEDATABASE_KEY = "tmdb_key";
+    public static final String YOUTUBE_DATA_V3_KEY = "youtube_v3_key";
+
     public final static String TMDB_BASE_URL = "https://api.themoviedb.org/3/movie";
     public final static String TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+    public final static String YOUTUBE_BASE_URL = "https://www.youtube.com/";
 
     public final static String TMDB_POPULAR = "popular";
     public final static String TMDB_TOP_RATED = "top_rated";
+    public final static String YOUTUBE_WATCH = "watch";
+
+    public final static String YOUTUBE_VIDEO_PARAM = "v";
 
     // These are the values you want to use for our results.
     public final static String language = "en-US";
@@ -39,6 +48,8 @@ public final class NetworkUtils {
     public final static String TMDB_API_KEY = "api_key";  // Must get key from assets
     public final static String TMDB_LANGUAGE = "language";
     public final static String TMDB_PAGE = "page";
+    private final static String TMDB_VIDEOS = "videos";
+    private final static String TMDB_REVIEWS = "reviews";
 
     // Sizes for Posters and Backdrops, not all sizes are used
     public final static String TMDB_IMAGE_W92 = "w92";
@@ -53,6 +64,12 @@ public final class NetworkUtils {
     public final static String TEST_MOVIE_LIST = "testJSON";
     public final static String TEST_SINGLE_MOVIE = "testSingleMovieJSON";
 
+
+    // TODO: Remove before submission
+    private final static StethoURLConnectionManager stethoURLConnectionManager = new StethoURLConnectionManager(null);
+    private static final String HEADER_ACCEPT_ENCODING = "Accept-Encoding";
+    private static final String GZIP_ENCODING = "gzip";
+
     /**
      * BUILDURLFORPOPULARORTOPRATED - The URLs for both endpoints is very similar.  Which one is picked
      * will be ultimately decided by what the user has set in his sort preferences.
@@ -61,7 +78,14 @@ public final class NetworkUtils {
      * @return URL - URL that can be used to access appropriate JSON from theMovieDB
      */
     public static URL buildUrlForPopularOrTopRated(Context context, String popularOrTop) {
-        // There will eventually be a SharedPref to get which one it is.  But not yet
+
+        // Favorites will not have URLs, and anything else is wrong
+        if (
+                ( ! popularOrTop.equals(context.getString(R.string.pref_sort_popular_value)))
+                        && ( ! popularOrTop.equals(context.getString(R.string.pref_sort_top_rated_value)))
+                ) {
+            return null;
+        }
 
         String whichEndpoint = TMDB_TOP_RATED;
         if (popularOrTop.equals(context.getString(R.string.pref_sort_default))) {
@@ -70,18 +94,18 @@ public final class NetworkUtils {
 
         Uri popularTopRatedUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(whichEndpoint)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .appendQueryParameter(TMDB_PAGE, page)
                 .build();
         try {
-//            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
+            Log.d(TAG, "buildUrlForPopularOrTopRated: " + popularTopRatedUri.toString());
             URL popularTopRatedURL = new URL(popularTopRatedUri.toString());
-//            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
+            Log.d(TAG, "buildUrlForPopularOrTopRated() returned: " + popularTopRatedURL);
             return popularTopRatedURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-//            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
+            Log.d(TAG, "buildUrlForPopularOrTopRated: MalformedURLException()");
             return null;
         }
 
@@ -94,21 +118,101 @@ public final class NetworkUtils {
      * @return URL - Properly formatted URL for a single movie with the appropriate id from the parameter list
      */
     public static URL buildUrlForSingleMovie(Context context, String movieId) {
-//        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
+        Log.d(TAG, "BEGIN::buildUrlForSingleMovie: ");
         Uri singleMovieUri = Uri.parse(TMDB_BASE_URL)
                 .buildUpon()
                 .appendPath(movieId)
-                .appendQueryParameter(TMDB_API_KEY, obtainTMDKey(context))
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
                 .appendQueryParameter(TMDB_LANGUAGE, language)
                 .build();
         try {
             URL singleMovieURL = new URL(singleMovieUri.toString());
-//            Log.d(TAG, "buildURLForSingleMovie() returned: " + singleMovieURL);
-//            Log.d(TAG, "END::buildUrlForSingleMovie: ");
+            Log.d(TAG, "buildURLForSingleMovie() returned: " + movieId + "  [ " + singleMovieURL + " ]");
+            Log.d(TAG, "END::buildUrlForSingleMovie: ");
             return singleMovieURL;
         } catch (MalformedURLException me) {
             me.printStackTrace();
-//            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
+            Log.d(TAG, "END::buildUrlForSingleMovie::MalformedURLException ");
+            return null;
+        }
+    }
+
+
+    /**
+     * BUILDURLFORVIDEOS - Builds URL to get JSON for list of videos associated with inputted ID
+     * @param context - Needed for some function calls
+     * @param anId - ID of the movie to get information about
+     * @return - URL - URL to access JSON for videos
+     */
+    public static URL buildURLforVideos(Context context, String anId) {
+        Uri videosUri = Uri.parse(TMDB_BASE_URL)
+                .buildUpon()
+                .appendPath(anId)
+                .appendPath(TMDB_VIDEOS)
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .appendQueryParameter(TMDB_PAGE, page)
+                .build();
+
+        try {
+            URL videosURL = new URL(videosUri.toString());
+            Log.d(TAG, "buildURLforVideos() called with: context = [" + context + "], anId = [" + anId + "]"
+            + "  returned: [" + videosURL + "]");
+            return videosURL;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    /**
+     * BUILDURLFORYOUTUBE - Builds a URL for a Youtube video using the Key parameter.
+     * @param key - ID for the Youtube video we want an URL for
+     * @return - URL - For specific Youtube video
+     */
+    public static URL buildURLforYoutube(String key) {
+        Uri youtubeUri = Uri.parse(YOUTUBE_BASE_URL)
+                .buildUpon()
+                .appendPath(YOUTUBE_WATCH)
+                .appendQueryParameter(YOUTUBE_VIDEO_PARAM, key)
+                .build();
+
+        try {
+            URL youtubeURL = new URL(youtubeUri.toString());
+            Log.d(TAG, "buildURLforYoutube() called with result: " + youtubeURL);
+
+            return youtubeURL;
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * BUILDURLFORREVIEWS - Builds the URL for the JSON of the Reviews for the given ID
+     * @param context - Needed for some function calls
+     * @param anId - ID of the movie for which we want the Reviews, if any are available
+     * @return - URL - URL for the Reviews for the given ID
+     */
+    public static URL buildURLForReviews(Context context, String anId) {
+        Uri reviewsURI = Uri.parse(TMDB_BASE_URL)
+                .buildUpon()
+                .appendPath(anId)
+                .appendPath(TMDB_REVIEWS)
+                .appendQueryParameter(TMDB_API_KEY, obtainKeyOfType(context, THEMOVIEDATABASE_KEY))
+                .appendQueryParameter(TMDB_LANGUAGE, language)
+                .appendQueryParameter(TMDB_PAGE, page)
+                .build();
+
+        try {
+            URL reviewsURL = new URL(reviewsURI.toString());
+            Log.d(TAG, "buildURLForReviews() called with: context = [" + context + "], anId = [" + anId + "]"
+            + " returned [" + reviewsURL + "]");
+            return reviewsURL;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -161,6 +265,8 @@ public final class NetworkUtils {
         }
     }
 
+
+
     /**
      * GETRESPONSEFROMHTTPURL - This method returns the entire result from the HTTP response.
      *
@@ -172,6 +278,7 @@ public final class NetworkUtils {
 //        Log.d(TAG, "BEGIN::getResponseFromHttpUrl: ");
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
+
             InputStream in = urlConnection.getInputStream();
 
             Scanner scanner = new Scanner(in);
@@ -184,6 +291,7 @@ public final class NetworkUtils {
             }
             scanner.close();
             return response;
+
         } finally {
 //            Log.d(TAG, "END::getResponseFromHttpUrl: ");
             urlConnection.disconnect();
@@ -195,15 +303,23 @@ public final class NetworkUtils {
      * access: <a href="https://www.themoviedb.org/">https://www.themoviedb.org/</a> with
      * the assigned key.  Keys can be acquired at the site.  Then the string can be placed in
      * a file with the appropriate file name.
+     * @param context - Needed for function calls
+     * @param key - Type of key needed
      * @return - String: The TheMovieDb API Key needed to access the database.
      */
-    private static String obtainTMDKey(Context context) {
+    public static String obtainKeyOfType(Context context, String key) {
         // In order for the movie requests to work we must obtain key from file in assets
         try {
 
             AssetManager assetManager = context.getAssets();  // File is kept in the asset folder
+            Scanner scanner;
 
-            Scanner scanner = new Scanner(assetManager.open("apiTmd.key"));
+
+            if (key.equals(NetworkUtils.THEMOVIEDATABASE_KEY)) {
+                scanner = new Scanner(assetManager.open("apiTmd.key"));
+            } else {
+                scanner = new Scanner(assetManager.open("youtubeDataAPI.key"));
+            }
 
             return scanner.next();
 
@@ -268,6 +384,9 @@ public final class NetworkUtils {
         return null;
     }
 
-
+    // TODO: Remove before submission.  For Stetho
+    private static void requestDecompression(HttpURLConnection conn) {
+        conn.setRequestProperty(HEADER_ACCEPT_ENCODING, GZIP_ENCODING);
+    }
 
 }

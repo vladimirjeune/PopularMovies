@@ -1,224 +1,293 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<ScrollView
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="app.com.vladimirjeune.popmovies.DetailActivity"
-    android:id="@+id/scrollView"
-    android:background="@android:color/black"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     >
-    <android.support.constraint.ConstraintLayout
-        android:orientation="vertical"
+
+    <!-- Should not leave res-auto in layout, not sure why, look up later -->
+    <ScrollView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/scrollView"
+        android:background="@android:color/black"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
+        android:layout_height="match_parent"
         >
-
-        <View
-            android:id="@+id/textViewTitleBackground"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:background="@color/colorPrimaryDark"
-            android:padding="0dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            />
-
-        <TextView
-            android:id="@+id/textViewTitle"
-            android:layout_width="wrap_content"
+        <android.support.constraint.ConstraintLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:paddingLeft="8dp"
-            android:paddingStart="8dp"
-            android:paddingRight="8dp"
-            android:paddingEnd="8dp"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-            android:textColor="@color/white_translucent"
-            app:layout_constraintBottom_toBottomOf="@+id/textViewTitleBackground"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="@+id/textViewTitleBackground"
-            app:layout_constraintTop_toTopOf="@+id/textViewTitleBackground"
-            tools:text="All the Money in the World" />
 
-        <ImageView
-            android:id="@+id/imageViewOnesheet"
-            android:contentDescription="@string/tools_poster_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:src="@drawable/tmd_placeholder_poster"
-            android:layout_marginTop="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewTitleBackground"
-            />
+            >
 
-        <TextView
-            android:id="@+id/textViewRatingTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="24dp"
-            android:layout_marginStart="24dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:paddingStart="2dp"
-            android:paddingLeft="2dp"
-            android:paddingEnd="2dp"
-            android:paddingRight="2dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="@string/detail_rating"
-            android:textColor="@color/logo_orange"
-            android:textStyle="bold|italic"
-            android:background="@color/header_popular_background"
-            app:layout_constraintLeft_toRightOf="@+id/imageViewOnesheet"
-            app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet"
-            app:layout_constraintRight_toRightOf="@+id/textViewOutOfTen"
-            />
+            <View
+                android:id="@+id/textViewTitleBackground"
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:background="@color/colorPrimaryDark"
+                android:padding="0dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                />
 
-        <TextView
-            android:id="@+id/textViewRating"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="7.2"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display3"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewRatingTitle"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRatingTitle" />
+            <TextView
+                android:id="@+id/textViewTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:paddingLeft="8dp"
+                android:paddingStart="8dp"
+                android:paddingRight="8dp"
+                android:paddingEnd="8dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:textColor="@color/white_translucent"
+                app:layout_constraintBottom_toBottomOf="@+id/textViewTitleBackground"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="@+id/textViewTitleBackground"
+                app:layout_constraintTop_toTopOf="@+id/textViewTitleBackground"
+                tools:text="All the Money in the World" />
 
-        <TextView
-            android:id="@+id/textViewOutOfTen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/detail_out_of_10"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
-            android:paddingTop="8dp"
-            app:layout_constraintLeft_toRightOf="@+id/textViewRating"
-            app:layout_constraintTop_toTopOf="@+id/textViewRating"
-            />
+            <ImageView
+                android:id="@+id/imageViewOnesheet"
+                android:contentDescription="@string/tools_poster_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:src="@drawable/tmd_placeholder_poster"
+                android:layout_marginTop="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textViewTitleBackground"
+                />
 
+            <CheckBox
+                android:id="@+id/checkbox_favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:button="@drawable/btn_heart_selector"
+                android:padding="16dp"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet"
+                />
 
-        <TextView
-            android:id="@+id/textViewRuntimeTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:paddingStart="2dp"
-            android:paddingLeft="2dp"
-            android:paddingEnd="2dp"
-            android:paddingRight="2dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="@string/detail_runtime"
-            android:textColor="@color/logo_orange"
-            android:textStyle="bold|italic"
-            android:background="@color/header_popular_background"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewRating"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRating"
-            app:layout_constraintRight_toRightOf="@+id/textViewRuntime"
-            />
+            <TextView
+                android:id="@+id/textViewRatingTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                android:layout_marginLeft="24dp"
+                android:layout_marginStart="24dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingEnd="2dp"
+                android:paddingRight="2dp"
+                android:text="@string/detail_rating"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toRightOf="@+id/imageViewOnesheet"
+                app:layout_constraintTop_toTopOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewOutOfTen"
+                />
 
-        <TextView
-            android:id="@+id/textViewRuntime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="141 min"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Display1"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewRuntimeTitle"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRuntimeTitle" />
+            <TextView
+                android:id="@+id/textViewRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="7.2"
+                android:textColor="@color/white_translucent"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Display3"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewRatingTitle"
+                app:layout_constraintTop_toBottomOf="@+id/textViewRatingTitle" />
 
-        <TextView
-            android:id="@+id/textViewReleaseTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:paddingStart="2dp"
-            android:paddingLeft="2dp"
-            android:paddingEnd="2dp"
-            android:paddingRight="2dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="@string/detail_release"
-            android:textColor="@color/logo_orange"
-            android:textStyle="bold|italic"
-            android:background="@color/header_popular_background"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewRuntime"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRuntime"
-            app:layout_constraintRight_toRightOf="@+id/textViewRelease"
-            />
-
-        <TextView
-            android:id="@+id/textViewRelease"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="2017"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewReleaseTitle"
-            app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle" />
-
-        <TextView
-            android:id="@+id/textViewSynopsisTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:paddingStart="2dp"
-            android:paddingLeft="2dp"
-            android:paddingRight="8dp"
-            android:paddingEnd="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="@string/detail_synopsis"
-            android:textAllCaps="false"
-            android:textColor="@color/logo_orange"
-            android:textStyle="bold|italic"
-            android:background="@color/header_popular_background"
-            app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewOnesheet"
-            app:layout_constraintRight_toRightOf="@+id/textViewSynopsis"
-            />
-
-        <TextView
-            android:id="@+id/textViewSynopsis"
-            tools:text="@string/tools_lorem_paragraph"
-            android:textColor="@color/white_translucent"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:paddingLeft="0dp"
-            android:paddingStart="0dp"
-            android:paddingRight="8dp"
-            android:paddingEnd="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:paddingBottom="8dp"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewSynopsisTitle"
-            app:layout_constraintLeft_toLeftOf="@+id/textViewSynopsisTitle"
-            />
+            <TextView
+                android:id="@+id/textViewOutOfTen"
+                style="@style/TextDetailsNormalStatsTheme"
+                android:text="@string/detail_out_of_10"
+                android:paddingTop="8dp"
+                app:layout_constraintLeft_toRightOf="@+id/textViewRating"
+                app:layout_constraintTop_toTopOf="@+id/textViewRating"
+                />
 
 
-    </android.support.constraint.ConstraintLayout>
-</ScrollView>
+            <TextView
+                android:id="@+id/textViewRuntimeTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                android:layout_marginTop="16dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingEnd="2dp"
+                android:paddingRight="2dp"
+                android:text="@string/detail_runtime"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewRating"
+                app:layout_constraintTop_toBottomOf="@+id/textViewRating"
+                app:layout_constraintRight_toRightOf="@+id/textViewRuntime"
+                />
+
+            <TextView
+                android:id="@+id/textViewRuntime"
+                style="@style/TextDetailsNormalStatsTheme"
+                tools:text="141 min"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewRuntimeTitle"
+                app:layout_constraintTop_toBottomOf="@+id/textViewRuntimeTitle" />
+
+            <TextView
+                android:id="@+id/textViewReleaseTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                android:layout_marginTop="16dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingEnd="2dp"
+                android:paddingRight="2dp"
+                android:text="@string/detail_release"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewRuntime"
+                app:layout_constraintTop_toBottomOf="@+id/textViewRuntime"
+                app:layout_constraintRight_toRightOf="@+id/textViewRelease"
+                />
+
+            <TextView
+                android:id="@+id/textViewRelease"
+                style="@style/TextDetailsNormalStatsTheme"
+                tools:text="2017"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewReleaseTitle"
+                app:layout_constraintTop_toBottomOf="@+id/textViewReleaseTitle"
+                />
+
+            <TextView
+                android:id="@+id/textViewSynopsisTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                android:layout_marginTop="16dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingRight="8dp"
+                android:paddingEnd="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:text="@string/detail_synopsis"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintTop_toBottomOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsis"
+                />
+
+            <TextView
+                android:id="@+id/textViewSynopsis"
+                tools:text="@string/tools_lorem_paragraph"
+                android:textColor="@color/white_translucent"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingLeft="0dp"
+                android:paddingStart="0dp"
+                android:paddingRight="8dp"
+                android:paddingEnd="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textViewSynopsisTitle"
+                app:layout_constraintLeft_toLeftOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <TextView
+                android:id="@+id/textViewReviewsTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                android:layout_marginTop="16dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:paddingEnd="2dp"
+                android:text="@string/detail_reviews"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintTop_toBottomOf="@+id/textViewSynopsis"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_horizontal_linear_reviews"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/no_favorites_gradient"
+                android:clipToPadding="false"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <!-- RecyclerView will be gone if empty and this will be visible and vice versa -->
+            <TextView
+                android:id="@+id/tv_review_empty"
+                style="@style/TextDetailsEmptyTheme"
+                android:visibility="visible"
+                app:layout_constraintTop_toBottomOf="@+id/textViewReviewsTitle"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <TextView
+                android:id="@+id/textViewMediaTitle"
+                style="@style/TextDetailSectionTitleTheme"
+                app:layout_goneMarginTop="64dp"
+                android:layout_marginTop="16dp"
+                android:paddingStart="2dp"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:paddingEnd="2dp"
+                android:text="@string/detail_media"
+                android:textColor="@color/logo_orange"
+                android:background="@color/header_popular_background"
+                android:letterSpacing="0.1"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintTop_toBottomOf="@+id/rv_horizontal_linear_reviews"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_horizontal_linear_media"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/no_favorites_gradient"
+                android:clipToPadding="false"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@+id/textViewMediaTitle"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+            <TextView
+                android:id="@+id/tv_media_empty"
+                style="@style/TextDetailsEmptyTheme"
+                android:visibility="visible"
+                app:layout_constraintTop_toBottomOf="@+id/textViewMediaTitle"
+                app:layout_constraintLeft_toLeftOf="@+id/imageViewOnesheet"
+                app:layout_constraintRight_toRightOf="@+id/textViewSynopsisTitle"
+                />
+
+
+        </android.support.constraint.ConstraintLayout>
+    </ScrollView>
+</layout>

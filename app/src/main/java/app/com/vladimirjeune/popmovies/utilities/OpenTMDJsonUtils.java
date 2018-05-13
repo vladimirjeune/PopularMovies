@@ -9,6 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 
 
 /**
@@ -43,6 +45,22 @@ public final class OpenTMDJsonUtils {
 
     private static final int TMD_ERROR_STATUS_NO_KEY = 7;
     private static final int TMD_ERROR_STATUS_RESOURCE_NOT_FOUND = 34;
+
+    private static final String TMD_REVIEW_RESULTS_LIST = "results";
+    private static final String TMD_REVIEW_ID = "id";
+    private static final String TMD_REVIEW_MOVIE_ID = "movie_id";
+    private static final String TMD_REVIEW_AUTHOR = "author";
+    private static final String TMD_REVIEW_CONTENT = "content";
+    private static final String TMD_REVIEW_URL = "url";
+
+    private static final String TMD_YOUTUBE_RESULTS_LIST = "results";
+    private static final String TMD_YOUTUBE_ID = "id";
+    private static final String TMD_YOUTUBE_MOVIE_ID = "movie_id";
+    private static final String TMD_YOUTUBE_KEY = "key";
+    private static final String TMD_YOUTUBE_NAME = "name";
+    private static final String TMD_YOUTUBE_TUBE = "site";
+    private static final String TMD_YOUTUBE_SIZE = "size";
+    private static final String TMD_YOUTUBE_TYPE = "type";
 
 
     /**
@@ -141,7 +159,7 @@ public final class OpenTMDJsonUtils {
         // If this is Popular the order in popularity will be set.  Otherwise; Top-Rated
         if (isPopular) {
             contentValues.put(MovieEntry.POPULAR_ORDER_IN, index);
-        } else {
+        } else {  // TODO: Make else if Top_Rated
             contentValues.put(MovieEntry.TOP_RATED_ORDER_IN, index);
         }
     }
@@ -194,6 +212,113 @@ public final class OpenTMDJsonUtils {
         runtimeOfMovie = singleMovieJSON.optInt(TMD_RUNTIME);  // optInt used so if does not exists or is null returns 0
 
         return runtimeOfMovie;
+    }
+
+
+    /**
+     * GETREVIEWCONTENTVALUES - Get ContentValues for the Reviews of the movies of this ValueType
+     * @param context - Needed for function calls
+     * @param tmdReviewJSONStr - JSON for Reviews
+     * @return - ContentValues[] of Reviews; may be 0 length, or null if there was an issue
+     * @throws JSONException
+     */
+    public static ContentValues[] getReviewContentValues(Context context, long tmdMovieId,
+                                                         String tmdReviewJSONStr ) throws JSONException {
+        ContentValues[] parsedContentValuesArray;
+
+        JSONObject reviewJSONObject = new JSONObject(tmdReviewJSONStr);
+
+        if (isThereDataError(context, reviewJSONObject)) {
+            return null;
+        }
+
+        JSONArray reviewJsonArray = reviewJSONObject.getJSONArray(TMD_REVIEW_RESULTS_LIST);
+
+        parsedContentValuesArray = new ContentValues[reviewJsonArray.length()];
+
+        for (int i = 0; i < reviewJsonArray.length(); i++) {
+
+            JSONObject reviewJson = reviewJsonArray.getJSONObject(i);
+
+            String reviewId = reviewJson.getString(TMD_REVIEW_ID);
+
+            String reviewAuthor = reviewJson.getString(TMD_REVIEW_AUTHOR);
+
+            String reviewContent = reviewJson.getString(TMD_REVIEW_CONTENT);
+
+            String reviewURL = reviewJson.getString(TMD_REVIEW_URL);
+
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(ReviewEntry.REVIEW_ID, reviewId);  // Actual TMDb ID, Our DB _id is autoincrement
+            contentValues.put(ReviewEntry.MOVIE_ID, tmdMovieId);  // FK from movie database; passed in
+            contentValues.put(ReviewEntry.AUTHOR, reviewAuthor);
+            contentValues.put(ReviewEntry.CONTENT, reviewContent);
+            contentValues.put(ReviewEntry.URL, reviewURL);
+
+            parsedContentValuesArray[i] = contentValues;
+
+        }
+
+        return parsedContentValuesArray;
+
+    }
+
+
+
+    /**
+     * GETYOUTUBECONTENTVALUES - Get ContentValues for the Youtubes of the movies of this ValueType
+     * @param context - Needed for function calls
+     * @param tmdYoutubeJSONStr - JSON for Reviews
+     * @return - ContentValues[] of Reviews; may be 0 length, or null if there was an issue
+     * @throws JSONException - Problem with JSON
+     */
+    public static ContentValues[] getYoutubeContentValues(Context context, long tmdMovieId,
+                                                         String tmdYoutubeJSONStr ) throws JSONException {
+        ContentValues[] parsedContentValuesArray;
+
+        JSONObject youtubeJSONObject = new JSONObject(tmdYoutubeJSONStr);
+
+        if (isThereDataError(context, youtubeJSONObject)) {
+            return null;
+        }
+
+        JSONArray youtubeJSONArray = youtubeJSONObject.getJSONArray(TMD_YOUTUBE_RESULTS_LIST);
+
+        parsedContentValuesArray = new ContentValues[youtubeJSONArray.length()];
+
+        for (int i = 0; i < youtubeJSONArray.length(); i++) {
+
+            JSONObject youtubeJsonObject = youtubeJSONArray.getJSONObject(i);
+
+            String youtubeId = youtubeJsonObject.getString(TMD_YOUTUBE_ID);
+
+            String youtubeKey = youtubeJsonObject.getString(TMD_YOUTUBE_KEY);
+
+            String youtubeName = youtubeJsonObject.getString(TMD_YOUTUBE_NAME);
+
+            String youtubeSite = youtubeJsonObject.getString(TMD_YOUTUBE_TUBE);  // If other than YTube, can't connect
+
+            String youtubeSize = youtubeJsonObject.getString(TMD_YOUTUBE_SIZE);
+
+            String youtubeType = youtubeJsonObject.getString(TMD_YOUTUBE_TYPE);
+
+            ContentValues contentValues = new ContentValues();
+
+            contentValues.put(YoutubeEntry.YOUTUBE_ID, youtubeId);  // Actual TMDb ID, Our DB _id is autoincrement
+            contentValues.put(YoutubeEntry.MOVIE_ID, tmdMovieId);  // FK from movie database; passed in
+            contentValues.put(YoutubeEntry.KEY, youtubeKey);
+            contentValues.put(YoutubeEntry.NAME, youtubeName);
+            contentValues.put(YoutubeEntry.TUBE, youtubeSite);
+            contentValues.put(YoutubeEntry.SIZE, youtubeSize);
+            contentValues.put(YoutubeEntry.TYPE, youtubeType);
+
+            parsedContentValuesArray[i] = contentValues;
+
+        }
+
+        return parsedContentValuesArray;
+
     }
 
 

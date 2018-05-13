@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
+import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 
 /**
  * Helps to create the database for the 1st time and upgrading it.
@@ -15,7 +17,7 @@ public class MovieDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "movie.db";
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 8;
 
     public MovieDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,10 +40,42 @@ public class MovieDBHelper extends SQLiteOpenHelper {
                 MovieEntry.BACKDROP + " BLOB, " +
                 MovieEntry.POPULAR_ORDER_IN + " INTEGER, " +  // THE ORDER POP MOVIES WERE ENTERED, NULL means not Pop
                 MovieEntry.TOP_RATED_ORDER_IN + " INTEGER, " +  // The order Top Rated movies were entered.  Null means not TR
+                MovieEntry.FAVORITE_FLAG + " INTEGER DEFAULT 0, " +  // 1 Means order alphabetically.  0 means not Favorite
                 MovieEntry.COLUMN_TIMESTAMP + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP " +
                 ");";
 
-        sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
+        final String SQL_CREATE_REVIEW_TABLE = "CREATE TABLE " +
+                ReviewEntry.TABLE_NAME + " ( " +
+                ReviewEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +
+                ReviewEntry.REVIEW_ID + " TEXT NOT NULL UNIQUE, " +
+                ReviewEntry.AUTHOR + " TEXT NOT NULL, " +
+                ReviewEntry.CONTENT + " TEXT NOT NULL, " +
+                ReviewEntry.URL + " TEXT NOT NULL, " +
+                ReviewEntry.MOVIE_ID + " INTEGER NOT NULL, " +
+                " FOREIGN KEY ( " + ReviewEntry.MOVIE_ID + " ) " +
+                " REFERENCES " + MovieEntry.TABLE_NAME + " ( " + MovieEntry._ID + " ) " +
+                " ON DELETE CASCADE " + // Foreign Key to Movie Table.  Delete of Movie items auto-delete Review Children
+                " ); ";
+
+        final String SQL_CREATE_YOUTUBE_TABLE = " CREATE TABLE " +
+                YoutubeEntry.TABLE_NAME + " ( " +
+                YoutubeEntry._ID + " INTEGER PRIMARY KEY NOT NULL, " +
+                YoutubeEntry.YOUTUBE_ID + " TEXT NOT NULL UNIQUE, " +
+                YoutubeEntry.KEY + " TEXT NOT NULL UNIQUE, " +
+                YoutubeEntry.NAME + " TEXT, " +
+                YoutubeEntry.TUBE + " TEXT NOT NULL, " +
+                YoutubeEntry.SIZE + " INTEGER, " +
+                YoutubeEntry.TYPE + " TEXT, " +
+                YoutubeEntry.MOVIE_ID + " INTEGER NOT NULL, " +
+                " FOREIGN KEY ( " + YoutubeEntry.MOVIE_ID + " ) " +
+                " REFERENCES " + MovieEntry.TABLE_NAME + " ( " + MovieEntry._ID + " ) " +
+                " ON DELETE CASCADE " + // Foreign Key to Movie Table.  Delete of Movie items auto-delete Review Children
+                " ); ";
+
+        sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);  // Parent Table
+        sqLiteDatabase.execSQL(SQL_CREATE_REVIEW_TABLE); // Review Table
+        sqLiteDatabase.execSQL(SQL_CREATE_YOUTUBE_TABLE); // Youtube Table
+
     }
 
     /**
@@ -54,11 +88,24 @@ public class MovieDBHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        // Try this when you actually need to upgrade in the
+        // TODO: Try this when you actually need to upgrade in the
         // wild: https://thebhwgroup.com/blog/how-android-sqlite-onupgrade
-        final String SQL_DROP_TABLE = "DROP TABLE IF EXISTS" +
+
+        // Child table must be deleted before parent.  Review has FK relationship to Movie
+        final String SQL_DROP_YOUTUBE_TABLE = " DROP TABLE IF EXISTS " +
+                YoutubeEntry.TABLE_NAME;
+
+        final String SQL_DROP_REVIEW_TABLE = " DROP TABLE IF EXISTS " +
+                ReviewEntry.TABLE_NAME;
+
+        final String SQL_DROP_MOVIE_TABLE = " DROP TABLE IF EXISTS " +
                 MovieEntry.TABLE_NAME;
-        sqLiteDatabase.execSQL(SQL_DROP_TABLE);
+
+
+        sqLiteDatabase.execSQL(SQL_DROP_YOUTUBE_TABLE);  // Child tables must be deleted 1st so no constraint problems
+        sqLiteDatabase.execSQL(SQL_DROP_REVIEW_TABLE);  // Child tables must be deleted 1st so no constraint problems
+        sqLiteDatabase.execSQL(SQL_DROP_MOVIE_TABLE);
+
         onCreate(sqLiteDatabase);
     }
 }

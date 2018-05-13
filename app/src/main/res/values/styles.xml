@@ -7,7 +7,70 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+
+        <!--https://guides.codepath.com/android/using-dialogfragment#styling-custom-dialog-->
+        <!--Apply Default Style -->
+        <item name="android:dialogTheme">@style/AppDialogTheme</item>
+
+        <!--Apply Default Style-->
+        <item name="android:alertDialogTheme">@style/AppAlertTheme</item>
     </style>
 
+    <!--Custom Dialog Theme-->
+    <style name="AppDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccentFavoritesDialog</item>
+        <item name="colorControlNormal">@color/colorAccentFavoritesDialog</item>
+        <item name="android:textColorHighlight">@color/purple_translucent</item>
+        <item name="android:textColorPrimary">@color/white_translucent</item>
+        <item name="android:background">@color/dialog_favorite_background</item>
+
+        <!--Window Properties-->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowBackground">@color/header_favorite_background</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+    </style>
+
+    <!--Custom Alert Theme extended from base-->
+    <style name="AppAlertTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccentFavoritesDialog</item>
+        <item name="colorControlNormal">@color/colorAccentFavoritesDialog</item>
+        <item name="android:textColorHighlight">@color/purple_translucent</item>
+    </style>
+
+    <style name="TextDetailSectionTitleTheme" parent="@style/TextAppearance.AppCompat.Small">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textStyle">bold|italic</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TextMediaTheme" parent="@style/TextAppearance.AppCompat.Medium">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:maxLines">1</item>
+         <item name="android:ellipsize">end</item> 
+    </style>
+
+    <style name="TextDetailsEmptyTheme" parent="@style/TextAppearance.AppCompat.Medium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textColor">@color/white_translucent</item>
+    </style>
+
+    <style name="TextDetailsNormalStatsTheme" parent="@style/Base.TextAppearance.AppCompat.Display1">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/white_translucent</item>
+    </style>
 
 </resources>

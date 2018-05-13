@@ -12,15 +12,19 @@
     <string name="pref_sort_default" translatable="false">popular</string>
     <string name="pref_sort_popular_label">Popular</string>
     <string name="pref_sort_popular" translatable="false">popular</string>
-    <string name="pref_sort_top_rated" translatable="false">top rated</string>
     <string name="pref_sort_top_rated_label">Top Rated</string>
+    <string name="pref_sort_top_rated" translatable="false">top rated</string>
+    <string name="pref_sort_favorite_label">Favorite</string>
+    <string name="pref_sort_favorite" translatable="false">favorite</string>
 
     <string name="pref_sort_popular_value" translatable="false">popular</string>
     <string name="pref_sort_top_rated_value" translatable="false">top rated</string>
+    <string name="pref_sort_favorite_value" translatable="false">favorite</string>
 
     <!-- Tools -->
     <string name="tools_poster_description">One Sheet</string>
     <string name="tools_lorem_paragraph" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam id felis sed arcu vehicula aliquet. Donec nec elementum erat, eget vulputate enim. Nam ultricies mi id lacus malesuada, eu ullamcorper neque accumsan. Sed nec risus ante. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc tempor enim interdum tortor semper, varius molestie eros feugiat. Donec nec mi dolor.</string>
+    <string name="tools_lorem_paragraph_short" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam id felis sed arcu vehicula aliquet. Donec nec elementum erat, eget vulputate enim. Nam ultricies mi id lacus malesuada, eu ullamcorper neque accumsan. Sed nec risus ante. </string>
 
     <!-- DetailActivity -->
     <string name="detail_out_of_10" translatable="false">/10</string>
@@ -28,7 +32,16 @@
     <string name="detail_release">RELEASE</string>
     <string name="detail_runtime">RUNTIME</string>
     <string name="detail_synopsis">SYNOPSIS</string>
+    <string name="detail_reviews">REVIEWS</string>
+    <string name="detail_media">MEDIA</string>
     <string name="action_details">Details</string>
+    <string name="action_share">Share</string>
+    <string name="detail_review_no_review">Currently, no reviews for; <xliff:g id="noReviews">%1$s</xliff:g>.</string>
+    <string name="detail_media_no_media">Currently, no media for; <xliff:g id="noMedia">%1$s</xliff:g>.</string>
+    <string name="detail_review_grid_button">MORE…</string>
+
+    <!-- DetailActivity, Share -->
+    <string name="detail_share_message">A friend thought you would be interested in this <xliff:g id="type" example="Featurette">%1$s</xliff:g> for: <xliff:g id="movie" example="Black Panther">%2$s</xliff:g>\n\n<xliff:g id="url" example="https://www.youtube.com/watch?v=coOKvrsmQiI">%3$s</xliff:g>\n\nMessage from Pop Movies (available on Google Play Store)</string>
 
     <!-- About -->
     <string name="about_tmdb_legal">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
@@ -36,9 +49,19 @@
     <!-- Text for Toasts and Snackbars -->
     <string name="snackbar_settings">SETTINGS</string>
     <string name="warning_snackbar_internet">No internet connection.\nEnable internet for updated data.</string>
+    <string name="toast_detail_favorite_on">Favorited: <xliff:g id="movieAdd">%1$s</xliff:g></string>
+    <string name="toast_detail_favorite_off">Unfavorited: <xliff:g id="movieRemove">%1$s</xliff:g></string>
+
+    <!-- Dialogs -->
+    <string name="dialog_remove_favorite">Remove movie from favorites?</string>
+    <string name="dialog_remove_button">REMOVE</string>
+    <string name="dialog_cancel_button">CANCEL</string>
 
     <!-- a11y -->
     <string name="a11y_poster">Poster for <xliff:g id="poster">%1$s</xliff:g></string>
     <string name="a11y_tmdb_logo">The Movie Database Logo</string>
+    <string name="a11y_video">
+        <xliff:g id="type" example="Featurette">%1$s</xliff:g> for <xliff:g id="movie" example="Baby Driver">%2$s</xliff:g>: <xliff:g id="name" example="Is he slow?">%3$s</xliff:g>
+    </string>
 
 </resources>

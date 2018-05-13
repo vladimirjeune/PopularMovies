@@ -3,19 +3,33 @@
     <color name="colorPrimary">@color/grey_dark</color>
     <color name="colorPrimaryDark">@android:color/black</color>
     <color name="colorAccent">@color/orange_found</color>
+    <color name="colorAccentFavoritesDialog">@color/text_header_purple</color>
 
     <color name="logo_orange">@color/orange_bright</color>
     <color name="logo_blue">@color/blue_bright</color>
+    <color name="logo_purple">@color/purple_bright</color>
     <color name="poster_scrim_background">@color/black_translucent</color>
     <color name="header_popular_background">@color/orange_dark_translucent</color>
     <color name="header_top_rated_background">@color/blue_dark_translucent</color>
-    <color name="text_header_blue">@color/blue_bright</color>
+    <color name="header_favorite_background">@color/purple_dark_translucent</color>
     <color name="text_header_orange">@color/orange_bright</color>
+    <color name="text_header_blue">@color/blue_bright</color>
+    <color name="text_header_purple">@color/purple_bright</color>
+    <color name="toast_background_orange">@color/orange_translucent</color>
+    <color name="toast_background_blue">@color/blue_translucent</color>
+    <color name="toast_background_purple">@color/purple_translucent</color>
+    <color name="dialog_favorite_background">@color/purple_darker_translucent</color>
+
+    <!-- About Marquee -->
     <color name="divider_marquee_1">@color/orange_bright</color>
     <color name="divider_marquee_2">@color/orange_found</color>
     <color name="divider_marquee_3">@color/purple_found</color>
     <color name="divider_marquee_4">@color/blue_found</color>
 
+    <!-- RecyclerView Background Gradients -->
+    <color name="rv_review_orange_background">@color/orange_darker_opaque</color>
+    <color name="rv_review_blue_background">@color/blue_darker_opaque</color>
+    <color name="rv_review_purple_background">@color/purple_darker_opaque</color>
 
 
     <!-- Palettes, for internal use only, private functions and colors.xml -->
@@ -28,20 +42,35 @@
 
     <!--whites -->
     <color name="white_translucent">#CCFFFFFF</color>
+    <color name="white_more_translucent">#B3FFFFFF</color>
 
     <!-- orange -->
     <color name="orange_dark_translucent">#99200c00</color>
+    <color name="orange_translucent">#aa682700</color>
     <color name="orange_bright">#fd9229</color>
     <color name="orange_found">#FFFD5A28</color>
+    <color name="orange_dark_opaque">#FF682700</color>
+    <color name="orange_darker_opaque">#FF271601</color>
+
+
 
     <!-- blue -->
     <color name="blue_dark_translucent">#aa001334</color>  <!-- #7700c20 -->
+    <color name="blue_translucent">#cc002566</color>  <!-- #7700c20 -->
     <color name="blue_bright">#0b24fb</color>
     <color name="blue_found">#FF3028FD</color>
+    <color name="blue_dark_opaque">#FF002556</color>  <!-- #7700c20 -->
+    <color name="blue_darker_opaque">#FF010427</color>  <!-- #7700c20 -->
+
 
     <!-- purple -->
     <color name="purple_found">#FF8828FD</color>
-
+    <color name="purple_bright">#FF9A28FD</color>
+    <color name="purple_dark_translucent">#aa110127</color>
+    <color name="purple_darker_translucent">#aa090114</color>
+    <color name="purple_translucent">#cc2a0066</color>
+    <color name="purple_dark_opaque">#FF260256</color>
+    <color name="purple_darker_opaque">#FF110127</color>
 
 
 </resources>

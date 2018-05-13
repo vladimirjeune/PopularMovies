@@ -1,5 +1,6 @@
 package app.com.vladimirjeune.popmovies;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,17 +40,21 @@ import app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 import app.com.vladimirjeune.popmovies.utilities.OpenTMDJsonUtils;
 
+import static app.com.vladimirjeune.popmovies.data.MovieContract.MovieEntry.FAVORITE_FLAG;
+
 public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener,
-        LoaderManager.LoaderCallbacks<ArrayList<Pair<Long, Pair<String, String>>>>,
-        MovieAdapter.MovieOnClickHandler {
+        LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>,
+        MovieAdapter.MovieOnClickHandler,
+        RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TMDBQUERY_LOADER = 41;
     private static final String NETWORK_URL_POP_OR_TOP_KEY = "pop_or_top";
-    public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a boolean
+    public static final String EXTRA_TYPE = "app.com.vladimirjeune.popmovies.VIEW_TYPE";  // Value is a String
 
-    private static final boolean DEVELOPER_MODE = false; /** EN/DIS-ABLE String Mode**/
+    private static final boolean DEVELOPER_MODE = false;    /** EN/DIS-ABLE String Mode**/
+    public static final int DETAIL_CODE = 69;
 
     private RecyclerView mRecyclerView;
     private MovieAdapter mMovieAdapter;
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements
     private final int mNumberOfFakeMovies = 20;
 
     private ContentValues[] movieContentValues;
-    private String mIsPopular ;
+    private String mCurrentViewType;
 
     private ProgressBar mProgressBar;
 
@@ -76,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements
             MovieEntry.BACKDROP,
             MovieEntry.COLUMN_TIMESTAMP,
             MovieEntry.POPULAR_ORDER_IN,
-            MovieEntry.TOP_RATED_ORDER_IN
+            MovieEntry.TOP_RATED_ORDER_IN,
+            FAVORITE_FLAG   // TODO: LOOKED AT USAGE
     };
 
     // *** IMPORTANT ***  These ints and the previous projection MUST REMAIN CORRELATED
@@ -94,8 +101,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final int INDEX_COLUMN_TIMESTAMP = 11;
     private static final int INDEX_POPULAR_ORDER_IN = 12;
     private static final int INDEX_TOP_RATED_ORDER_IN = 13;
+    private static final int INDEX_FAVORITE_ORDER_IN = 14;
 
-    private boolean snackBarTriggered = false;
+    private View mNoFavoritesLayout;
 
 
     @Override
@@ -103,11 +111,12 @@ public class MainActivity extends AppCompatActivity implements
         safeMode();  // SAFEMODE must be engaged as soon as possible.  Not a mistake.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Log.d(TAG, "BEGIN::onCreate: ");
+        Log.d(TAG, "BEGIN::onCreate: ");
 
-        mIsPopular = getString(R.string.pref_sort_popular);
+        mCurrentViewType = getString(R.string.pref_sort_popular);
 
         mProgressBar = findViewById(R.id.pb_grid_movies);
+        mNoFavoritesLayout = findViewById(R.id.c_lyo_no_favorites);
 
         // Find RecyclerView from XML
         mRecyclerView = findViewById(R.id.rv_grid_movies);
@@ -146,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements
 
         loadPreferredMovieList();  // Calls AsyncTaskLoader and gets posters for MainPage
 
-//        Log.d(TAG, "END::onCreate: ");
+        Log.d(TAG, "END::onCreate: ");
     }
 
     /**
@@ -209,21 +218,31 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    /**
+     * ONPAUSE - Lifecycle callback triggered when activity becomes partially visible.
+     * Changes to underlying data made during display are sent to the database now.
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.d(TAG, "onPause() called");
+    }
 
     /**
      * LOADPREFERREDMOVIELIST - Loads the movie list that the user has set in SharedPreferences
      */
     private void loadPreferredMovieList() {
-//        Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
+        Log.d(TAG, "BEGIN::loadPreferredMovieList: ");
 
         // Get current type from SharedPrefs
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
+        mCurrentViewType = sharedPreferences.getString(getString(R.string.pref_sort_key),
                 getString(R.string.pref_sort_default));  // Get from SP or default
 
         Bundle urlBundle = getTMDQueryBundle();
 
-        Loader<ArrayList<Pair<Long, Pair<String, String>>>> tmdbQueryLoader = getSupportLoaderManager()
+        Loader<ArrayList<ContentValues>> tmdbQueryLoader = getSupportLoaderManager()
                 .getLoader(TMDBQUERY_LOADER);
 
         if (null == tmdbQueryLoader) {
@@ -234,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, urlBundle, this);
         }
 
-//        Log.d(TAG, "END::loadPreferredMovieList: ");
+        Log.d(TAG, "END::loadPreferredMovieList: ");
     }
 
 
@@ -247,9 +266,9 @@ public class MainActivity extends AppCompatActivity implements
     private Bundle getTMDQueryBundle() {
         // Prepare to call loader
         Bundle urlBundle = new Bundle();
-        URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mIsPopular);
+        URL urlForPopularOrTopRated = NetworkUtils.buildUrlForPopularOrTopRated(this, mCurrentViewType);
         String stringOfUrl = ((null == urlForPopularOrTopRated) ? null : urlForPopularOrTopRated.toString());
-//        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
 
         urlBundle.putCharSequence(NETWORK_URL_POP_OR_TOP_KEY, stringOfUrl);
         return urlBundle;
@@ -266,9 +285,9 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-//        Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
+        Log.d(TAG, "BEGIN::onSharedPreferenceChanged: ");
         if (s.equals(getString(R.string.pref_sort_key))) {
-            mIsPopular = sharedPreferences.getString(getString(R.string.pref_sort_key),
+            mCurrentViewType = sharedPreferences.getString(getString(R.string.pref_sort_key),
                     getString(R.string.pref_sort_default));
 
             setRecyclerVIewToCorrectPosition();  // I think this works best here.
@@ -277,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements
             getSupportLoaderManager().restartLoader(TMDBQUERY_LOADER, getTMDQueryBundle(), this);
             mMovieAdapter.notifyDataSetChanged();   // Made no difference
         }
-//        Log.d(TAG, "END::onSharedPreferenceChanged: ");
+        Log.d(TAG, "END::onSharedPreferenceChanged: ");
     }
 
 
@@ -288,13 +307,13 @@ public class MainActivity extends AppCompatActivity implements
      * @return - New Loader instance that is ready to start loading
      */
     @Override
-    public Loader<ArrayList<Pair<Long, Pair<String, String>>>> onCreateLoader(int id, final Bundle args) {
+    public Loader<ArrayList<ContentValues>> onCreateLoader(int id, final Bundle args) {
 
         if (TMDBQUERY_LOADER == id) {
-            return new AsyncTaskLoader<ArrayList<Pair<Long, Pair<String, String>>>>(this) {
+            return new AsyncTaskLoader<ArrayList<ContentValues>>(this) {
 
                 // Holds and helps to cache our data
-                ArrayList<Pair<Long, Pair<String, String>>> mIdsAndPosters = null;
+                ArrayList<ContentValues> mIdsAndPosters = null;
 
                 @Override
                 protected void onStartLoading() {
@@ -314,109 +333,64 @@ public class MainActivity extends AppCompatActivity implements
 
                 /**
                  * LOADINBACKGROUND - Done on a background thread
-                 * @return - ArrayList<Pair<Long, Pair<String, String>>> - Ordered Arraylist of Movie posters and ids.
+                 * @return - ArrayList<ContentValues> - Ordered Arraylist of Movie posters and ids.
                  */
                 @Override
-                public ArrayList<Pair<Long, Pair<String, String>>> loadInBackground() {
+                public ArrayList<ContentValues> loadInBackground() {
 
-//                    Log.d(TAG, "loadInBackground: ");
-                    boolean isPopular = true;
+                    Log.d(TAG, "loadInBackground: ");
 
                     String urlString = (String) args.getCharSequence(NETWORK_URL_POP_OR_TOP_KEY);
                     ArrayList<Pair<Long, Pair<String, String>>> titlesAndPosters = null;
+                    ArrayList<ContentValues> dataOutput = new ArrayList<>();
 
-                    if (urlString != null) {
+                    if (urlString != null) {  // TODO: If == null, then either nothing or, 'Favorite'
                         String tmdbJsonString = "";
-                        titlesAndPosters = new ArrayList<>();
 
                         try {
-                            isPopular = isCurrentTypePopular();
 
                             // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
                             if (NetworkUtils.doWeHaveInternet()) {
 
+                                // TODO: Have an if/else so can bring up favorites just by going to db
+                                // TODO: If not favorites, show EMPTY PAGE, else regular populate by Adapter
+                                // TODO: Should be function so can have same thing if NO INTERNET.  'cause works either way
+
+
                                 tmdbJsonString = NetworkUtils.getResponseFromHttpUrl(new URL(urlString));
 
-//                                Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
+                                Log.d(TAG, "loadInBackground: >>>" + tmdbJsonString + "<<<");
 
+                                // Favorites will not have JSON
                                 movieContentValues = OpenTMDJsonUtils
-                                        .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isPopular);
+                                        .getPopularOrTopJSONContentValues(MainActivity.this, tmdbJsonString, isCurrentTypePopular());
 
                                 try {
-                                    // Projection and following final ints need to always be in sync
-                                    final String[] projection = new String[]{
-                                            MovieEntry._ID,
-                                            MovieEntry.ORIGINAL_TITLE,
-                                            MovieEntry.POPULAR_ORDER_IN,
-                                            MovieEntry.TOP_RATED_ORDER_IN
-                                    };
 
-                                    // Preceding Projection and these final ints always MUST be in sync
-                                    final int idPos = 0;
-                                    final int titlePos = 1;
-                                    final int popOrderInPos = 2;
-                                    final int topRatedOrderInPos = 3;
-
-                                    String where = MainLoadingUtils.getTypeOrderIn(isPopular) + " IS NOT NULL ";
-
-                                    // Query of what already in DB
-                                    Cursor idAndTitleOldCursor = getContentResolver().query(
-                                            MovieEntry.CONTENT_URI,
-                                            projection,
-                                            where,
-                                            null,
-                                            null
-                                    );  // Do not need order for Set
-
-                                    final String oppositeWhere = MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL "
-                                            + " AND " + MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ";
-                                    Cursor idandTitleOppositeCursor = getContentResolver().query(
-                                            MovieEntry.CONTENT_URI,
-                                            projection,
-                                            oppositeWhere,
-                                            null,
-                                            null
-                                    );  // If not NULL, then this is the opposite type of idAndTtitleOldCursor
-
-
-
-
-                                    // If already stuff in db, will need to update, as well as, insert and remove
-                                    if ((idAndTitleOldCursor != null)
-                                            && (idAndTitleOldCursor.getCount() > 0)) {  // So if there are already things in db
-                                        // Make set of IDs currently in DB
-                                        Set<Long> idOldSet = new HashSet<>();
-                                        MainLoadingUtils.makeSetOfIdsFromCursor(idPos, idAndTitleOldCursor, idOldSet);
-
-                                        // Insert or Update int DB based on New Ids - Old Ids + Intersection of New Ids & Old Ids
-                                        Set<Long> idNewSet = new HashSet<>();
-                                        insertUpdateAndMakeNewIdSet(isPopular, idAndTitleOldCursor, idandTitleOppositeCursor, idOldSet, idNewSet);
-
-                                        // Delete movies that moved off list
-                                        idOldSet.removeAll(idNewSet);  // Old - New => Set of IDs up for deletion
-                                        deleteChartDroppedMovies(isPopular, idOldSet, idandTitleOppositeCursor);
-
-                                        idAndTitleOldCursor.close();  // Closing the Cursor
-                                        if (idandTitleOppositeCursor != null) {
-                                            idandTitleOppositeCursor.close();
-                                        }
-                                    } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates.
-                                        getContentResolver().bulkInsert(MovieEntry.CONTENT_URI, movieContentValues);
-                                    }
+                                processIncomingIntoDB();
 
                                 } catch (SQLException sqe) {
                                     sqe.printStackTrace();
                                 }
 
                                 Cursor cursorPosterPathsMovieIds = MainLoadingUtils
-                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
+                                        .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
 
                                 if (cursorPosterPathsMovieIds != null) {
 
                                     // Add Runtimes to DB for Movies
                                     MainLoadingUtils.getRuntimesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
-                                    MainLoadingUtils.createArrayListOfPairsForPosters(
-                                            titlesAndPosters, cursorPosterPathsMovieIds);
+
+                                    // Add Reviews to DB for Movies
+                                    MainLoadingUtils.getReviewsForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+
+                                    MainLoadingUtils.getYoutubesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+
+                                    // TODO: Engage
+                                    MainLoadingUtils.createArrayListOfContentValuesForPosters(
+                                            dataOutput,
+                                            cursorPosterPathsMovieIds
+                                    );
 
                                     cursorPosterPathsMovieIds.close();  // Closing Cursor
                                 }
@@ -436,13 +410,10 @@ public class MainActivity extends AppCompatActivity implements
                                 });
 
                                 // If no internet but we have some data, deal with that
-                                Cursor cursorForIdsAndPosters = MainLoadingUtils
-                                        .getCursorPosterPathsMovieIds(isPopular, MainActivity.this);
-                                if (cursorForIdsAndPosters != null) {
-                                    MainLoadingUtils.createArrayListOfPairsForPosters(
-                                            titlesAndPosters, cursorForIdsAndPosters);  // Fill ArrayList
-                                    cursorForIdsAndPosters.close();
-                                }
+
+                                // TODO: Engage
+                                useStoredDataToPopulateArraylistContentValues(dataOutput);
+
                             }
                         } catch (JSONException je) {
                             je.printStackTrace();
@@ -452,110 +423,74 @@ public class MainActivity extends AppCompatActivity implements
                             return null;
                         }
 
-//                        Log.d(TAG, "loadInBackground: Poster Count: " + titlesAndPosters.size() );
+                        Log.d(TAG, "loadInBackground: Poster Count: " + dataOutput.size() );        // TODO: Engage
                     }
 
-                    return titlesAndPosters;
+                    // If we are Favorites type, use stored Favorites to display
+                    if (mCurrentViewType.equals(getString(R.string.pref_sort_favorite))) {
+                        dataOutput = new ArrayList<>();     // TODO: Engage
+
+                        useStoredDataToPopulateArraylistContentValues(dataOutput);                         // TODO: Engage
+
+                        if (dataOutput.size() == 0) {  // TODO: Engage, otherwise alphabetize FavoriteIn to show correctly
+
+                            // Cannot call showNoFavorites off of UIThread
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    showNoFavorites();  // Transition from current progressBar
+
+                                }
+                            });
+
+                        }
+                    }
+
+                    return dataOutput; // TODO: Engage
                 }
 
 
                 /**
-                 * DELETECHARTDROPPEDMOVIES - Deletes movies that fell off the chart from the DB.
-                 * @param isPopular - What type we are currently dealing with
-                 * @param idDeleteSet - Modified set of old Movie IDs consists of Old IDs - New Ids
-                 *                 and the Intersection of Old & New
-                 * @param oppositeTitlesCursor - In case we have to delete something that is both types.  Just update
+                 * PROCESSINCOMINGINTODB - Processes incoming movie data so that old movies are properly
+                 * updated or removed, and new movies are properly updated or inserted.
+                 * Database = DB, Database of Type = DBOT, Incoming of Type = ICOT
+                 * DBOT - ICOT => Delete or update
+                 * DB intersect ICOT = > Update
+                 * ICOT - DBOT => Insert
                  */
-                private void deleteChartDroppedMovies(boolean isPopular, Set<Long> idDeleteSet, Cursor oppositeTitlesCursor) {
+                private void processIncomingIntoDB() {
+                    Set<Long> currentDBSet = new HashSet<>();
+                    Set<Long> currentDBSetOfType = new HashSet<>();
+                    Set<Long> incomingTypeSet = new HashSet<>();
 
-                    Set<Long> idOppositeSet = new HashSet<>();
-                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+                    // Whole DB
+                    currentDBSet = MainLoadingUtils.currentDBIDs(getContext());
 
-                    for (Long deleteOldId : idDeleteSet) {  // TODO: Test this out
+                    if (currentDBSet.size() != 0) {  // There are things in the DB to consider
 
-                        // Situation: ID is in bot types.  Want this one updated to exists only in the other
-                        if (idOppositeSet.contains(deleteOldId)) {
-                            ContentValues nullOutTypeCV = new ContentValues();
-                            // Nulling out this usage, since ID is currently used for other type.
-                            nullOutTypeCV.put(MainLoadingUtils.getTypeOrderIn(isPopular), (String) null);
+                        currentDBSetOfType = MainLoadingUtils.currentDBIDsOfType(getContext(), mCurrentViewType);
+                        incomingTypeSet = MainLoadingUtils.incomingIDs(movieContentValues);
 
-                            String where = MovieEntry._ID + " = ? ";
-                            String[] whereArgs = {"" + deleteOldId};
+                        // Deletion AND Insertion are type specific
+                        Set<Long> needDeleteSetOfType = new HashSet<>(currentDBSetOfType);  // Using Copy Constructor
+                        needDeleteSetOfType.removeAll(incomingTypeSet);
+                        MainLoadingUtils.deleteUpdateIDsOfType(getContext(), mCurrentViewType, needDeleteSetOfType,
+                                movieContentValues);
 
-                            // Updating the ID that is in both types to no longer be in this one.
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    nullOutTypeCV,
-                                    where,
-                                    whereArgs);
-                        } else {  // Situation: Normal, delete ID
-                            getContentResolver().delete(  // TODO: Test against OppositeSet, to see if need update instead
-                                    MovieEntry.buildUriWithMovieId(deleteOldId),
-                                    null,
-                                    null);
-                        }
-                    }
-                }
+                        // IDs to update, comparing against entire DB, because incoming ID can already belong to multiple types
+                        Set<Long> needUpdateSet = new HashSet<>(currentDBSet);
+                        needUpdateSet.retainAll(incomingTypeSet);
+                        MainLoadingUtils.updateIDsAgainstWholeDB(getContext(), needUpdateSet, movieContentValues);
 
 
-                /**
-                 * INSERTUPDATEANDMAKENEWIDSET - Inserts new movies into DB, Updates chart movers in DB, and makes a
-                 * new ID set of incoming movies to compare against what is already in the database
-                 * @param isPopular - Type the user is looking for
-                 * @param idAndTitleOldCursor - Cursor of titles that are previously in DB
-                 * @param oppositeTitlesCursor - Cursor of the opposite type to this one, in case this ID is in both types.
-                 * @param idOldSet - Set of IDs of movies previously in our DB
-                 * @param idNewSet - Set of IDs that are coming in from TMDb.
-                 */
-                private void insertUpdateAndMakeNewIdSet(boolean isPopular, Cursor idAndTitleOldCursor,
-                                                         Cursor oppositeTitlesCursor,Set<Long> idOldSet, Set<Long> idNewSet) {
-                    // Makes Set from the movies of the opposite type, in case same movie is both types,
-                    // but can only take 1 id.
-                    Set<Long> idOppositeSet = new HashSet<>();
-                    MainLoadingUtils.makeSetOfIdsFromCursor(INDEX_ID, oppositeTitlesCursor, idOppositeSet);
+                        // IDs to insert, since all updates of old and new data have already occurred.
+                        Set<Long> needInsertSetOfType = new HashSet<>(incomingTypeSet);
+                        needInsertSetOfType.removeAll(currentDBSetOfType);
+                        MainLoadingUtils.insertIDsOfType(getContext(), needInsertSetOfType, movieContentValues);
 
-                    for (int i = 0; i < movieContentValues.length; i++) {
-
-                        Long newId = movieContentValues[i].getAsLong(MovieEntry._ID);
-                        idNewSet.add(newId);    // Create new Set for difference op later
-
-                        // TODO: If NewId is in OppositeSet, Update
-                        // If this ID exists in the opposite type, need special processing so always
-                        // 1 entry.  Update instead so is Pop&Top.
-                        if (idOppositeSet.contains(newId)) {
-                            // Update Item position of other thing for this type.
-                            // Update
-                            String orderType = MainLoadingUtils.getTypeOrderIn(!isPopular);
-                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
-                            String[] whereArgs
-                                    = new String[] {"" + newId
-                                    , MainLoadingUtils.getOldPositionOfNewId(
-                                            !isPopular, oppositeTitlesCursor, newId)};  // ID, TypeOrderIn position
-
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i],
-                                    where,
-                                    whereArgs);
-                        } else if (idOldSet.contains(newId)) {
-                            // Update
-                            String orderType = MainLoadingUtils.getTypeOrderIn(isPopular);
-                            String[] whereArgs
-                                    = new String[] {"" + newId
-                                    , MainLoadingUtils.getOldPositionOfNewId(
-                                            isPopular, idAndTitleOldCursor, newId)};  // ID, TypeOrderIn position
-
-                            String where = MovieEntry._ID + " = ? AND " + orderType + " = ? ";
-                            getContentResolver().update(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i],
-                                    where,
-                                    whereArgs);
-                        } else {
-                            getContentResolver().insert(
-                                    MovieEntry.CONTENT_URI,
-                                    movieContentValues[i]);
-                        }
+                    } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates are necessary.
+                        getContentResolver().bulkInsert(MovieEntry.CONTENT_URI, movieContentValues);
                     }
                 }
 
@@ -565,11 +500,10 @@ public class MainActivity extends AppCompatActivity implements
                  * @param data - ArrayList<Pair<Long, Pair<String, String>>>
                  */
                 @Override
-                public void deliverResult(ArrayList<Pair<Long, Pair<String, String>>> data) {
+                public void deliverResult(ArrayList<ContentValues> data) {
                     mIdsAndPosters = data;  // Assignment for caching
                     super.deliverResult(data);  // Then deliver results
                 }
-
 
             };
         }
@@ -577,22 +511,47 @@ public class MainActivity extends AppCompatActivity implements
         return null;
     }
 
+
+    /**
+     *  USESTOREDDATATOPOPULATEARRAYLISTCONTENTVALUES - Data we already have will be used to populate list for adapter.
+     * @param titlesAndData - The list to populate with data
+     */
+    private void useStoredDataToPopulateArraylistContentValues(ArrayList<ContentValues> titlesAndData) {
+
+        Cursor cursorForIdsAndPosters = MainLoadingUtils
+                .getCursorPosterPathsMovieIds(mCurrentViewType, MainActivity.this);
+
+        if (cursorForIdsAndPosters != null) {
+            MainLoadingUtils.createArrayListOfContentValuesForPosters(
+                    titlesAndData, cursorForIdsAndPosters);  // Fill ArrayList
+
+            cursorForIdsAndPosters.close();  // Close your cursors
+        }
+
+    }
+
+
+    /**
+     * ISCURRENTTYPEPOPULAR - Whether the current View Type is Popular.  Does not differentiate between
+     * the other 2 types.
+     * @return - boolean - Whether Popular or not
+     */
     private boolean isCurrentTypePopular() {
-        return mIsPopular.equals(getString(R.string.pref_sort_popular));
+        return mCurrentViewType.equals(getString(R.string.pref_sort_popular));
     }
 
 
     @Override
-    public void onLoadFinished(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader, ArrayList<Pair<Long, Pair<String, String>>> data) {
-//        Log.d(TAG, "onLoadFinished: ");
+    public void onLoadFinished(Loader<ArrayList<ContentValues>> loader, ArrayList<ContentValues> data) {
+        Log.d(TAG, "onLoadFinished: ");
 
         if ((data != null) && (data.size() != 0)) {
 
             showPosters();  // The data is here, we should show it.
-            mMovieAdapter.setData(data, isCurrentTypePopular());
+            mMovieAdapter.setData(data, mCurrentViewType);
         }
 
-//        Log.d(TAG, "onLoadFinished: ");
+        Log.d(TAG, "onLoadFinished: ");
     }
 
 
@@ -611,7 +570,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
     @Override
-    public void onLoaderReset(Loader<ArrayList<Pair<Long, Pair<String, String>>>> loader) {
+    public void onLoaderReset(Loader<ArrayList<ContentValues>> loader) {
         // Nothing here
     }
 
@@ -622,12 +581,38 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onClick(long movieId) {
-//        Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
+        Log.d(TAG, "onClick() called with: movieId = [" + movieId + "]");
         Intent movieDetailIntent = new Intent(this, DetailActivity.class);
         Uri movieDataUri = MovieEntry.buildUriWithMovieId(movieId);
         movieDetailIntent.setData(movieDataUri);
-        movieDetailIntent.putExtra(EXTRA_TYPE, isCurrentTypePopular());
-        startActivity(movieDetailIntent);
+        movieDetailIntent.putExtra(EXTRA_TYPE, mCurrentViewType);
+        startActivityForResult(movieDetailIntent, DETAIL_CODE);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == DETAIL_CODE) {
+
+            if (resultCode == Activity.RESULT_OK) {
+                long[] detailResults = data.getLongArrayExtra(DetailActivity.DETAIL_ACTIVITY_RETURN);
+                long heartStateChanged = detailResults[1];
+
+                // If changed then need to update everything
+                final long heartChangedTrue = 1L;
+                if (heartStateChanged == heartChangedTrue) {
+                    showLoading();
+                    loadPreferredMovieList();
+                }
+                // Else visually all is the same
+
+                Log.d(TAG, "onActivityResult() called with: requestCode = [" + requestCode + "], resultCode = [" + resultCode + "], data = [" + data + "], ["
+                + detailResults[0] +" ], [" + detailResults[1] + "]");
+            }
+
+        }
     }
 
 
@@ -637,6 +622,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void showLoading() {
         mRecyclerView.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.INVISIBLE);
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
@@ -648,8 +634,35 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void showPosters() {
         mProgressBar.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
     }
 
 
+    /**
+     * SHOWNOFAVORITES - Shows the empty Favorites page.  This should be triggered when Favorites
+     * is the type currently selected and there are no Favorites to show.  This page will be shown
+     * instead.
+     */
+    private void showNoFavorites() {
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mRecyclerView.setVisibility(View.INVISIBLE);
+        mNoFavoritesLayout.setVisibility(View.VISIBLE);
+    }
+
+
+    @Override
+    public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+        // TODO: If you want to continue with adding this to Main
+        // You need to pull the appropriate functions out of PosterViewHolder and
+        // into the Adapter so you can call them from here.  Or recreate the functionality
+        // in Main since you have access to adapter and database here.
+        // Remember; there is only one specific situation when this would be called
+        // So there would not need to be as many conditionals as there are in the RecyclerView
+    }
+
+    @Override
+    public void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment) {
+
+    }
 }
