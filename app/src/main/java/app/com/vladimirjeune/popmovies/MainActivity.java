@@ -382,9 +382,9 @@ public class MainActivity extends AppCompatActivity implements
                                     MainLoadingUtils.getRuntimesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
 
                                     // Add Reviews to DB for Movies
-                                    MainLoadingUtils.getReviewsForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+//                                    MainLoadingUtils.getReviewsForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
 
-                                    MainLoadingUtils.getYoutubesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
+//                                    MainLoadingUtils.getYoutubesForMoviesInList(cursorPosterPathsMovieIds, MainActivity.this);
 
                                     // TODO: Engage
                                     MainLoadingUtils.createArrayListOfContentValuesForPosters(

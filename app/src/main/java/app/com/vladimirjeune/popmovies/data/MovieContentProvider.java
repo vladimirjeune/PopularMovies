@@ -310,7 +310,7 @@ public class MovieContentProvider extends ContentProvider {
                     retUri = uri.buildUpon().appendPath("" + newId).build();
 //                    Log.d(TAG, "insert: Uri: " + retUri);
                 } else {
-                    throw new SQLException("Insert failed for Uri: " + uri);
+                    throw new SQLException("Insert failed for Uri: " + uri + ": " + contentValues);  // If null, should just print it out.
                 }
                 break;
             case REVIEWS:

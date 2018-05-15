@@ -299,9 +299,9 @@ public final class MainLoadingUtils {
      * GETSINGLEMOVIESYOUTUBESFROMTMDB - Get the Youtube Stats for the movie with the given movieId.
      * Note: Makes network call.
      * @param aMovieId - Movie Id for movie we are getting the Review Data for
-     * @return ContentValues[] - Review Data of movie.  Can be 0 - n, or possibly null
+     * @return ContentValues[] - Youtube Data of movie.  Can be 0 - n, or possibly null
      */
-    private static ContentValues[] getSingleMoviesYoutubesFromTMDB(Context context, String aMovieId) {
+    public static ContentValues[] getSingleMoviesYoutubesFromTMDB(Context context, String aMovieId) {
         ContentValues[] youtubeContentValues = null;
 
         try {
@@ -535,7 +535,7 @@ public final class MainLoadingUtils {
                 for (int i = 0; i < reviewsForSingleMovie.length; i++) {
                     String currentId = reviewsForSingleMovie[i].getAsString(ReviewEntry.REVIEW_ID);
 
-                    String selection = ReviewEntry.REVIEW_ID + " = ?";
+                    String selection = ReviewEntry.REVIEW_ID + " = ? ";
                     String reviewId = reviewsForSingleMovie[i].getAsString(ReviewEntry.REVIEW_ID);
                     String[] selectionArgs = new String[]{reviewId};
 
@@ -597,7 +597,7 @@ public final class MainLoadingUtils {
                 for (int i = 0; i < youtubesForSingleMovie.length; i++) {
                     String currentId = youtubesForSingleMovie[i].getAsString(Y_ID);
 
-                    String selection = Y_ID + " = ?";
+                    String selection = Y_ID + " = ? ";
                     String youtubeId = youtubesForSingleMovie[i].getAsString(Y_ID);
                     String[] selectionArgs = new String[]{youtubeId};
 
@@ -764,7 +764,7 @@ public final class MainLoadingUtils {
 
 
     /**
-     * CURRENTDBIDSOFTYPE - Returns a set of the IDs that exist in the entirety of the Databasae.
+     * CURRENTDBIDSOFTYPE - Returns a set of the IDs that exist in the entirety of the Databasae with the current type.
      * @param context - Needed for functions calls
      * @param viewType - Should ONLY be either POPULAR or TOP_RATED
      * @return - Set of ID in the database of this particular type passed in
@@ -1063,6 +1063,73 @@ public final class MainLoadingUtils {
                     contentValues.put(ReviewEntry.AUTHOR, author);
                     contentValues.put(ReviewEntry.CONTENT, content);
                     contentValues.put(MovieEntry.BACKDROP_PATH, backdropPath);
+
+                    data.add(contentValues);
+
+                } while(sqlTransferCursor.moveToNext());
+
+            }
+
+        } finally {  // Always close the Cursor
+            if ((sqlTransferCursor != null) && (! sqlTransferCursor.isClosed())) {
+                sqlTransferCursor.close();
+            }
+        }
+
+    }
+
+
+    /**
+     * USESTOREDYOUTUBEDATAINDB - Will use what is stored in the database to populate the Youtube list
+     * @param currentMovieId - ID of the movie that we are supposed to have the youtubes for
+     * @param data - ContentValues ArrayList to be filled with the Youtubes in the SQL DB, if any.  In order of Youtube ID.
+     * @param context - Needed for function calls
+     */
+    public static void useStoredYoutubeDataInDB(ArrayList<ContentValues> data, long currentMovieId, Context context) {
+
+        String[] projection = {
+                YoutubeEntry.YOUTUBE_ID,
+                YoutubeEntry.KEY,
+                YoutubeEntry.NAME,
+                YoutubeEntry.TYPE,
+                MovieEntry.ORIGINAL_TITLE
+        };
+        String selection = ReviewEntry.MOVIE_ID + " = ? ";
+        String[] selectionArgs = new String[] {"" + currentMovieId};
+        String orderBy = YoutubeEntry.YOUTUBE_ID;
+
+        Cursor sqlTransferCursor = null;
+        try {
+            sqlTransferCursor = context.getContentResolver()
+                    .query(MovieContract.JoinEntry.CONTENT_URI,
+                            projection,
+                            selection,
+                            selectionArgs,
+                            orderBy);
+
+            if ((sqlTransferCursor != null)
+                    && (sqlTransferCursor.moveToFirst()) ) {
+
+                int yIdIndex = sqlTransferCursor.getColumnIndex(YoutubeEntry.YOUTUBE_ID);
+                int keyIndex = sqlTransferCursor.getColumnIndex(YoutubeEntry.KEY);
+                int nameIndex = sqlTransferCursor.getColumnIndex(YoutubeEntry.NAME);
+                int typeIndex = sqlTransferCursor.getColumnIndex(YoutubeEntry.TYPE);
+                int titleIndex = sqlTransferCursor.getColumnIndex(MovieEntry.ORIGINAL_TITLE);
+
+                do {
+
+                    String y_id = sqlTransferCursor.getString(yIdIndex);
+                    String key = sqlTransferCursor.getString(keyIndex);
+                    String name = sqlTransferCursor.getString((nameIndex));
+                    String type = sqlTransferCursor.getString(typeIndex);
+                    String original_title = sqlTransferCursor.getString(titleIndex);
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(YoutubeEntry.YOUTUBE_ID, y_id);
+                    contentValues.put(YoutubeEntry.KEY, key);
+                    contentValues.put(YoutubeEntry.NAME, name);
+                    contentValues.put(YoutubeEntry.TYPE, type);
+                    contentValues.put(MovieEntry.ORIGINAL_TITLE, original_title);
 
                     data.add(contentValues);
 

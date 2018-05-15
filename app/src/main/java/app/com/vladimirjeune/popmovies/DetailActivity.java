@@ -52,13 +52,17 @@ import app.com.vladimirjeune.popmovies.databinding.ActivityDetailBinding;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getSingleMoviesReviewsFromTMDB;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getSingleMoviesYoutubesFromTMDB;
 import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.setReviewsForMovieOfId;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.setYoutubesForMovieOfId;
 import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.useStoredReviewDataInDB;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.useStoredYoutubeDataInDB;
 
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
-    private static final String MOVIE_ID_BUNDLE_FOR_LOADERS_KEY = "reviews_or_youtubes";
+    private static final String MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY = "reviews_loaders_key";
+    private static final String MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY = "youtubes_loaders_key";
     ActivityDetailBinding mActivityDetailBinding;
 
     public static final String DETAIL_ACTIVITY_RETURN =  "app.com.vladimirjeune.popmovies.DETAILACTIVITYRETURN" ;
@@ -266,9 +270,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     @Override
                     public ArrayList<ContentValues> loadInBackground() {
 
-                        Log.d(TAG, "loadInBackground() called");
+                        Log.d(TAG, "ReviewLoaderListener - loadInBackground() called");
 
-                        long bundledMovieID = args.getLong(MOVIE_ID_BUNDLE_FOR_LOADERS_KEY);
+                        long bundledMovieID = args.getLong(MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY);
                         ArrayList<ContentValues> dataOutput = new ArrayList<>();
 
                         // Assuming there is no movie with negative ID
@@ -279,7 +283,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                                 // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
                                 if (NetworkUtils.doWeHaveInternet()) {
 
-                                    ContentValues[]listOfReviewsFromNet = getSingleMoviesReviewsFromTMDB(DetailActivity.this,
+                                    ContentValues[] listOfReviewsFromNet = getSingleMoviesReviewsFromTMDB(DetailActivity.this,
                                             ""+bundledMovieID);
 
                                     // Put list of Reviews in Database
@@ -347,6 +351,109 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
     };
 
+    private LoaderManager.LoaderCallbacks<ArrayList<ContentValues>> youtubeLoaderListener = new LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>() {
+
+        @Override
+        public Loader<ArrayList<ContentValues>> onCreateLoader(int loaderId, final Bundle args) {
+
+            if (YOUTUBE_LOADER_LISTENER_ID == loaderId) {
+                return new AsyncTaskLoader<ArrayList<ContentValues>>(DetailActivity.this) {  // This is the correct lifecycle to follow
+
+                    ArrayList<ContentValues> mYoutubeDatas = null;  // Will help to cache data
+
+
+                    @Override
+                    protected void onStartLoading() {
+
+                        if (args == null) {
+                            return;
+                        }
+
+                        if (mYoutubeDatas != null) {
+                            deliverResult(mYoutubeDatas);  // Deliver cached results
+                        } else {
+                            forceLoad();
+                        }
+
+                    }
+
+                    /**
+                     * LOADINBACKGROUND - Done on a background thread
+                     * @return - ArrayList<ContentValues> - Ordered Arraylist of Youtube.
+                     */
+                    @Override
+                    public ArrayList<ContentValues> loadInBackground() {
+
+                        Log.d(TAG, "YoutubeLoaderListener - loadInBackground: called");
+
+                        long bundleMovieID = args.getLong(MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY);
+                        ArrayList<ContentValues> dataOutput = new ArrayList<>();
+
+                        // There may be a 0 movie so skipping that
+                        if (bundleMovieID > -1) {
+
+                            try {
+
+                                // Check the internet, otherwise, check the database
+                                if (NetworkUtils.doWeHaveInternet()) {
+
+                                    ContentValues[] listOfYoutubesFromNet
+                                            = getSingleMoviesYoutubesFromTMDB(DetailActivity.this,
+                                            ""+bundleMovieID);
+
+                                    // Put list of Youtubes In DB
+                                    setYoutubesForMovieOfId(listOfYoutubesFromNet,
+                                            bundleMovieID,
+                                            DetailActivity.this);
+
+                                    dataOutput = new ArrayList<>(Arrays.asList(listOfYoutubesFromNet));
+
+                                } else {
+                                    useStoredYoutubeDataInDB(dataOutput, bundleMovieID,
+                                            DetailActivity.this);  // DataOutput is populated if possible in this call
+                                }
+
+                            } catch (SQLException sqe) {
+                                sqe.printStackTrace();
+                                return null;
+                            }
+
+                        }
+
+                        return dataOutput;
+                    }
+
+                    /**
+                     * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
+                     * @param data - ArrayList<ContentValues>
+                     */
+                    @Override
+                    public void deliverResult(ArrayList<ContentValues> data) {
+                        mYoutubeDatas = data;
+                        super.deliverResult(data);
+                    }
+
+                } ;
+
+            }
+
+
+            return null;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<ArrayList<ContentValues>> loader, ArrayList<ContentValues> data) {
+            if ((data != null) && (data.size() > 0)) {
+                setMediaRecyclerViewForID(mIDForMovie);   // TODO: Create function
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<ArrayList<ContentValues>> loader) {
+            mMediaAdapter.swapCursor(null);  // TODO: See if done anywhere else
+        }
+    };
+
 
     /**
      * LOADREVIEWS - Loads the review list
@@ -354,7 +461,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private void loadReviews(long id) {
         Log.d(TAG, "BEGIN::loadReviews: ");
 
-        Bundle urlBundle = getReviewsYoutubesLoaderBundle(id);
+        Bundle urlBundle = getReviewsLoaderBundle(id);
 
         Loader<ArrayList<ContentValues>> reviewLoader = getSupportLoaderManager()
                 .getLoader(REVIEW_LOADER_LISTENER_ID);
@@ -377,12 +484,51 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * @return - Bundle - The Bundle that should be used for the loading of the Reviews and Youtubes
      */
     @NonNull
-    private Bundle getReviewsYoutubesLoaderBundle(long id) {
+    private Bundle getYoutubesLoaderBundle(long id) {
         // Prepare to call loader
         Bundle urlBundle = new Bundle();
 //        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
 
-        urlBundle.putLong(MOVIE_ID_BUNDLE_FOR_LOADERS_KEY, id);
+        urlBundle.putLong(MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY, id);
+        return urlBundle;
+    }
+
+
+    /**
+     * LOADREVIEWS - Loads the youtube list
+     */
+    private void loadYoutubes(long id) {
+        Log.d(TAG, "BEGIN::loadYoutubes: ");
+
+        Bundle urlBundle = getYoutubesLoaderBundle(id);
+
+        Loader<ArrayList<ContentValues>> youtubeLoader = getSupportLoaderManager()
+                .getLoader(YOUTUBE_LOADER_LISTENER_ID);
+
+        if (null == youtubeLoader) {
+            // Make sure loader is initialized and active.  If loader doesn't already exists; create one
+            // and start it.  Otherwise, use last created loader
+            getSupportLoaderManager().initLoader(YOUTUBE_LOADER_LISTENER_ID, urlBundle, youtubeLoaderListener);
+        } else {
+            getSupportLoaderManager().restartLoader(YOUTUBE_LOADER_LISTENER_ID, urlBundle, youtubeLoaderListener);
+        }
+
+        Log.d(TAG, "END::loadYoutubes: ");
+    }
+
+
+    /**
+     * GETREVIEWSYOUTUBESLOADERBUNDLE - Bundles the needed ID to be
+     * used later by the loader.
+     * @return - Bundle - The Bundle that should be used for the loading of the Reviews and Youtubes
+     */
+    @NonNull
+    private Bundle getReviewsLoaderBundle(long id) {
+        // Prepare to call loader
+        Bundle urlBundle = new Bundle();
+//        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+
+        urlBundle.putLong(MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY, id);
         return urlBundle;
     }
 
@@ -518,7 +664,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
 
-        mIDForMovie = Long.parseLong(mUri.getLastPathSegment());  // Needed to get ID here instead of normal location
+        mIDForMovie = Long.parseLong(mUri.getLastPathSegment());  // Needed to get ID here instead of normal location for Loaders
 
         // Text for when there are no reviews
 //        mNoReviewTextView = findViewById(R.id.tv_review_empty);
@@ -534,7 +680,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewAdapter = new ReviewAdapter(this, mViewType);
         mActivityDetailBinding.rvHorizontalLinearReviews.setAdapter(mReviewAdapter);
 
-//        setReviewRecyclerViewForID(mIDForMovie);  // TODO: Make call to net here and have this f() in that Loader onLoadFinished
+//        setReviewRecyclerViewForID(mIDForMovie);
         loadReviews(mIDForMovie);
 
         // Media RecyclerView
@@ -553,7 +699,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mMediaAdapter = new MediaAdapter(this);
         mActivityDetailBinding.rvHorizontalLinearMedia.setAdapter(mMediaAdapter);
 
-        setMediaRecyclerViewForID(mIDForMovie);
+        loadYoutubes(mIDForMovie);
+//        setMediaRecyclerViewForID(mIDForMovie);
 
 
         setRecyclerViewBackgroundByType();  // General
@@ -649,7 +796,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mActivityDetailBinding.textViewRuntimeTitle.setTextColor(ms.getTextColor());
                 mActivityDetailBinding.textViewReleaseTitle.setTextColor(ms.getTextColor());
                 mActivityDetailBinding.textViewSynopsisTitle.setTextColor(ms.getTextColor());
-                mActivityDetailBinding.textViewReviewsTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewReviewsTitle.setTextColor(ms.getTextColor());  // TODO: Add Media/Nos/
+                mActivityDetailBinding.textViewMediaTitle.setTextColor(ms.getTextColor());  // TODO: Add Media/Nos/
 
                 // Text Background Colors for Favorites
                 mActivityDetailBinding.textViewRatingTitle.setBackgroundColor(ms.getTextBackgroundColor());
@@ -657,6 +805,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mActivityDetailBinding.textViewReleaseTitle.setBackgroundColor(ms.getTextBackgroundColor());
                 mActivityDetailBinding.textViewSynopsisTitle.setBackgroundColor(ms.getTextBackgroundColor());
                 mActivityDetailBinding.textViewReviewsTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewMediaTitle.setBackgroundColor(ms.getTextBackgroundColor());
 
                 // Background Drawables for Favorites
                 mActivityDetailBinding.rvHorizontalLinearReviews.setBackground(ContextCompat
@@ -665,6 +814,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
 
             loadMovieImage();
+
+            setNoReviewText(); // TODO: Put here so
+            setNoMediaText();
 
             HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
 //            mHeartCheckboxView.setEnabled(! HEART_DISABLED);  //
