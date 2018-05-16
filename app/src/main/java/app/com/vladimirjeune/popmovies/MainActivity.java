@@ -487,6 +487,10 @@ public class MainActivity extends AppCompatActivity implements
                         // IDs to insert, since all updates of old and new data have already occurred.
                         Set<Long> needInsertSetOfType = new HashSet<>(incomingTypeSet);
                         needInsertSetOfType.removeAll(currentDBSetOfType);
+
+                        // You need to remove stuff that was just updated, if it was not of this type initially
+                        needInsertSetOfType.removeAll(needUpdateSet);
+
                         MainLoadingUtils.insertIDsOfType(getContext(), needInsertSetOfType, movieContentValues);
 
                     } else {  // Got null, or the Cursor has no rows.  So can bulkInsert, since no updates are necessary.

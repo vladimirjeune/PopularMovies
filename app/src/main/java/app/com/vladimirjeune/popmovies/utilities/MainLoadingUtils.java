@@ -1037,7 +1037,7 @@ public final class MainLoadingUtils {
         Cursor sqlTransferCursor = null;
         try {
             sqlTransferCursor = context.getContentResolver()
-                    .query(MovieContract.JoinEntry.CONTENT_URI,
+                    .query(MovieContract.joineReviewEntry.CONTENT_URI,
                             projection,
                             selection,
                             selectionArgs,
@@ -1101,7 +1101,7 @@ public final class MainLoadingUtils {
         Cursor sqlTransferCursor = null;
         try {
             sqlTransferCursor = context.getContentResolver()
-                    .query(MovieContract.JoinEntry.CONTENT_URI,
+                    .query(MovieContract.JoinYoutubeEntry.CONTENT_URI,
                             projection,
                             selection,
                             selectionArgs,

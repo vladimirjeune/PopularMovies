@@ -165,7 +165,7 @@ public final class MovieContract {
     // TODO: May want to change name to JoinReviewEntry
     // No need to insert, update, or delete.  This is a created table
     // Just query.
-    public static class JoinEntry implements BaseColumns {
+    public static class joineReviewEntry implements BaseColumns {
 
         // Base content uri + path
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon()

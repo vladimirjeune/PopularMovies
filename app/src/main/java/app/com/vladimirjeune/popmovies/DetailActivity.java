@@ -1130,7 +1130,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * Result sent to Callback for AsyncQueryTask
      */
     private void reviewsForMovie(ReviewQueryHandler queryHandler, long movieID) {
-        Uri joinEntryUri = MovieContract.JoinEntry.CONTENT_URI;
+        Uri joinEntryUri = MovieContract.joineReviewEntry.CONTENT_URI;
         String[] projection = new String[] {
                 ReviewEntry.REVIEW_ID,
                 ReviewEntry.AUTHOR,
