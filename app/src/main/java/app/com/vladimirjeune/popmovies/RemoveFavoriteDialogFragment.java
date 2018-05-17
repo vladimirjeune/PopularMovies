@@ -26,8 +26,8 @@ public class RemoveFavoriteDialogFragment extends DialogFragment {
 
     // Necessary for Event Callbacks, this fragment is sent if needed for querying
     public interface RemoveFavoriteListener {
-        public void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment);
-        public void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment);
+        void onDialogAffirmativeClick(RemoveFavoriteDialogFragment dialogFragment);
+        void onDialogNegativeClick(RemoveFavoriteDialogFragment dialogFragment);
     }
 
     // Used to deliver Action Events

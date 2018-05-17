@@ -6,9 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
-import android.view.View;
 
 import org.json.JSONException;
 
@@ -56,35 +54,37 @@ public final class MainLoadingUtils {
     }
 
 
-    /**
-     * GETOLDPOSITIONOFNEWID - Returns the old Position of the movie with this ID
-     * @param context - Needed for function calls
-     * @param viewType - Popular, Top-Rated, or Favorite
-     * @param idAndTitleOldCursor - Cursor - Place to find old ID
-     * @param oldId - Long - Old Id we are looking for
-     * @return - String - Order Index of the Type that the user is asking for.  Or "-1", if no match
-     */
-    @Nullable
-    public static String getOldPositionOfNewId(Context context, String viewType, final Cursor idAndTitleOldCursor, final Long oldId) {
-
-        int retIndex = -1;
-        String orderType = getTypeOrderIn(context, viewType);
-
-        if ((idAndTitleOldCursor != null)
-                && (idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
-            int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
-            int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
-
-            do {
-                if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
-                    retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
-                    return "" + retIndex;  // Found it, jump out.
-                }
-            } while (idAndTitleOldCursor.moveToNext());
-        }
-//        Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
-        return "" + retIndex;
-    }
+// --Commented out by Inspection START (5/17/18, 9:07 AM):
+//    /**
+//     * GETOLDPOSITIONOFNEWID - Returns the old Position of the movie with this ID
+//     * @param context - Needed for function calls
+//     * @param viewType - Popular, Top-Rated, or Favorite
+//     * @param idAndTitleOldCursor - Cursor - Place to find old ID
+//     * @param oldId - Long - Old Id we are looking for
+//     * @return - String - Order Index of the Type that the user is asking for.  Or "-1", if no match
+//     */
+//    @Nullable
+//    public static String getOldPositionOfNewId(Context context, String viewType, final Cursor idAndTitleOldCursor, final Long oldId) {
+//
+//        int retIndex = -1;
+//        String orderType = getTypeOrderIn(context, viewType);
+//
+//        if ((idAndTitleOldCursor != null)
+//                && (idAndTitleOldCursor.moveToFirst()) && (idAndTitleOldCursor.getCount() > 0)) {
+//            int idIndex = idAndTitleOldCursor.getColumnIndex(MovieEntry._ID);
+//            int orderTypeIndex = idAndTitleOldCursor.getColumnIndex(orderType);  // Will pick correct of Pop or Top index
+//
+//            do {
+//                if (idAndTitleOldCursor.getLong(idIndex) == oldId) {
+//                    retIndex = idAndTitleOldCursor.getInt(orderTypeIndex);
+//                    return "" + retIndex;  // Found it, jump out.
+//                }
+//            } while (idAndTitleOldCursor.moveToNext());
+//        }
+////        Log.d(TAG, "getOldPositionOfNewId: For some reason we did not find it. Old ID: " + oldId);
+//        return "" + retIndex;
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:07 AM)
 
 
     /**
@@ -170,23 +170,25 @@ public final class MainLoadingUtils {
     }
 
 
-    /**
-     * MAKESETOFIDSFROMCURSOR - Create a Set of the IDs that are currently in the DB.
-     * Will be used later to ensure proper updating when new data comes in.
-     * No duplicates and proper updating.
-     * @param idPos - Position of the id column
-     * @param idAndTitleCursor - Cursor with old DB data
-     * @param idOldSet - Set holding the IDs of the old DB movies.
-     */
-    public static void makeSetOfIdsFromCursor(int idPos, Cursor idAndTitleCursor, Set<Long> idOldSet) {
-        // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
-        if ((idAndTitleCursor != null) && (idAndTitleCursor.getCount() > 0)) {
-            idAndTitleCursor.moveToFirst();
-            do {
-                idOldSet.add(idAndTitleCursor.getLong(idPos));
-            } while (idAndTitleCursor.moveToNext());
-        }
-    }
+// --Commented out by Inspection START (5/17/18, 9:13 AM):
+//    /**
+//     * MAKESETOFIDSFROMCURSOR - Create a Set of the IDs that are currently in the DB.
+//     * Will be used later to ensure proper updating when new data comes in.
+//     * No duplicates and proper updating.
+//     * @param idPos - Position of the id column
+//     * @param idAndTitleCursor - Cursor with old DB data
+//     * @param idOldSet - Set holding the IDs of the old DB movies.
+//     */
+//    public static void makeSetOfIdsFromCursor(int idPos, Cursor idAndTitleCursor, Set<Long> idOldSet) {
+//        // Make a Set of IDs you already have in DB.  Later, compare to incoming IDs
+//        if ((idAndTitleCursor != null) && (idAndTitleCursor.getCount() > 0)) {
+//            idAndTitleCursor.moveToFirst();
+//            do {
+//                idOldSet.add(idAndTitleCursor.getLong(idPos));
+//            } while (idAndTitleCursor.moveToNext());
+//        }
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:13 AM)
 
 
     /**
@@ -356,88 +358,92 @@ public final class MainLoadingUtils {
     }
 
 
-    /**
-     * GETREVIEWSFORMOVIESINLIST - Add the Reviews to the Review Tables on a per movie basis that
-     * were just created from JSON call that should precede this one.
-     * Update database with Reviews for each Movie; if available
-     * Note: Makes network call.  Calls DB
-     * @param movieCursor - Holds data for MovieIDs needed for Reviews
-     */
-    public static void getReviewsForMoviesInList(Cursor movieCursor, Context context) {
+// --Commented out by Inspection START (5/17/18, 9:16 AM):
+//    /**
+//     * GETREVIEWSFORMOVIESINLIST - Add the Reviews to the Review Tables on a per movie basis that
+//     * were just created from JSON call that should precede this one.
+//     * Update database with Reviews for each Movie; if available
+//     * Note: Makes network call.  Calls DB
+//     * @param movieCursor - Holds data for MovieIDs needed for Reviews
+//     */
+//    public static void getReviewsForMoviesInList(Cursor movieCursor, Context context) {
+//
+//        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
+//
+//            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
+//            Cursor reviewIDsForThisMovieCursor;
+//
+//            do {
+//
+//                long movieId = movieCursor.getLong(movieIdIndex);
+//                ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
+//
+//                // Query for Review IDs we already have, if any.  Do here to give time for return b4 next function
+//                String[] projection = new String[] {ReviewEntry.REVIEW_ID};
+//                String selection = ReviewEntry.MOVIE_ID + " = ? ";
+//                String[] selectionArgs = new String[] {""+ movieId};
+//                reviewIDsForThisMovieCursor = context.getContentResolver()
+//                        .query(ReviewEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+//
+//                HashSet<String> alreadyInSet = cursorIdsToSet(reviewIDsForThisMovieCursor);
+//
+//                insertReviewsForMovie(context, alreadyInSet, reviewsForSingleMovie);
+//
+//                if ((reviewIDsForThisMovieCursor != null)
+//                        && (! reviewIDsForThisMovieCursor.isClosed())) {
+//                    reviewIDsForThisMovieCursor.close();
+//                }
+//            } while (movieCursor.moveToNext());  // Loop thru movies
+//
+//        }
+//
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:16 AM)
 
-        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
-
-            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
-            Cursor reviewIDsForThisMovieCursor;
-
-            do {
-
-                long movieId = movieCursor.getLong(movieIdIndex);
-                ContentValues[] reviewsForSingleMovie = getSingleMoviesReviewsFromTMDB(context, ""+movieId);
-
-                // Query for Review IDs we already have, if any.  Do here to give time for return b4 next function
-                String[] projection = new String[] {ReviewEntry.REVIEW_ID};
-                String selection = ReviewEntry.MOVIE_ID + " = ? ";
-                String[] selectionArgs = new String[] {""+ movieId};
-                reviewIDsForThisMovieCursor = context.getContentResolver()
-                        .query(ReviewEntry.CONTENT_URI, projection, selection, selectionArgs, null);
-
-                HashSet<String> alreadyInSet = cursorIdsToSet(reviewIDsForThisMovieCursor);
-
-                insertReviewsForMovie(context, alreadyInSet, reviewsForSingleMovie);
-
-                if ((reviewIDsForThisMovieCursor != null)
-                        && (! reviewIDsForThisMovieCursor.isClosed())) {
-                    reviewIDsForThisMovieCursor.close();
-                }
-            } while (movieCursor.moveToNext());  // Loop thru movies
-
-        }
-
-    }
 
 
-
-    /**
-     * GETYOUTUBESFORMOVIESINLIST - Add the Youtubes to the Youtube Tables on a per movie basis that
-     * were just created from JSON call that should precede this one.
-     * Update database with Youtubes for each Movie; if available
-     * Note: Makes network call.  Calls DB
-     * @param movieCursor - Holds data for MovieIDs needed for Reviews
-     */
-    public static void getYoutubesForMoviesInList(Cursor movieCursor, Context context) {
-
-        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
-
-            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
-            Cursor youtubeIdsForThisMovieCursor;
-
-            do {
-
-                long movieId = movieCursor.getLong(movieIdIndex);
-                ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
-
-                // Query for Youtube IDs we already have, if any.  Do here to give time for return b4 next function
-                String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
-                String selection = YoutubeEntry.MOVIE_ID + " = ? ";
-                String[] selectionArgs = new String[] {""+ movieId};
-                youtubeIdsForThisMovieCursor = context.getContentResolver()
-                        .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
-
-                HashSet<String> alreadyInSet = cursorYoutubeIdsToSet(youtubeIdsForThisMovieCursor);
-
-                // TODO: See if can be modified to work for both, else just make 1 for Youtube
-                insertYoutubesForMovie(context, alreadyInSet, youtubesForSingleMovie);
-
-                if ((youtubeIdsForThisMovieCursor != null)
-                        && (! youtubeIdsForThisMovieCursor.isClosed())) {
-                    youtubeIdsForThisMovieCursor.close();
-                }
-            } while (movieCursor.moveToNext());  // Loop thru movies
-
-        }
-
-    }
+// --Commented out by Inspection START (5/17/18, 9:16 AM):
+//    /**
+//     * GETYOUTUBESFORMOVIESINLIST - Add the Youtubes to the Youtube Tables on a per movie basis that
+//     * were just created from JSON call that should precede this one.
+//     * Update database with Youtubes for each Movie; if available
+//     * Note: Makes network call.  Calls DB
+//     * @param movieCursor - Holds data for MovieIDs needed for Reviews
+//     */
+//    public static void getYoutubesForMoviesInList(Cursor movieCursor, Context context) {
+//
+//        if ((movieCursor != null) && (movieCursor.moveToFirst())) {
+//
+//            int movieIdIndex = movieCursor.getColumnIndex(MovieEntry._ID);
+//            Cursor youtubeIdsForThisMovieCursor;
+//
+//            do {
+//
+//                long movieId = movieCursor.getLong(movieIdIndex);
+//                ContentValues[] youtubesForSingleMovie = getSingleMoviesYoutubesFromTMDB(context, ""+movieId);
+//
+//                // Query for Youtube IDs we already have, if any.  Do here to give time for return b4 next function
+//                String[] projection = new String[] {YoutubeEntry.YOUTUBE_ID};
+//                String selection = YoutubeEntry.MOVIE_ID + " = ? ";
+//                String[] selectionArgs = new String[] {""+ movieId};
+//                youtubeIdsForThisMovieCursor = context.getContentResolver()
+//                        .query(YoutubeEntry.CONTENT_URI, projection, selection, selectionArgs, null);
+//
+//                HashSet<String> alreadyInSet = cursorYoutubeIdsToSet(youtubeIdsForThisMovieCursor);
+//
+//                // TODO: See if can be modified to work for both, else just make 1 for Youtube
+//                insertYoutubesForMovie(context, alreadyInSet, youtubesForSingleMovie);
+//
+//                if ((youtubeIdsForThisMovieCursor != null)
+//                        && (! youtubeIdsForThisMovieCursor.isClosed())) {
+//                    youtubeIdsForThisMovieCursor.close();
+//                }
+//            } while (movieCursor.moveToNext());  // Loop thru movies
+//
+//        }
+//
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:16 AM)
 
 
     /**
@@ -713,16 +719,18 @@ public final class MainLoadingUtils {
     }
 
 
-    public static void toastColorForType(Context context, String viewType, View toastBackgroundLayout) {
-        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
-            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_orange));
-        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
-            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_blue));
-        } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
-            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_purple));
-
-        }
-    }
+// --Commented out by Inspection START (5/17/18, 9:10 AM):
+//    public static void toastColorForType(Context context, String viewType, View toastBackgroundLayout) {
+//        if (viewType.equals(context.getString(R.string.pref_sort_popular))) {
+//            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_orange));
+//        } else if (viewType.equals(context.getString(R.string.pref_sort_top_rated))) {
+//            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_blue));
+//        } else if (viewType.equals(context.getString(R.string.pref_sort_favorite))) {
+//            toastBackgroundLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.toast_background_purple));
+//
+//        }
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:10 AM)
 
     /**
      * CURRENTDBIDS - Returns a set of the IDs that exist in the entirety of the Databasae.

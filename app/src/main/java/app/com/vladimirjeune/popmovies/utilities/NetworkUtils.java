@@ -355,34 +355,36 @@ public final class NetworkUtils {
     }
 
 
-    /**
-     * OBTAINTEMPJSON - A temporary function to present theMovieDb JSON.
-     * @param context - Needed to get the File
-     * @return - String - Example JSON from website
-     */
-    public static String obtainTempJSON(Context context, final String typeOfFile) {
-        // In order for the movie requests to work we must obtain key from file in assets
-        try {
-            AssetManager assetManager = context.getAssets();  // File is kept in the asset folder
-
-            Scanner scanner = new Scanner(assetManager.open(typeOfFile));
-
-            StringBuilder retVal = new StringBuilder();
-//            Toast.makeText(context, retVal, Toast.LENGTH_LONG).show();
-            while (scanner.hasNextLine()) {
-                retVal.append(scanner.nextLine());
-            }
-
-            return retVal.toString();
-
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException io ) {
-            io.printStackTrace();
-        }
-        return null;
-    }
+// --Commented out by Inspection START (5/17/18, 9:20 AM):
+//    /**
+//     * OBTAINTEMPJSON - A temporary function to present theMovieDb JSON.
+//     * @param context - Needed to get the File
+//     * @return - String - Example JSON from website
+//     */
+//    public static String obtainTempJSON(Context context, final String typeOfFile) {
+//        // In order for the movie requests to work we must obtain key from file in assets
+//        try {
+//            AssetManager assetManager = context.getAssets();  // File is kept in the asset folder
+//
+//            Scanner scanner = new Scanner(assetManager.open(typeOfFile));
+//
+//            StringBuilder retVal = new StringBuilder();
+////            Toast.makeText(context, retVal, Toast.LENGTH_LONG).show();
+//            while (scanner.hasNextLine()) {
+//                retVal.append(scanner.nextLine());
+//            }
+//
+//            return retVal.toString();
+//
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException io ) {
+//            io.printStackTrace();
+//        }
+//        return null;
+//    }
+// --Commented out by Inspection STOP (5/17/18, 9:20 AM)
 
     // TODO: Remove before submission.  For Stetho
     private static void requestDecompression(HttpURLConnection conn) {

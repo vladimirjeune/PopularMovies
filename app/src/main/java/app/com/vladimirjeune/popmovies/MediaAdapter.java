@@ -21,6 +21,7 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 /**
+ * Adapter for Media RecyclerView
  * Created by vladimirjeune on 4/17/18.
  */
 

@@ -4,6 +4,7 @@ import android.app.Application;
 import com.facebook.stetho.Stetho;
 
 /**
+ * For use with Stetho
  * Created by vladimirjeune on 1/20/18.
  */
 

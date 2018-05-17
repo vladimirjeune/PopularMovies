@@ -26,6 +26,13 @@
     <string name="tools_lorem_paragraph" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam id felis sed arcu vehicula aliquet. Donec nec elementum erat, eget vulputate enim. Nam ultricies mi id lacus malesuada, eu ullamcorper neque accumsan. Sed nec risus ante. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc tempor enim interdum tortor semper, varius molestie eros feugiat. Donec nec mi dolor.</string>
     <string name="tools_lorem_paragraph_short" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam id felis sed arcu vehicula aliquet. Donec nec elementum erat, eget vulputate enim. Nam ultricies mi id lacus malesuada, eu ullamcorper neque accumsan. Sed nec risus ante. </string>
 
+    <!-- MainActivity, when there are no favorites -->
+    <string name="main_no_favorite_wow">Wow,</string>
+    <string name="main_no_favorite_empty">it\'s pretty empty in here…</string>
+    <string name="main_no_favorite_fill">Fill it with your favorite movies!</string>
+    <string name="main_no_favorite_click">*Click the heart on a movie poster to favorite it.</string>
+
+
     <!-- DetailActivity -->
     <string name="detail_out_of_10" translatable="false">/10</string>
     <string name="detail_rating">RATING</string>
@@ -63,5 +70,6 @@
     <string name="a11y_video">
         <xliff:g id="type" example="Featurette">%1$s</xliff:g> for <xliff:g id="movie" example="Baby Driver">%2$s</xliff:g>: <xliff:g id="name" example="Is he slow?">%3$s</xliff:g>
     </string>
+    <string name="a11y_review_backdrop">Backdrop</string>
 
 </resources>

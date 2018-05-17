@@ -872,8 +872,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * NOTE FOR RECYCLERVIEW CURSOR: There is one small bug in this code. If no data is present in the cursor do to an
      * initial load being performed with no access to internet, the loading indicator will show
      * indefinitely, until data is present from the ContentProvider.
-     * @param loader
-     * @param data
+     * @param loader - Can get which loader it is from here
+     * @param data - Result of onCreateLoader-deliverResult
      */
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
