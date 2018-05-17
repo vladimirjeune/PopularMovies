@@ -560,34 +560,39 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 || (mHeartState0or1.equals(HEART_TRUE))) {
             simpleUpdate(heartContentValues, where, whereArgs);
         } else {
-            String[] favElseProjections =
-                    new String[] {MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
-            String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
-                    + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
-                    + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
 
-            // Search for other links that would delay deletion
-            Cursor hasOtherTypesCursor = getContentResolver().query(
-                    MovieContract.MovieEntry.CONTENT_URI,
-                    favElseProjections,
-                    favElseWhere,
-                    new String[] { "" + mIDForMovie},
-                    null
-            );
+            Cursor hasOtherTypesCursor = null;
+            try {
+                String[] favElseProjections =
+                        new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
+                String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
+                        + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
+                        + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
 
-            // If has other types, then update
-            if ((hasOtherTypesCursor != null)
-                    && (hasOtherTypesCursor.moveToFirst())) {
-                simpleUpdate(heartContentValues, where, whereArgs);
-            } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
-                getContentResolver().delete(
+                // Search for other links that would delay deletion
+                hasOtherTypesCursor = getContentResolver().query(
                         MovieContract.MovieEntry.CONTENT_URI,
-                        where,
-                        whereArgs);  // TODO: Maybe set a boolean that will be returned to Main saying delete this ID and restartLoader
-            }
+                        favElseProjections,
+                        favElseWhere,
+                        new String[]{"" + mIDForMovie},
+                        null
+                );
 
-            if (hasOtherTypesCursor != null) {
-                hasOtherTypesCursor.close();
+                // If has other types, then update
+                if ((hasOtherTypesCursor != null)
+                        && (hasOtherTypesCursor.moveToFirst())) {
+                    simpleUpdate(heartContentValues, where, whereArgs);
+                } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
+                    getContentResolver().delete(
+                            MovieContract.MovieEntry.CONTENT_URI,
+                            where,
+                            whereArgs);  // TODO: Maybe set a boolean that will be returned to Main saying delete this ID and restartLoader
+                }
+            } finally {
+                if ((hasOtherTypesCursor != null)
+                        && (! hasOtherTypesCursor.isClosed())){
+                    hasOtherTypesCursor.close();
+                }
             }
 
         }
@@ -1043,16 +1048,21 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     return;
                 }
 
-                if ((cursor.moveToFirst())
-                        && (reviewAdapter != null)) {
-                    reviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
-                    detailActivity.showRecyclerView(true);
+                boolean noSwap = false;
+                try {
+                    if ((cursor.moveToFirst())
+                            && (reviewAdapter != null)) {
+                        reviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                        detailActivity.showRecyclerView(true);
 
-                } else {
-                    if (! cursor.isClosed()) {
+                    } else {
+                        detailActivity.showRecyclerView(false);
+                        noSwap = true;
+                    }
+                } finally {
+                    if ( ( ! cursor.isClosed() ) && (noSwap)) {
                         cursor.close();
                     }
-                    detailActivity.showRecyclerView(false);
                 }
 
             }
@@ -1091,16 +1101,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     return;
                 }
 
-                if ((cursor.moveToFirst())
-                        && (mediaAdapter != null)) {
-                    mediaAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
-                    detailActivity.showMediaRecyclerView(true);
+                boolean noSwap = false;
+                try {
+                    if ((cursor.moveToFirst())
+                            && (mediaAdapter != null)) {
+                        mediaAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                        detailActivity.showMediaRecyclerView(true);
 
-                } else {
-                    if (! cursor.isClosed()) {
+                    } else {
+                        detailActivity.showMediaRecyclerView(false);
+                        noSwap = true;  // We know we will not be cutting off adapter
+                    }
+                }
+                finally {
+                    if ((! cursor.isClosed()) && (noSwap) ) {
                         cursor.close();  // We know it exists
                     }
-                    detailActivity.showMediaRecyclerView(false);
                 }
 
             }
