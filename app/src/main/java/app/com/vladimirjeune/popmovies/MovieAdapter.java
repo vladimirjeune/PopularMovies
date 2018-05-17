@@ -254,10 +254,6 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     R.layout.toast_colored,
                     (ViewGroup) ((Activity)mContext).findViewById(R.id.ll_custom_toast));
 
-            // Make function to pick correct color
-//            MainLoadingUtils.toastColorForType(mContext, mViewType, mToastLayout);
-//            toastColorForType();  //
-
             mToastTextView = mToastLayout.findViewById(R.id.tv_toast);  //
 
             mFavoriteToast = new Toast(mContext);
@@ -357,46 +353,21 @@ class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                                 if (isChecked) {  // CVs are like HashMaps, same key for value will be replaced
 
-//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_on, movieTitle));
-//                                    mFavoriteToast.show();
-//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_TRUE);  // True == 1   // TODO: LOOKED AT USAGE
-//                                    buttonDBUpdate(thisId, FAVORITE_IN_TRUE);
-
                                     updateHearts(true, thisId, foundCVs);
 
                                 } else {
 
                                     if (!(mViewType.equals(mContext.getString(R.string.pref_sort_favorite)))) {
                                         // Needed to be here so can be avoided if the user cancels the removal in the Favorite case
-//                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
-//                                        mFavoriteToast.show();
-//                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);
-//                                        buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
 
                                         updateHearts(false, thisId, foundCVs);
 
                                     } else if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
                                         // TODO: See if works out of order.  If so can reduce amount of duplication. So 1 f() above and 2 here
-//                                        mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
-//                                        mFavoriteToast.show();
-//                                        foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
-//                                        buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
                                         updateHearts(false, thisId, null);  // TODO: If works put in other clauses, without default values
                                         removeAndNotifyFromDataList(i);
                                     }
 
-
-
-//                                    mToastTextView.setText(mContext.getString(R.string.toast_detail_favorite_off, movieTitle));
-//                                    mFavoriteToast.show();
-//                                    foundCVs.put(MovieContract.MovieEntry.FAVORITE_FLAG, FAVORITE_IN_FALSE);  // False == 0   // TODO: LOOKED AT USAGE
-//
-//                                    // You can remove favorites in the list by unHearting
-//                                    if (mViewType.equals(mContext.getString(R.string.pref_sort_favorite))) {
-//                                        removeAndNotifyFromDataList(view, i);
-//                                    }
-//
-//                                    buttonDBUpdate(thisId, FAVORITE_IN_FALSE);
                                 }
                                 break;  // FOUND IT
                             }
