@@ -22,6 +22,7 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.ReviewEntry;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
 /**
+ * Adapter for Review RecyclerView
  * Created by vladimirjeune on 4/3/18.
  */
 
@@ -108,7 +109,7 @@ class ReviewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             super(itemView);
 
             mAuthorTextView = itemView.findViewById(R.id.tv_review_author);
-            mContentTextView = itemView.findViewById(R.id.tv_review_paragrah);
+            mContentTextView = itemView.findViewById(R.id.tv_review_paragraph);
             mBackdropImageView = itemView.findViewById(R.id.iv_review_backdrop);
 
             backdropColorForType();

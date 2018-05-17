@@ -23,6 +23,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/a11y_review_backdrop"
         />
 
     <TextView
@@ -54,7 +55,7 @@
         >
 
         <TextView
-            android:id="@+id/tv_review_paragrah"
+            android:id="@+id/tv_review_paragraph"
             android:layout_width="342dp"
             android:layout_height="0dp"
             tools:text="@string/tools_lorem_paragraph_short"

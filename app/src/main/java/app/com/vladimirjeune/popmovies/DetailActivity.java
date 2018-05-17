@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -15,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -38,6 +40,8 @@ import com.squareup.picasso.Target;
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import app.com.vladimirjeune.popmovies.data.MovieContract;
 import app.com.vladimirjeune.popmovies.data.MovieContract.JoinYoutubeEntry;
@@ -47,9 +51,18 @@ import app.com.vladimirjeune.popmovies.data.MovieContract.YoutubeEntry;
 import app.com.vladimirjeune.popmovies.databinding.ActivityDetailBinding;
 import app.com.vladimirjeune.popmovies.utilities.NetworkUtils;
 
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getSingleMoviesReviewsFromTMDB;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.getSingleMoviesYoutubesFromTMDB;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.setReviewsForMovieOfId;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.setYoutubesForMovieOfId;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.useStoredReviewDataInDB;
+import static app.com.vladimirjeune.popmovies.utilities.MainLoadingUtils.useStoredYoutubeDataInDB;
+
 public class DetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         RemoveFavoriteDialogFragment.RemoveFavoriteListener {
 
+    private static final String MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY = "reviews_loaders_key";
+    private static final String MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY = "youtubes_loaders_key";
     ActivityDetailBinding mActivityDetailBinding;
 
     public static final String DETAIL_ACTIVITY_RETURN =  "app.com.vladimirjeune.popmovies.DETAILACTIVITYRETURN" ;
@@ -221,6 +234,304 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
     };
 
+    private static final int REVIEW_LOADER_LISTENER_ID = 8701;
+    private static final int YOUTUBE_LOADER_LISTENER_ID = 1814;
+
+    private LoaderManager.LoaderCallbacks<ArrayList<ContentValues>> reviewLoaderListener = new LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>() {
+        @Override
+        public Loader<ArrayList<ContentValues>> onCreateLoader(int loaderId, final Bundle args) {
+
+            if (REVIEW_LOADER_LISTENER_ID == loaderId) {
+                return new AsyncTaskLoader<ArrayList<ContentValues>>(DetailActivity.this) {  // So destroy when Activity destroy
+
+                    ArrayList<ContentValues> mReviewDatas = null;  // Will help to cache data
+
+                    @Override
+                    protected void onStartLoading() {
+
+                        if (args == null) {
+                            return;
+                        }
+
+                        // Deliver cached results immediately otherwise force load
+                        if (mReviewDatas != null) {
+                            deliverResult(mReviewDatas);
+                        } else {
+                            forceLoad();
+                        }
+
+                    }
+
+
+                    /**
+                     * LOADINBACKGROUND - Done on a background thread
+                     * @return - ArrayList<ContentValues> - Ordered Arraylist of Reviews.
+                     */
+                    @Override
+                    public ArrayList<ContentValues> loadInBackground() {
+
+                        Log.d(TAG, "ReviewLoaderListener - loadInBackground() called");
+
+                        long bundledMovieID = args.getLong(MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY);
+                        ArrayList<ContentValues> dataOutput = new ArrayList<>();
+
+                        // Assuming there is no movie with negative ID
+                        if (bundledMovieID > -1) {
+
+                            try {
+
+                                // Normal if can connect.  Otherwise, see if have this type of data in DB, if so fill array with it
+                                if (NetworkUtils.doWeHaveInternet()) {
+
+                                    ContentValues[] listOfReviewsFromNet = getSingleMoviesReviewsFromTMDB(DetailActivity.this,
+                                            ""+bundledMovieID);
+
+                                    // Put list of Reviews in Database
+                                    setReviewsForMovieOfId(listOfReviewsFromNet, bundledMovieID, DetailActivity.this);
+
+
+                                    dataOutput = new ArrayList<>(Arrays.asList(listOfReviewsFromNet));
+
+                                } else {
+                                    // TODO: // No internet for call, get data from DB
+
+                                    // TODO: Function that takes a movie ID and returns an ArrayList<CV>, or mutates one
+                                    // usedStoredReviewDataInDB(mReviewData);  // So make Cursor orderby id, make into aList
+                                    // After this do onLoadFinished
+                                    useStoredReviewDataInDB(dataOutput, bundledMovieID, DetailActivity.this) ;
+
+                                }
+
+                            } catch (SQLException sqe) {
+                                sqe.printStackTrace();
+                                return null;
+                            }
+
+                        }
+
+                        return dataOutput;
+
+                    }
+
+
+                    /**
+                     * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
+                     * @param data - ArrayList<ContentValues>
+                     */
+                    @Override
+                    public void deliverResult(ArrayList<ContentValues> data) {
+                        mReviewDatas = data;  // Assignment for caching
+                        super.deliverResult(data);  // Then deliver results
+                    }
+
+                };
+            }
+
+
+            return null;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<ArrayList<ContentValues>> loader, ArrayList<ContentValues> data) {
+
+            if ((data != null) && (data.size() > 0)) {
+
+                setReviewRecyclerViewForID(mIDForMovie);
+
+            }
+
+        }
+
+        @Override
+        public void onLoaderReset(Loader<ArrayList<ContentValues>> loader) {
+            // TODO: swap
+
+//            mReviewAdapter.swapCursor(null);
+            mReviewAdapter.swapCursor(null);
+        }
+    };
+
+    private LoaderManager.LoaderCallbacks<ArrayList<ContentValues>> youtubeLoaderListener = new LoaderManager.LoaderCallbacks<ArrayList<ContentValues>>() {
+
+        @Override
+        public Loader<ArrayList<ContentValues>> onCreateLoader(int loaderId, final Bundle args) {
+
+            if (YOUTUBE_LOADER_LISTENER_ID == loaderId) {
+                return new AsyncTaskLoader<ArrayList<ContentValues>>(DetailActivity.this) {  // This is the correct lifecycle to follow
+
+                    ArrayList<ContentValues> mYoutubeDatas = null;  // Will help to cache data
+
+
+                    @Override
+                    protected void onStartLoading() {
+
+                        if (args == null) {
+                            return;
+                        }
+
+                        if (mYoutubeDatas != null) {
+                            deliverResult(mYoutubeDatas);  // Deliver cached results
+                        } else {
+                            forceLoad();
+                        }
+
+                    }
+
+                    /**
+                     * LOADINBACKGROUND - Done on a background thread
+                     * @return - ArrayList<ContentValues> - Ordered Arraylist of Youtube.
+                     */
+                    @Override
+                    public ArrayList<ContentValues> loadInBackground() {
+
+                        Log.d(TAG, "YoutubeLoaderListener - loadInBackground: called");
+
+                        long bundleMovieID = args.getLong(MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY);
+                        ArrayList<ContentValues> dataOutput = new ArrayList<>();
+
+                        // There may be a 0 movie so skipping that
+                        if (bundleMovieID > -1) {
+
+                            try {
+
+                                // Check the internet, otherwise, check the database
+                                if (NetworkUtils.doWeHaveInternet()) {
+
+                                    ContentValues[] listOfYoutubesFromNet
+                                            = getSingleMoviesYoutubesFromTMDB(DetailActivity.this,
+                                            ""+bundleMovieID);
+
+                                    // Put list of Youtubes In DB
+                                    setYoutubesForMovieOfId(listOfYoutubesFromNet,
+                                            bundleMovieID,
+                                            DetailActivity.this);
+
+                                    dataOutput = new ArrayList<>(Arrays.asList(listOfYoutubesFromNet));
+
+                                } else {
+                                    useStoredYoutubeDataInDB(dataOutput, bundleMovieID,
+                                            DetailActivity.this);  // DataOutput is populated if possible in this call
+                                }
+
+                            } catch (SQLException sqe) {
+                                sqe.printStackTrace();
+                                return null;
+                            }
+
+                        }
+
+                        return dataOutput;
+                    }
+
+                    /**
+                     * DELIVERRESULTS - Store data from load in here for caching, and then deliver.
+                     * @param data - ArrayList<ContentValues>
+                     */
+                    @Override
+                    public void deliverResult(ArrayList<ContentValues> data) {
+                        mYoutubeDatas = data;
+                        super.deliverResult(data);
+                    }
+
+                } ;
+
+            }
+
+
+            return null;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<ArrayList<ContentValues>> loader, ArrayList<ContentValues> data) {
+            if ((data != null) && (data.size() > 0)) {
+                setMediaRecyclerViewForID(mIDForMovie);   // TODO: Create function
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<ArrayList<ContentValues>> loader) {
+            mMediaAdapter.swapCursor(null);  // TODO: See if done anywhere else
+        }
+    };
+
+
+    /**
+     * LOADREVIEWS - Loads the review list
+     */
+    private void loadReviews(long id) {
+        Log.d(TAG, "BEGIN::loadReviews: ");
+
+        Bundle urlBundle = getReviewsLoaderBundle(id);
+
+        Loader<ArrayList<ContentValues>> reviewLoader = getSupportLoaderManager()
+                .getLoader(REVIEW_LOADER_LISTENER_ID);
+
+        if (null == reviewLoader) {
+            // Make sure loader is initialized and active.  If loader doesn't already exists; create one
+            // and start it.  Otherwise, use last created loader
+            getSupportLoaderManager().initLoader(REVIEW_LOADER_LISTENER_ID, urlBundle, reviewLoaderListener);
+        } else {
+            getSupportLoaderManager().restartLoader(REVIEW_LOADER_LISTENER_ID, urlBundle, reviewLoaderListener);
+        }
+
+        Log.d(TAG, "END::loadReviews: ");
+    }
+
+
+    /**
+     * GETREVIEWSYOUTUBESLOADERBUNDLE - Bundles the needed ID to be
+     * used later by the loader.
+     * @return - Bundle - The Bundle that should be used for the loading of the Reviews and Youtubes
+     */
+    @NonNull
+    private Bundle getYoutubesLoaderBundle(long id) {
+        // Prepare to call loader
+        Bundle urlBundle = new Bundle();
+//        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+
+        urlBundle.putLong(MOVIE_ID_BUNDLE_FOR_YOUTUBE_LOADER_KEY, id);
+        return urlBundle;
+    }
+
+
+    /**
+     * LOADREVIEWS - Loads the youtube list
+     */
+    private void loadYoutubes(long id) {
+        Log.d(TAG, "BEGIN::loadYoutubes: ");
+
+        Bundle urlBundle = getYoutubesLoaderBundle(id);
+
+        Loader<ArrayList<ContentValues>> youtubeLoader = getSupportLoaderManager()
+                .getLoader(YOUTUBE_LOADER_LISTENER_ID);
+
+        if (null == youtubeLoader) {
+            // Make sure loader is initialized and active.  If loader doesn't already exists; create one
+            // and start it.  Otherwise, use last created loader
+            getSupportLoaderManager().initLoader(YOUTUBE_LOADER_LISTENER_ID, urlBundle, youtubeLoaderListener);
+        } else {
+            getSupportLoaderManager().restartLoader(YOUTUBE_LOADER_LISTENER_ID, urlBundle, youtubeLoaderListener);
+        }
+
+        Log.d(TAG, "END::loadYoutubes: ");
+    }
+
+
+    /**
+     * GETREVIEWSYOUTUBESLOADERBUNDLE - Bundles the needed ID to be
+     * used later by the loader.
+     * @return - Bundle - The Bundle that should be used for the loading of the Reviews and Youtubes
+     */
+    @NonNull
+    private Bundle getReviewsLoaderBundle(long id) {
+        // Prepare to call loader
+        Bundle urlBundle = new Bundle();
+//        Log.d(TAG, "loadPreferredMovieList: URL: [" + stringOfUrl + "]");
+
+        urlBundle.putLong(MOVIE_ID_BUNDLE_FOR_REVIEW_LOADER_KEY, id);
+        return urlBundle;
+    }
+
 
     /**
      * ONPAUSE - Lifecycle callback triggered when activity becomes partially visible.
@@ -249,34 +560,39 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 || (mHeartState0or1.equals(HEART_TRUE))) {
             simpleUpdate(heartContentValues, where, whereArgs);
         } else {
-            String[] favElseProjections =
-                    new String[] {MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
-            String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
-                    + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
-                    + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
 
-            // Search for other links that would delay deletion
-            Cursor hasOtherTypesCursor = getContentResolver().query(
-                    MovieContract.MovieEntry.CONTENT_URI,
-                    favElseProjections,
-                    favElseWhere,
-                    new String[] { "" + mIDForMovie},
-                    null
-            );
+            Cursor hasOtherTypesCursor = null;
+            try {
+                String[] favElseProjections =
+                        new String[]{MovieContract.MovieEntry._ID, MovieContract.MovieEntry.ORIGINAL_TITLE};
+                String favElseWhere = MovieContract.MovieEntry._ID + " = ? "
+                        + " AND ( " + MovieContract.MovieEntry.POPULAR_ORDER_IN + " IS NOT NULL OR "
+                        + MovieContract.MovieEntry.TOP_RATED_ORDER_IN + " IS NOT NULL ) ";
 
-            // If has other types, then update
-            if ((hasOtherTypesCursor != null)
-                    && (hasOtherTypesCursor.moveToFirst())) {
-                simpleUpdate(heartContentValues, where, whereArgs);
-            } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
-                getContentResolver().delete(
+                // Search for other links that would delay deletion
+                hasOtherTypesCursor = getContentResolver().query(
                         MovieContract.MovieEntry.CONTENT_URI,
-                        where,
-                        whereArgs);  // TODO: Maybe set a boolean that will be returned to Main saying delete this ID and restartLoader
-            }
+                        favElseProjections,
+                        favElseWhere,
+                        new String[]{"" + mIDForMovie},
+                        null
+                );
 
-            if (hasOtherTypesCursor != null) {
-                hasOtherTypesCursor.close();
+                // If has other types, then update
+                if ((hasOtherTypesCursor != null)
+                        && (hasOtherTypesCursor.moveToFirst())) {
+                    simpleUpdate(heartContentValues, where, whereArgs);
+                } else { // Else delete since no other links.  Must delete to restrict zombie ids in DB
+                    getContentResolver().delete(
+                            MovieContract.MovieEntry.CONTENT_URI,
+                            where,
+                            whereArgs);  // TODO: Maybe set a boolean that will be returned to Main saying delete this ID and restartLoader
+                }
+            } finally {
+                if ((hasOtherTypesCursor != null)
+                        && (! hasOtherTypesCursor.isClosed())){
+                    hasOtherTypesCursor.close();
+                }
             }
 
         }
@@ -353,7 +669,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         }
 
 
-        long tmpID = Long.parseLong(mUri.getLastPathSegment());  // General
+        mIDForMovie = Long.parseLong(mUri.getLastPathSegment());  // Needed to get ID here instead of normal location for Loaders
 
         // Text for when there are no reviews
 //        mNoReviewTextView = findViewById(R.id.tv_review_empty);
@@ -369,7 +685,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mReviewAdapter = new ReviewAdapter(this, mViewType);
         mActivityDetailBinding.rvHorizontalLinearReviews.setAdapter(mReviewAdapter);
 
-        setReviewRecyclerViewForID(tmpID);
+//        setReviewRecyclerViewForID(mIDForMovie);
+        loadReviews(mIDForMovie);
 
         // Media RecyclerView
 //        mNoMediaTextView = findViewById(R.id.tv_media_empty);
@@ -387,7 +704,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         mMediaAdapter = new MediaAdapter(this);
         mActivityDetailBinding.rvHorizontalLinearMedia.setAdapter(mMediaAdapter);
 
-        setMediaRecyclerViewForID(tmpID);
+        loadYoutubes(mIDForMovie);
+//        setMediaRecyclerViewForID(mIDForMovie);
 
 
         setRecyclerViewBackgroundByType();  // General
@@ -483,7 +801,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mActivityDetailBinding.textViewRuntimeTitle.setTextColor(ms.getTextColor());
                 mActivityDetailBinding.textViewReleaseTitle.setTextColor(ms.getTextColor());
                 mActivityDetailBinding.textViewSynopsisTitle.setTextColor(ms.getTextColor());
-                mActivityDetailBinding.textViewReviewsTitle.setTextColor(ms.getTextColor());
+                mActivityDetailBinding.textViewReviewsTitle.setTextColor(ms.getTextColor());  // TODO: Add Media/Nos/
+                mActivityDetailBinding.textViewMediaTitle.setTextColor(ms.getTextColor());  // TODO: Add Media/Nos/
 
                 // Text Background Colors for Favorites
                 mActivityDetailBinding.textViewRatingTitle.setBackgroundColor(ms.getTextBackgroundColor());
@@ -491,6 +810,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                 mActivityDetailBinding.textViewReleaseTitle.setBackgroundColor(ms.getTextBackgroundColor());
                 mActivityDetailBinding.textViewSynopsisTitle.setBackgroundColor(ms.getTextBackgroundColor());
                 mActivityDetailBinding.textViewReviewsTitle.setBackgroundColor(ms.getTextBackgroundColor());
+                mActivityDetailBinding.textViewMediaTitle.setBackgroundColor(ms.getTextBackgroundColor());
 
                 // Background Drawables for Favorites
                 mActivityDetailBinding.rvHorizontalLinearReviews.setBackground(ContextCompat
@@ -499,6 +819,9 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
             }
 
             loadMovieImage();
+
+            setNoReviewText(); // TODO: Put here so
+            setNoMediaText();
 
             HEART_DISABLED = savedInstanceState.getBoolean(HEART_DISABLED_KEY);
 //            mHeartCheckboxView.setEnabled(! HEART_DISABLED);  //
@@ -554,8 +877,8 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * NOTE FOR RECYCLERVIEW CURSOR: There is one small bug in this code. If no data is present in the cursor do to an
      * initial load being performed with no access to internet, the loading indicator will show
      * indefinitely, until data is present from the ContentProvider.
-     * @param loader
-     * @param data
+     * @param loader - Can get which loader it is from here
+     * @param data - Result of onCreateLoader-deliverResult
      */
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -665,6 +988,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         setNoReviewText();
         setNoMediaText();
 
+
 //        data.close();  // Closing cursor here caused crash on rotation
 
     }
@@ -724,16 +1048,21 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     return;
                 }
 
-                if ((cursor.moveToFirst())
-                        && (reviewAdapter != null)) {
-                    reviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
-                    detailActivity.showRecyclerView(true);
+                boolean noSwap = false;
+                try {
+                    if ((cursor.moveToFirst())
+                            && (reviewAdapter != null)) {
+                        reviewAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                        detailActivity.showRecyclerView(true);
 
-                } else {
-                    if (! cursor.isClosed()) {
+                    } else {
+                        detailActivity.showRecyclerView(false);
+                        noSwap = true;
+                    }
+                } finally {
+                    if ( ( ! cursor.isClosed() ) && (noSwap)) {
                         cursor.close();
                     }
-                    detailActivity.showRecyclerView(false);
                 }
 
             }
@@ -772,16 +1101,22 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
                     return;
                 }
 
-                if ((cursor.moveToFirst())
-                        && (mediaAdapter != null)) {
-                    mediaAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
-                    detailActivity.showMediaRecyclerView(true);
+                boolean noSwap = false;
+                try {
+                    if ((cursor.moveToFirst())
+                            && (mediaAdapter != null)) {
+                        mediaAdapter.swapCursor(cursor);  // May have 2 send ViewType in later if send BG for ImageView
+                        detailActivity.showMediaRecyclerView(true);
 
-                } else {
-                    if (! cursor.isClosed()) {
+                    } else {
+                        detailActivity.showMediaRecyclerView(false);
+                        noSwap = true;  // We know we will not be cutting off adapter
+                    }
+                }
+                finally {
+                    if ((! cursor.isClosed()) && (noSwap) ) {
                         cursor.close();  // We know it exists
                     }
-                    detailActivity.showMediaRecyclerView(false);
                 }
 
             }
@@ -811,7 +1146,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      * Result sent to Callback for AsyncQueryTask
      */
     private void reviewsForMovie(ReviewQueryHandler queryHandler, long movieID) {
-        Uri joinEntryUri = MovieContract.JoinEntry.CONTENT_URI;
+        Uri joinEntryUri = MovieContract.joineReviewEntry.CONTENT_URI;
         String[] projection = new String[] {
                 ReviewEntry.REVIEW_ID,
                 ReviewEntry.AUTHOR,
@@ -980,7 +1315,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
      */
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mReviewAdapter.swapCursor(null);
+        mReviewAdapter.swapCursor(null);  // TODO: Add? MediaAdapter, or remove this?  Place in other
     }
 
     @Override

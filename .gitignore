@@ -43,6 +43,9 @@ project.properties
 ## The Movie DB API Key for Popular Movies Project for Udacity
 apiTmd.key
 
+## The Youtube Data API Key for accesss to Youtube
+youtubeDataAPI.key
+
 ##Gradle-based build
 .gradle
 build/
